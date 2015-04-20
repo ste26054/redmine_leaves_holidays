@@ -1,0 +1,21 @@
+<!-- <div class="contextual">
+<%= call_hook(:view_my_account_contextual, :user => @user)%>
+</div> -->
+<%= form_tag do %>
+<% html_title(l(:label_my_account)) -%>
+<fieldset>
+<legend><%= l(:label_leaves_page_description) %></legend>
+
+<p><%= l(:label_leave_period_absence) %></p>
+<p><%= l(:label_leave_from) %><%= text_field_tag :leave_from %><%= calendar_for(:leave_from) %>
+	<%= l(:label_leave_to) %><%= text_field_tag :leave_to %><%= calendar_for(:leave_to) %></p>
+
+<p></p>
+<p><%= l(:label_leave_half_full_day) %>
+	<%= radio_button_tag(:leave_time, l(:label_leave_half_day)) %>
+	<%= label_tag(:leave_half_day, l(:label_leave_half_day)) %>
+	<%= radio_button_tag(:leave_time, l(:label_leave_full_day)) %>
+	<%= label_tag(:leave_full_day, l(:label_leave_full_day)) %>
+</p>
+</fieldset>
+<% end %>

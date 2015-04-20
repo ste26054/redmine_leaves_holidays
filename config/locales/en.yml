@@ -1,4 +1,14 @@
 # English strings go here for Rails i18n
 en:
   # my_label: "My label"
+  label_leaves_page_description: "On this page, you can manage / view your leaves"
   button_leaves_holidays: "Leaves / Holidays"
+  label_leave_period_absence: "Period of Absence (Inclusive):"
+  label_leaves_default_working_hours: "Default Working Hours / Day"
+  label_leave_from: "From: "
+  label_leave_to: "Until: "
+  label_leave_half_full_day: "Half Day / Full Day (Tick the correct box):"
+  label_leave_half_day: "Half day"
+  label_leave_full_day: "Full day"
+  label_leave_reason: "Reason"
+  label_leave_comments: "Comments"

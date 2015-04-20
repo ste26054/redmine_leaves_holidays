@@ -1,10 +1,21 @@
 <fieldset>
-  <legend><%= l(:label_tracker_plural) %></legend>
-  
-<%- trackers = Tracker.all.collect{|t| [t.name, t.id]} -%>
-  <p>
-    <label><%= l(:label_tracker_plural) %>:</label>
-    <%- options = options_for_select(trackers, RedmineAdminMonitor::Setting.default_tracker_id) -%>
-    <%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
-  </p>
-  </fieldset>
+	<legend><%= "Plugin parameters" %></legend>
+	<%- trackers = Tracker.all.collect{|t| [t.name, t.id]} -%>
+	<p>
+		<label><%= l(:label_tracker) %>:</label>
+		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.default_tracker_id) -%>
+		<%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
+	</p>
+
+	<%- projects = Project.all.collect{|t| [t.name, t.id]} -%>
+	<p>
+		<label><%= l(:label_project) %>:</label>
+		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.default_project_id) -%>
+		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
+	</p>
+
+	<p>
+		<label><%= l(:label_leaves_default_working_hours) %>:</label>
+		<%= number_field_tag 'settings[default_working_hours_day]', RedmineLeavesHolidays::Setting.working_hours_day, :min => 0, :max => 12, :step => 0.1 %>
+	</p>
+</fieldset>
