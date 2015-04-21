@@ -1,7 +1,7 @@
 # English strings go here for Rails i18n
 en:
   # my_label: "My label"
-  label_leaves_page_description: "On this page, you can manage / view your leaves"
+  label_leaves_page_description: "Make a new leave"
   button_leaves_holidays: "Leaves / Holidays"
   label_leave_period_absence: "Period of Absence (Inclusive):"
   label_leaves_default_working_hours: "Default Working Hours / Day"

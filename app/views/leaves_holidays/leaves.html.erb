@@ -1,0 +1,6 @@
+<% html_title(l(:label_my_account)) -%>
+
+<%= form_tag( { :action => 'create_leave' }) do %>
+	<%= render :partial => 'leaves' %>
+	<%= submit_tag l(:button_create) %>
+<% end %>

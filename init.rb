@@ -1,4 +1,6 @@
 require 'redmine'
+require 'LeavesHolidaysLogic'
+require_dependency 'leavesHolidaysTools'
 
 Redmine::Plugin.register :redmine_leaves_holidays do
   name 'Redmine Leaves Holidays plugin'
@@ -6,25 +8,11 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   description 'This is a plugin for Redmine'
   version '0.0.1'
 
-  settings :default => {:default_tracker_id => "1"}, :partial => "settings/leaves_holidays_settings"
+  settings :default => {:default_tracker_id => "1", :default_project_id => "1", :default_working_hours_day => "7.4"}, :partial => "settings/leaves_holidays_settings"
 end
 
-ActionDispatch::Callbacks.to_prepare do
-	require_dependency 'project'
-	require_dependency 'principal'
-	require_dependency 'user'
+# ActionDispatch::Callbacks.to_prepare do
+# 	require 'redmine_leaves_holidays'
+# end
 
-	MyController.send(:include,  LeavesHolidaysPlugin::MyControllerPatch)
-	# User.send(:include,  LeavesHolidaysPlugin::UsersLeavesPatch)
-	# UsersController.send(:include,  LeavesHolidaysPlugin::UsersControllerPatch)
-	# UsersHelper.send(:include,  LeavesHolidaysPlugin::UsersHelperPatch)
-end
-
-require 'leaves_holidays'
-
-require "my_controller_patch.rb"
-# require "users_leaves_patch.rb"
-# require "users_controller_patch.rb"
-# require "users_helper_leaves_patch.rb"
-# hooks
 require_dependency 'redmine_leaves_holidays/hooks'
