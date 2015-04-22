@@ -11,11 +11,13 @@
 
 		<p>
 			<%= l(:label_leave_half_full_day) %>
-			<%= radio_button_tag(:leave_time, "HALF") %>
-			<%= label_tag(:leave_half_day, l(:label_leave_half_day)) %>
-			<%= radio_button_tag(:leave_time, "FULL") %>
-			<%= label_tag(:leave_full_day, l(:label_leave_full_day)) %>
+			<%= check_box_tag(:leave_time_am) %>
+			<%= label_tag(:leave_time_am, l(:label_leave_am)) %>
+			<%= check_box_tag(:leave_time_pm) %>
+			<%= label_tag(:leave_time_pm, l(:label_leave_pm)) %>
 		</p>
+
+
 		<p>
 			<label><%= l(:label_leave_reason) %>:</label>
 			<%- options = options_for_select(@issues_list) -%>

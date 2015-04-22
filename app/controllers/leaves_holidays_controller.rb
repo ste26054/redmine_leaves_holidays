@@ -2,6 +2,7 @@ class LeavesHolidaysController < ApplicationController
 	unloadable	
 	 include LeavesHolidaysLogic
 
+	 @@errors = nil
 	# before_filter :issues_list
 
 		def leaves
@@ -11,9 +12,16 @@ class LeavesHolidaysController < ApplicationController
 		end
 
 		def create_leave
-			@test = LeavesHolidaysTools::new()
-			@test.issue_correct?
-			redirect_to :action => 'leaves'
+			@test = LeavesHolidaysTools::new(:leave_from => params[:leave_from],
+											 :leave_to => params[:leave_to],
+											 :issue_id => params[:issue_selected]	)
+			
+			unless @test.valid?
+				@@errors = @test.errors.messages
+				Rails.logger.info "TEST: #{@test.valid?}"
+			end
+			
+			 redirect_to :action => 'leaves'
 		end
 
 

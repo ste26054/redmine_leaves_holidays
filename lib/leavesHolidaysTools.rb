@@ -2,26 +2,32 @@ class LeavesHolidaysTools
 	include ActiveModel::Model
 	include LeavesHolidaysLogic
 
-	attr_accessor :from_date, :to_date, :issue_id, :comments, :half_day_choice
+	attr_accessor :leave_from, :leave_to, :issue_id #, :comments, :half_day_choice
 
-	validates :from_date, :date => true
-	validates :to_date, :date => true
-
+	validates :leave_from, :presence => true
+	validates :leave_to, :presence => true
+	validates :issue_id, :presence => true
 
 	validate :validate_date_period
 
-	def issue_correct?
-		Rails.logger.info "CALLED ISSUE CORRECT #{issues_list}"
-	end
-	
 	private
 
 	def validate_date_period
-		if to_date < from_date
-			errors.add :to_date, :greater_than_from_date
-		end
-	end
 
+		begin
+			from = Date.parse(leave_from)
+			to = Date.parse(leave_to)
+
+			if to < from
+				errors.add :leave_to, :greater_than_leave_from
+			end
+		rescue ArgumentError
+			errors.add(:leave_from, "Invalid date")
+			errors.add(:leave_to, "Invalid date")
+		end
+
+		
+	end
 	
 
 end

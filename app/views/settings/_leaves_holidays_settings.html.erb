@@ -16,6 +16,11 @@
 
 	<p>
 		<label><%= l(:label_leaves_default_working_hours) %>:</label>
-		<%= number_field_tag 'settings[default_working_hours_day]', RedmineLeavesHolidays::Setting.working_hours_day, :min => 0, :max => 12, :step => 0.1 %>
+		<%= number_field_tag 'settings[default_working_hours_week]', RedmineLeavesHolidays::Setting.working_hours_week, :min => 0, :max => 90, :step => 1 %>
+	</p>
+
+	<p>
+		<label><%= l(:label_leaves_default_days_year) %>:</label>
+		<%= number_field_tag 'settings[default_days_leaves_year]', RedmineLeavesHolidays::Setting.days_leaves_year, :min => 0, :step => 1 %>
 	</p>
 </fieldset>
