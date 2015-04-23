@@ -1,0 +1,34 @@
+<div>
+	<fieldset>
+		<legend><%= l(:label_leaves_page_description) %></legend>
+
+		<p><%= l(:label_leave_period_absence) %></p>
+		
+		<p>
+			<%= l(:label_leave_from) %><%= f.text_field :from_date %><%= calendar_for('leave_request_from_date') %>
+			<%= l(:label_leave_to) %><%= f.text_field :to_date %><%= calendar_for('leave_request_to_date') %>
+		</p>
+
+		<p>
+			<%= l(:label_leave_half_full_day) %>
+			<%= f.check_box :leave_time_am %>
+			<%= label_tag(:leave_time_am, l(:label_leave_am)) %>
+			<%= f.check_box :leave_time_pm %>
+			<%= label_tag(:leave_time_pm, l(:label_leave_pm)) %>
+		</p>
+
+		<p>
+			<label><%= l(:label_leave_reason) %>:</label>
+ 			<%- options = options_for_select(@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
+			<%= f.select :issue_id, options, :multiple => false, :prompt => "Please select" %>
+<!-- 				<%= f.select(:issue_id, @issues_trackers.collect {|a| [a.subject, a.id]}) -%> -->
+		</p>
+
+		<p>
+			<label><%= l(:label_leave_comments) %>:</label>
+			<%= f.text_field :comments, {:size => 75 } %>
+		</p>
+
+
+	</fieldset>
+</div>

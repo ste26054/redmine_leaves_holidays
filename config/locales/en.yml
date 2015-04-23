@@ -3,6 +3,7 @@ en:
   # my_label: "My label"
   label_leaves_page_description: "Create a new Leave Request"
   button_leaves_holidays: "Leaves / Holidays"
+  label_leave_create_request: "Create new leave request"
   label_leave_period_absence: "Period of Absence (Inclusive):"
   label_leaves_default_working_hours: "Default Working Hours / Week"
   label_leave_from: "From: "
