@@ -16,26 +16,13 @@ class LeaveRequestsController < ApplicationController
   end
 
   def create
-  	params[:leave_request][:user_id] = User.current.id
-
-	@leave = LeaveRequest.new(params[:leave_request])
+	@leave = LeaveRequest.new(leave_request_params)
 	@issues_trackers = issues_list
 	if @leave.save
-		redirect_to :action => 'index'
+		redirect_to @leave #:action => 'index'
 	else
-		render :action => 'new'
+		render :new
 	end
-  	# redirect_to :action => 'new', :via => :get
-  	# Rails.logger.info "BEFORE SAVE"
-  	# if @leave.save
-   #    Rails.logger.info 'leave was successfully created.'
-   #    redirect_to :action => 'index'
-   #  else
-   #    Rails.logger.info 'ERROR WHILE CREATING LEAVE'
-   #    Rails.logger.info "ERROR MESSAGES: #{@leave.errors.full_messages}"
-   #    redirect_to :action => 'new'
-   #  end
-   	
   end
 
   def show
@@ -48,5 +35,11 @@ class LeaveRequestsController < ApplicationController
   end
 
   def destroy
+  end
+
+  private
+
+  def leave_request_params
+  	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm)
   end
 end

@@ -1,23 +1,4 @@
 <h2>LeaveRequestController#new</h2>
 
+<%= render 'form' %>
 
-<% html_title(l(:label_my_account)) -%>
-
-<%= form_for @leave, url: {action: "create"} do |f| %>
-	
-	<div class="box tabular">
-
-	<% if @leave.errors.any? %>
-	<div class="flash">
-		<ul>
-	  		<% @leave.errors.full_messages.each do |msg| %>
-	    		<li><%= msg %></li>
-	  		<% end %>
-		</ul>
-	</div>
-	<% end %>
-	</div>
-
-	<%= render :partial => 'form', :locals => {:f => f} %>
-	<%= f.submit l(:label_leave_create_request) %>
-<% end %>

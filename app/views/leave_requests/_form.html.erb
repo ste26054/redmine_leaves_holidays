@@ -1,3 +1,21 @@
+
+<% html_title(l(:label_my_account)) -%>
+
+<%= form_for @leave, url: {action: "create"} do |f| %>
+	
+	<div class="box tabular">
+
+	<% if @leave.errors.any? %>
+	<div class="flash">
+		<ul>
+	  		<% @leave.errors.full_messages.each do |msg| %>
+	    		<li><%= msg %></li>
+	  		<% end %>
+		</ul>
+	</div>
+	<% end %>
+	</div>
+
 <div>
 	<fieldset>
 		<legend><%= l(:label_leaves_page_description) %></legend>
@@ -32,3 +50,6 @@
 
 	</fieldset>
 </div>
+
+	<%= f.submit l(:label_leave_create_request) %>
+<% end %>

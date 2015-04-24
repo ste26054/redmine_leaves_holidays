@@ -1,6 +1,5 @@
 require 'redmine'
 require 'LeavesHolidaysLogic'
-require_dependency 'leavesHolidaysTools'
 
 Redmine::Plugin.register :redmine_leaves_holidays do
   name 'Redmine Leaves Holidays plugin'
