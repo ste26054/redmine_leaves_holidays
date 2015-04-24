@@ -4,6 +4,7 @@ class LeaveRequest < ActiveRecord::Base
   
   belongs_to :user
   belongs_to :issue
+  has_one :leave_status
 
   before_validation :set_user
 
@@ -24,6 +25,18 @@ class LeaveRequest < ActiveRecord::Base
 
   attr_accessor :leave_time_am, :leave_time_pm
   attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type
+
+  scope :for_user, ->(uid) { where('user_id = ?', uid) }
+  scope :pending, -> { where(request_status: "pending") }
+  scope :processed, -> { where(request_status: "processed") }
+
+  def has_am?
+    return self.request_type == "am" || self.request_type == "ampm"
+  end
+
+  def has_pm?
+    return self.request_type == "pm" || self.request_type == "ampm"
+  end
 
 	private
 

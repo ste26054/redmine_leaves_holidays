@@ -1,7 +1,7 @@
 
 <% html_title(l(:label_my_account)) -%>
 
-<%= form_for @leave, url: {action: "create"} do |f| %>
+<%= form_for(@leave) do |f| %>
 	
 	<div class="box tabular">
 
@@ -37,7 +37,7 @@
 
 		<p>
 			<label><%= l(:label_leave_reason) %>:</label>
- 			<%- options = options_for_select(@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
+ 			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
 			<%= f.select :issue_id, options, :multiple => false, :prompt => "Please select" %>
 <!-- 				<%= f.select(:issue_id, @issues_trackers.collect {|a| [a.subject, a.id]}) -%> -->
 		</p>
@@ -51,5 +51,5 @@
 	</fieldset>
 </div>
 
-	<%= f.submit l(:label_leave_create_request) %>
+	<%= f.submit l(:label_leave_create_request), data: { confirm: 'Are you sure?' } %>
 <% end %>

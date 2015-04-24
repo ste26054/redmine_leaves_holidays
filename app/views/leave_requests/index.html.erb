@@ -1,5 +1,10 @@
 <h2>LeaveRequestController#index</h2>
 
+	<% if User.current.allowed_to?(:manage_leaves_requests, nil, :global => true) %>
+		<h2>ALLOWED</h2>
+	<% else %>
+		<h2>NOT ALLOWED</h2>
+	<% end %>
 <% @leave_requests.each do |leave_request| %>
 <p><%=h leave_request.id %></p>
 
