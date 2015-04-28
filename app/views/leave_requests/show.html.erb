@@ -1,1 +1,48 @@
 <h2>LeaveRequestController#show</h2>
+
+<p>
+	<strong><%= l(:label_leave_id) %></strong>
+	<%= @leave.id %>
+</p>
+<p>
+	<strong><%= l(:label_leave_creator) %></strong>
+	<%= @leave.user.name %>
+</p>
+<p>
+	<strong>Leave From:</strong>
+	<%= @leave.from_date %>
+</p>
+<p>
+	<strong>Leave Until:</strong>
+	<%= @leave.to_date %>
+</p>
+<p>
+	<strong><%= l(:label_leave_comments) %></strong>
+	<%= @leave.comments %>
+</p>
+<p>
+	<strong>Leave AM/PM:</strong>
+	<%= @leave.request_type %>
+</p>
+<p>
+	<strong>Leave Reason:</strong>
+	<%= @leave.issue.subject %>
+</p>
+<p>
+	<strong>Created on:</strong>
+	<%= @leave.created_at %>
+</p>
+<p>
+	<strong>Last updated:</strong>
+	<%= @leave.updated_at %>
+</p>
+
+<p>
+	<strong>Leave Status:</strong>
+	<%= @leave.request_status %>
+</p>
+
+
+<%= link_to 'Edit', edit_leave_request_path(@leave) %>
+<%= link_to 'Back', leave_requests_path %>
+<%= link_to 'Manage', leave_request_leave_statuses_url(@leave) %>

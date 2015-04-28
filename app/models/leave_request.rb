@@ -21,14 +21,17 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_set_request_type
    validate :validate_date_period
    validate :validate_issue
+   validate :validate_overlaps
    
 
   attr_accessor :leave_time_am, :leave_time_pm
   attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type
 
   scope :for_user, ->(uid) { where('user_id = ?', uid) }
+  scope :overlaps, ->(fr, to) { where("(DATEDIFF(from_date, ?) * DATEDIFF(?, to_date)) >= 0", to, fr) }
   scope :pending, -> { where(request_status: "pending") }
   scope :processed, -> { where(request_status: "processed") }
+
 
   def has_am?
     return self.request_type == "am" || self.request_type == "ampm"
@@ -37,6 +40,7 @@ class LeaveRequest < ActiveRecord::Base
   def has_pm?
     return self.request_type == "pm" || self.request_type == "ampm"
   end
+
 
 	private
 
@@ -75,6 +79,14 @@ class LeaveRequest < ActiveRecord::Base
 
   def set_user
     self.user_id = User.current.id
+  end
+
+  def validate_overlaps
+    overlapping = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
+
+    if overlapping.empty? == false
+      errors.add(:base, "You have a leave overlapping the current one. Id: #{overlapping.first.id} From: #{overlapping.first.from_date}, To: #{overlapping.first.to_date}")
+    end
   end
 	
 end

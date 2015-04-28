@@ -23,4 +23,11 @@
 		<label><%= l(:label_leaves_default_days_year) %>:</label>
 		<%= number_field_tag 'settings[default_days_leaves_year]', RedmineLeavesHolidays::Setting.days_leaves_year, :min => 0, :step => 1 %>
 	</p>
+
+	<%- users = User.where(status: 1).collect{|t| [t.name, t.id]} -%>
+	<p>
+		<label><%= l(:label_plugin_admins) %></label>
+		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.plugin_admins) -%>
+		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10 %>
+	</p>
 </fieldset>

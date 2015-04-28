@@ -1,0 +1,2 @@
+module LeaveStatusesHelper
+end

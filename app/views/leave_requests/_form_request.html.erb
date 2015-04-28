@@ -1,10 +1,7 @@
 
-<% html_title(l(:label_my_account)) -%>
-
 <%= form_for(@leave) do |f| %>
 	
 	<div class="box tabular">
-
 	<% if @leave.errors.any? %>
 	<div class="flash">
 		<ul>
@@ -51,5 +48,5 @@
 	</fieldset>
 </div>
 
-	<%= f.submit l(:label_leave_create_request), data: { confirm: 'Are you sure?' } %>
+	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %>
 <% end %>

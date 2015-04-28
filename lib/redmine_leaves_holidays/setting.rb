@@ -15,5 +15,9 @@ module RedmineLeavesHolidays
 	    def self.days_leaves_year
 	    	::Setting.plugin_redmine_leaves_holidays[:default_days_leaves_year]
 	    end
+
+	    def self.plugin_admins
+	    	::Setting.plugin_redmine_leaves_holidays[:default_plugin_admins]
+	    end
 	end
 end

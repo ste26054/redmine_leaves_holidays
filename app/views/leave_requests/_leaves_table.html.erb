@@ -1,0 +1,28 @@
+	<table>
+		<thead>
+			<th>Id</th>
+			<th>Leave From</th>
+			<th>Leave To</th>
+			<th>Reason</th>
+			<th>Comments</th>
+			<th>Type</th>
+			<th>Status</th>
+			<th colspan="1"></th>
+		</thead>
+
+		<tbody>
+			<% @leave_requests.each do |leave_request| %>
+				<tr class="<%= cycle("odd", "even") %>">
+					<td><%= leave_request.id %></td>
+					<td><%= leave_request.from_date %></td>
+					<td><%= leave_request.to_date %></td>
+					<td><%= leave_request.issue.subject %></td>
+					<td><%= leave_request.comments %></td>
+					<td><%= leave_request.request_type %></td>
+					<td><%= leave_request.request_status %></td>
+					<td><%= link_to 'Show', leave_request %></td>
+					<td><%= link_to 'Edit', edit_leave_request_path(leave_request) %></td>
+				</tr>
+			<% end %>
+		</tbody>
+	</table>
