@@ -1,4 +1,4 @@
-<%= form_for [@leave, @status] do |f| %>
+<%= form_for [@leave, @status], :url => leave_request_leave_statuses_path do |f| %>
 	
  	<div class="box tabular">
 		<% if @status.errors.any? %>

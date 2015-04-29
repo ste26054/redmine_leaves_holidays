@@ -4,6 +4,7 @@ class LeaveStatus < ActiveRecord::Base
   belongs_to :user
   belongs_to :leave_request
 
+  before_destroy :set_pending
   before_validation :set_user
 
 
@@ -14,6 +15,11 @@ class LeaveStatus < ActiveRecord::Base
   validates :acceptance_status, presence: true
 
   attr_accessible :acceptance_status, :leave_request_id, :comments
+
+  scope :rejected, -> { where(acceptance_status: "0") }
+  scope :accepted, -> { where(acceptance_status: "1") }
+  scope :processed_by_user, ->(uid) { where('user_id = ?', uid) }
+  scope :for_request, ->(rid) { where('leave_request_id = ?', rid) }
 
 
   private
@@ -37,6 +43,13 @@ class LeaveStatus < ActiveRecord::Base
 
   def set_user
     self.user_id = User.current.id
+  end
+
+  def set_pending
+    if LeaveRequest.where(:id => self.leave_request_id).any?
+      req = LeaveRequest.find(self.leave_request_id)
+      req.update_attribute(:request_status, "pending")
+    end
   end
 
 

@@ -4,7 +4,7 @@ class LeaveRequest < ActiveRecord::Base
   
   belongs_to :user
   belongs_to :issue
-  has_one :leave_status
+  has_one :leave_status, dependent: :destroy
 
   before_validation :set_user
 
@@ -29,8 +29,8 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where('user_id = ?', uid) }
   scope :overlaps, ->(fr, to) { where("(DATEDIFF(from_date, ?) * DATEDIFF(?, to_date)) >= 0", to, fr) }
-  scope :pending, -> { where(request_status: "pending") }
-  scope :processed, -> { where(request_status: "processed") }
+  scope :pending, -> { where(request_status: "0") }
+  scope :processed, -> { where(request_status: "1") }
 
 
   def has_am?
@@ -82,11 +82,18 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_overlaps
-    overlapping = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
-
-    if overlapping.empty? == false
-      errors.add(:base, "You have a leave overlapping the current one. Id: #{overlapping.first.id} From: #{overlapping.first.from_date}, To: #{overlapping.first.to_date}")
+    overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
+    
+    overlaps.pending.find_each do |p|
+      errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
     end
+
+    overlaps.processed.find_each do |p|
+      LeaveStatus.for_request(p.id).accepted.find_each do |a|
+        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
+      end
+    end
+
   end
 	
 end

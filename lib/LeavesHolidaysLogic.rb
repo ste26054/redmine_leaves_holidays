@@ -11,11 +11,21 @@ module LeavesHolidaysLogic
 		Role.find_all_givable.sort.collect{|t| [position: t.position, id: t.id, name: t.name] }
 	end
 
-	def is_allowed_to_view(user, request)
-
+	def self.is_allowed_to_view_request(user, request)
+		return false unless user.id == request.user.id
+		true
 	end
 
-	def is_allowed_to_manage(user, request)
+	def self.is_allowed_to_manage_request(user, request)
+		return false unless self.is_allowed_to_view_request(user, request)
+		true
+	end
 
+	def self.is_allowed_to_view_status(user, request)
+		true
+	end
+
+	def self.is_allowed_to_manage_status(user, request)
+		true
 	end
 end

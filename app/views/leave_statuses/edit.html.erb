@@ -1,1 +1,4 @@
 <h2>LeaveStatusController#edit</h2>
+
+<%= render 'form_manage' %>
+<%= link_to 'Destroy', leave_request_leave_statuses_path(@status), method: :delete, data: { confirm: 'Are you sure?' } %>

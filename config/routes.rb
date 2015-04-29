@@ -5,6 +5,6 @@ RedmineApp::Application.routes.draw do
 	#  match 'leaves_holidays', :to => 'leaves_holidays#create_leave', :via => :post
 	# get 'leaves', :to => 'leave_request#index'
 	resources :leave_requests do
-		resources :leave_statuses
+		resource :leave_statuses
 	end
 end

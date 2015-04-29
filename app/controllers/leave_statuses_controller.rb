@@ -5,15 +5,14 @@ class LeaveStatusesController < ApplicationController
   before_action :set_leave_status
 
 
-  def index
-  end
-
   def new
     Rails.logger.info "IN STATUSES NEW"
-    @leave = LeaveRequest.find(params[:leave_request_id])
-    # @status = LeaveStatus.new if @status == nil
+     # @leave = LeaveRequest.find(params[:leave_request_id])
+     # @status = LeaveStatus.new if @status == nil
+     Rails.logger.info "STATUS: #{@status}, LEAVE: #{@leave}"
     if @status != nil
-      render_403
+      # redirect_to leave_request_leave_status_path
+      redirect_to edit_leave_request_leave_statuses_path
     else
       @status = LeaveStatus.new
     end
@@ -28,11 +27,10 @@ class LeaveStatusesController < ApplicationController
 
     if @status.save
        @leave.update_attribute(:request_status, "processed")
-    #   # @status = LeaveStatus.new
-    #   # @leave.leave_status = @status
-       redirect_to @leave #:action => 'index'
+
+       redirect_to @leave
     else
-       render :action => 'new'
+       redirect_to new_leave_request_leave_statuses_path
     end
   end
 
@@ -43,9 +41,16 @@ class LeaveStatusesController < ApplicationController
   end
 
   def update
+    if @status.update(leave_status_params)
+       redirect_to @leave
+    else
+       redirect_to edit_leave_request_leave_statuses_path
+    end
   end
 
   def destroy
+      @status.destroy
+      redirect_to @leave
   end
 
   private
@@ -55,16 +60,24 @@ class LeaveStatusesController < ApplicationController
   end
 
   def set_leave_status
-    @status = LeaveStatus.where(leave_request_id: @leave.id).first
+    @status = LeaveStatus.where(leave_request_id: @leave.id).first if @status == nil
     Rails.logger.info "IN SET LEAVE STATUS: LEAVE ID: #{@leave.id}, STATUS: #{@status}"
   end
 
   def set_leave_request
-    @leave = LeaveRequest.where(id: params[:leave_request_id]).first
+    @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
     Rails.logger.info "SET LEAVE REQUEST: #{@leave}"
     if @leave == nil
-      render_403
+      render_404
     end
+  end
+
+  def view_status
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave)
+  end
+
+  def manage_status
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave)
   end
 
 end
