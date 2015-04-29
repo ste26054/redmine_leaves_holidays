@@ -2,6 +2,7 @@ class LeaveRequestsController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy]
+  before_action :set_status, only: [:show]
   before_action :view_request, only: [:show]
   before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
@@ -58,13 +59,20 @@ class LeaveRequestsController < ApplicationController
   	end
   end
 
+  def set_status
+    if @leave.request_status == "processed"
+      Rails.logger.info "LEAVE WAS ALREADY PROCESSED"
+      @status = LeaveStatus.for_request(@leave.id).first if @status == nil
+    end
+  end
+
   def set_checkboxes
   	@leave.leave_time_am = @leave.has_am?
   	@leave.leave_time_pm = @leave.has_pm?
   end
 
   def set_issue_trackers
-  	@issues_trackers = issues_list
+  	@issues_trackers = LeavesHolidaysLogic.issues_list
   end
 
   def leave_request_params

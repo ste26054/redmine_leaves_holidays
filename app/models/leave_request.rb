@@ -55,7 +55,7 @@ class LeaveRequest < ActiveRecord::Base
 	end
 
 	def validate_issue
-		if issue_id != nil && !((issues_list.collect {|t| t.id }).include?( issue_id))
+		if issue_id != nil && !((LeavesHolidaysLogic.issues_list.collect {|t| t.id }).include?( issue_id))
 			errors.add(:issue, "is invalid")
 		end
 	end

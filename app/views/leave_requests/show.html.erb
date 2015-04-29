@@ -42,6 +42,9 @@
 	<%= @leave.request_status %>
 </p>
 
+<% if @leave.request_status == "processed" && LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave) %>
+	<%= render :partial => '/leave_statuses/status' %>
+<% end %>
 
 <%= link_to 'Edit', edit_leave_request_path(@leave) %>
 <%= link_to 'Back', leave_requests_path %>

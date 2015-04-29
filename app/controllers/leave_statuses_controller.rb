@@ -3,13 +3,13 @@ class LeaveStatusesController < ApplicationController
   include LeavesHolidaysLogic
   before_action :set_leave_request
   before_action :set_leave_status
+  before_action :view_status, only: [:show]
+  before_action :manage_status
 
 
   def new
-    Rails.logger.info "IN STATUSES NEW"
      # @leave = LeaveRequest.find(params[:leave_request_id])
      # @status = LeaveStatus.new if @status == nil
-     Rails.logger.info "STATUS: #{@status}, LEAVE: #{@leave}"
     if @status != nil
       # redirect_to leave_request_leave_status_path
       redirect_to edit_leave_request_leave_statuses_path
@@ -21,7 +21,6 @@ class LeaveStatusesController < ApplicationController
   def create
     @leave = LeaveRequest.find(params[:leave_request_id])
 
-    Rails.logger.info "IN STATUSES CREATE"
     @status = LeaveStatus.new(leave_status_params) if @status == nil
     @status.leave_request = @leave
 
@@ -61,12 +60,10 @@ class LeaveStatusesController < ApplicationController
 
   def set_leave_status
     @status = LeaveStatus.where(leave_request_id: @leave.id).first if @status == nil
-    Rails.logger.info "IN SET LEAVE STATUS: LEAVE ID: #{@leave.id}, STATUS: #{@status}"
   end
 
   def set_leave_request
     @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
-    Rails.logger.info "SET LEAVE REQUEST: #{@leave}"
     if @leave == nil
       render_404
     end
