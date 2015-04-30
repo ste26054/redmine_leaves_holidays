@@ -1,9 +1,15 @@
-<h2>LeaveRequestController#index</h2>
+<h1>Leaves Dashboard</h1>
 
-<h1>My leaves:</h1>
+
+<h3>Users able to approve your leaves:</h3>
+<% @approvers.each do |i| %>
+	<p>
+		<%= i[:name] %>
+	</p>
+<% end %>
 
 <div class="tabular">
-<%= render 'leaves_table' %>
+	<%= render 'leaves_table' %>
 </div>
 
 

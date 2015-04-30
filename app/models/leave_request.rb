@@ -7,6 +7,7 @@ class LeaveRequest < ActiveRecord::Base
   has_one :leave_status, dependent: :destroy
 
   before_validation :set_user
+  before_update :validate_update
 
   enum request_status: { pending: 0, processed: 1 }
   enum request_type: { am: 0, pm: 1, ampm: 2 }
@@ -22,16 +23,25 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_date_period
    validate :validate_issue
    validate :validate_overlaps
+   validate :validate_update
    
 
   attr_accessor :leave_time_am, :leave_time_pm
   attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type
 
-  scope :for_user, ->(uid) { where('user_id = ?', uid) }
+  scope :for_user, ->(uid) { where(user_id: uid) }
   scope :overlaps, ->(fr, to) { where("(DATEDIFF(from_date, ?) * DATEDIFF(?, to_date)) >= 0", to, fr) }
   scope :pending, -> { where(request_status: "0") }
   scope :processed, -> { where(request_status: "1") }
-
+  scope :coming, -> { where("from_date > ?", Date.today) }
+  scope :ongoing, -> { where("from_date <= ? AND to_date >= ?", Date.today, Date.today) }
+  scope :accepted, -> { processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "1" }) }
+  scope :processable_by, ->(uid) {
+    user = User.find(uid)
+    pending_ids = Array.wrap(pending).map { |a| a.id }
+    pending_ids.delete_if { |id| !LeavesHolidaysLogic.is_allowed_to_manage_status(user, LeaveRequest.find(id)) }
+    find(pending_ids)
+  }
 
   def has_am?
     return self.request_type == "am" || self.request_type == "ampm"
@@ -93,7 +103,13 @@ class LeaveRequest < ActiveRecord::Base
         errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
       end
     end
+  end
 
+  def validate_update
+    if LeaveRequest.where(id: self.id).processed.exists?
+      Rails.logger.info "SHOULD THROW ERROR"
+      errors.add(:base, "You cannot update this leave request as it has already been processed") 
+    end
   end
 	
 end

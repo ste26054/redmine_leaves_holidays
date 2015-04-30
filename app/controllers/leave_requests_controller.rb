@@ -7,9 +7,11 @@ class LeaveRequestsController < ApplicationController
   before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
-
+  before_action :set_approvers, only: [:index]
   def index
-  	@leave_requests = LeaveRequest.for_user(User.current.id)#.pending
+    @leave_requests = LeaveRequest.for_user(User.current.id)#.pending
+    # @leave_requests = LeaveRequest.all
+  	# @leave_requests = LeaveRequest.processable_by(User.current.id)#.pending
   end
 
   def new
@@ -30,10 +32,11 @@ class LeaveRequestsController < ApplicationController
   end
 
   def edit
-    #Only the 
   end
 
   def update
+    # If Leave is updated while already approved, we must restart the approval process ?
+    # Or forbid the update ?
     if @leave.update(leave_request_params)
   		redirect_to @leave #:action => 'index'
   	else
@@ -61,7 +64,6 @@ class LeaveRequestsController < ApplicationController
 
   def set_status
     if @leave.request_status == "processed"
-      Rails.logger.info "LEAVE WAS ALREADY PROCESSED"
       @status = LeaveStatus.for_request(@leave.id).first if @status == nil
     end
   end
@@ -72,7 +74,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def set_issue_trackers
-  	@issues_trackers = LeavesHolidaysLogic.issues_list
+  	@issues_trackers = LeavesHolidaysLogic.issues_list if @issues_trackers == nil
   end
 
   def leave_request_params
@@ -80,10 +82,14 @@ class LeaveRequestsController < ApplicationController
   end
 
   def view_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave.user)
   end
 
   def manage_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave.user)
+  end
+
+  def set_approvers
+    @approvers = LeavesHolidaysLogic.can_approve_request(User.current) if @approvers == nil
   end
 end

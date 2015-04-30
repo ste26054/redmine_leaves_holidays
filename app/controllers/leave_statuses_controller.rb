@@ -70,11 +70,11 @@ class LeaveStatusesController < ApplicationController
   end
 
   def view_status
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave.user)
   end
 
   def manage_status
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user)
   end
 
 end

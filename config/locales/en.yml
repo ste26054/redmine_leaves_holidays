@@ -14,7 +14,7 @@ en:
   label_leave_am: "AM"
   label_leave_pm: "PM"
   label_leave_reason: "Reason"
-  label_leave_comments: "Comments"
+  label_leave_comments: "Leave Comments"
   label_leaves_default_days_year: "Default Number of Leaves Days / Year"
   label_plugin_admins: "Plugin Administrators (Able to approve any leave request):"
   label_leave_approve_reject: "Approve or Reject the Leave Request:"
