@@ -19,8 +19,9 @@ module LeavesHolidaysLogic
 		user.memberships.collect{|t| t.project_id}
 	end
 
-	def self.project_roles_for_user(user)
-		[]
+	def self.allowed_roles_for_user_for_project(user, project)
+		allowed_roles = user.roles_for_project(project).sort.uniq
+		allowed_roles.collect{|r| {position: r.position, allowed: r.allowed_to?(:manage_leaves_requests)}}
 	end
 
 	def self.is_allowed_to_view_request(user, request)
@@ -43,15 +44,22 @@ module LeavesHolidaysLogic
 		false
 	end
 
-	def self.is_allowed_to_manage_status(user, request) 
+	def self.is_allowed_to_manage_status(user, request)
+		user_req = User.find(request.user.id)
 		return true if self.plugin_admins.include?(user.id) #A plugin Admin can approve all the requests including his own requests
+		return false if self.plugin_admins.include?(user_req.id) #User req is plugin admin and hence his role >>> user -> Disallow
 		return false if user.id == request.user.id #Any non plugin admin cannot approve his own requests
-		if user.allowed_to?(:manage_leaves_requests, nil, :global => true)
-			user_req = User.find(request.user.id)
-			common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_req)
-			Rails.logger.info "COMMON PROJECTS BETWEEN #{user.name} AND #{user_req.name} ARE: #{common_projects}"
-			return false if common_projects.empty?
-			#TO BE CONTINUED
+
+		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_req)
+		if !common_projects.empty?
+			common_projects.each do |p|
+				array_roles_user = self.allowed_roles_for_user_for_project(user, Project.find(p))
+				array_roles_user_req = self.allowed_roles_for_user_for_project(user_req, Project.find(p))
+				if array_roles_user.first[:position] < array_roles_user_req.first[:position]
+					return true if array_roles_user.first[:allowed]
+				end
+			end
+			
 		end
 		false
 	end

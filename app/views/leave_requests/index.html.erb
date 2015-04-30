@@ -1,12 +1,6 @@
 <h2>LeaveRequestController#index</h2>
 
-	<% if User.current.allowed_to?(:manage_leaves_requests, nil, :global => true) %>
-		<h2>ALLOWED</h2>
-	<% else %>
-		<h2>NOT ALLOWED</h2>
-	<% end %>
-
-	<h1>My leaves:</h1>
+<h1>My leaves:</h1>
 
 <div class="tabular">
 <%= render 'leaves_table' %>
