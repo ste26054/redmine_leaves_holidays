@@ -36,7 +36,6 @@
 			<label><%= l(:label_leave_reason) %>:</label>
  			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
 			<%= f.select :issue_id, options, :multiple => false, :prompt => "Please select" %>
-<!-- 				<%= f.select(:issue_id, @issues_trackers.collect {|a| [a.subject, a.id]}) -%> -->
 		</p>
 
 		<p>
@@ -48,6 +47,9 @@
 	</fieldset>
 </div>
 
-	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %>
+
+	<%= f.submit 'Create', data: { confirm: 'This will create a new leave request, but will not submit it for approval. You will be able to make changes to this request until you submit it.' } %>
+
+
 <% end %>
 <%= link_to 'Back', leave_requests_path %>

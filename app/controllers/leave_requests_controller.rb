@@ -1,17 +1,18 @@
 class LeaveRequestsController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
-  before_action :set_leave_request, only: [:show, :edit, :update, :destroy]
+  before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   before_action :set_status, only: [:show]
   before_action :view_request, only: [:show]
   before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
-  before_action :set_approvers, only: [:index]
+  # before_action :set_approvers, only: [:index]
   def index
-    @leave_requests = LeaveRequest.for_user(User.current.id)#.pending
+    @leave_requests = {}
+    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
     # @leave_requests = LeaveRequest.all
-  	# @leave_requests = LeaveRequest.processable_by(User.current.id)#.pending
+  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.pending
   end
 
   def new
@@ -28,10 +29,31 @@ class LeaveRequestsController < ApplicationController
   	end
   end
 
+  def submit
+    unless @leave.request_status == "created" && User.current == @leave.user
+      render_403
+      return
+    else
+      @leave.update_attribute(:request_status, "submitted")
+      redirect_to @leave
+    end
+  end
+
+  def unsubmit
+    unless @leave.request_status == "submitted" && User.current == @leave.user
+      render_403
+      return
+    else
+      @leave.update_attribute(:request_status, "created")
+      redirect_to @leave
+    end
+  end
+
   def show
   end
 
   def edit
+    render_403 unless @leave.request_status == "created" && User.current == @leave.user
   end
 
   def update
@@ -82,11 +104,11 @@ class LeaveRequestsController < ApplicationController
   end
 
   def view_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave.user)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave)
   end
 
   def manage_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave.user)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave)
   end
 
   def set_approvers

@@ -1,5 +1,7 @@
-	<h2>My Leaves</h2>
-	<table>
+<div class="tabular">
+
+	<% if !@leave_requests['approvals'].empty? %>
+		<table>
 		<thead>
 			<th>Id</th>
 			<th>Creator</th>
@@ -11,9 +13,8 @@
 			<th>Status</th>
 			<th colspan="3"></th>
 		</thead>
-
 		<tbody>
-			<% @leave_requests.each do |leave_request| %>
+			<% @leave_requests['approvals'].each do |leave_request| %>
 				<tr class="<%= cycle("odd", "even") %>">
 					<td><%= leave_request.id %></td>
 					<td><%= leave_request.user.name %></td>
@@ -24,9 +25,14 @@
 					<td><%= leave_request.request_type %></td>
 					<td><%= leave_request.request_status %></td>
 					<td><%= link_to 'Show', leave_request %></td>
-					<td><%= link_to 'Edit', edit_leave_request_path(leave_request) %></td>
-					<td><%= link_to 'Destroy', leave_request_path(leave_request), method: :delete, data: { confirm: 'Are you sure?' } %></td>
+					<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, leave_request.user) %>
+						<td><%= link_to 'Manage', new_leave_request_leave_statuses_path(leave_request) %></td>
+					<% end %>
 				</tr>
 			<% end %>
 		</tbody>
-	</table>
+		</table>
+	<% else %>
+		<h3>You do not have any leave to approve at the moment</h3>
+	<% end %>
+</div>

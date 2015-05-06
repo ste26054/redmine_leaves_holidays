@@ -47,7 +47,21 @@
 <% end %>
 
 
-
-<%= link_to 'Edit', edit_leave_request_path(@leave) %>
 <%= link_to 'Back', leave_requests_path %>
-<%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
+
+<% if @leave.request_status == "created" && User.current == @leave.user %>
+	<%= link_to 'Edit', edit_leave_request_path(@leave) %>
+<% end %>
+
+<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user) %>
+	<%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
+<% end %>
+
+
+<% if @leave.request_status == "created" && User.current == @leave.user %>
+	<%= link_to 'Submit', submit_leave_request_path(@leave) %>
+<% end %>
+
+<% if @leave.request_status == "submitted" && User.current == @leave.user %>
+	<%= link_to 'UnSubmit', unsubmit_leave_request_path(@leave) %>
+<% end %>

@@ -1,7 +1,6 @@
 module LeavesHolidaysLogic
 
 	def self.issues_list
-		Rails.logger.info "IN HELPER ISSUES LIST"
 		issues_tracker = RedmineLeavesHolidays::Setting.default_tracker_id
 		issues_project = RedmineLeavesHolidays::Setting.default_project_id
 		return Issue.where(project_id: issues_project, tracker_id: issues_tracker) #.collect{|t| [t.subject, t.id] }
@@ -15,6 +14,10 @@ module LeavesHolidaysLogic
 		RedmineLeavesHolidays::Setting.plugin_admins.map(&:to_i)
 	end
 
+	def self.has_manage_rights(user)
+		self.plugin_admins.include?(user.id) || user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+	end
+
 	def self.project_list_for_user(user)
 		user.memberships.uniq.collect{|t| t.project_id}
 	end
@@ -24,15 +27,16 @@ module LeavesHolidaysLogic
 		allowed_roles.collect{|r| {position: r.position, allowed: r.allowed_to?(:manage_leaves_requests)}}
 	end
 
-	def self.is_allowed_to_view_request(user, user_request)
-		return true if user.id == user_request.id
+	def self.is_allowed_to_view_request(user, request)
+		return true if user.id == request.user.id
+		return false if request.request_status == "created"
 		return true if user.allowed_to?(:view_all_leaves_requests, nil, :global => true) || user.allowed_to?(:manage_leaves_requests, nil, :global => true)
 		return true if self.plugin_admins.include?(user.id)
 		false
 	end
 
-	def self.is_allowed_to_manage_request(user, user_request)
-		return true if user.id == user_request.id #Only the creator of the request can change it
+	def self.is_allowed_to_manage_request(user, request)
+		return true if user.id == request.user.id #Only the creator of the request can change it
 		false
 	end
 

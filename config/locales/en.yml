@@ -18,3 +18,5 @@ en:
   label_leaves_default_days_year: "Default Number of Leaves Days / Year"
   label_plugin_admins: "Plugin Administrators (Able to approve any leave request):"
   label_leave_approve_reject: "Approve or Reject the Leave Request:"
+  tab_my_leaves: "My leaves"
+  tab_leaves_approval: "Leaves Management"

@@ -5,7 +5,7 @@ class LeaveStatusesController < ApplicationController
   before_action :set_leave_status
   before_action :view_status, only: [:show]
   before_action :manage_status
-
+  
 
   def new
      # @leave = LeaveRequest.find(params[:leave_request_id])
@@ -43,19 +43,21 @@ class LeaveStatusesController < ApplicationController
     if @status.update(leave_status_params)
        redirect_to @leave
     else
-       redirect_to edit_leave_request_leave_statuses_path
+       # redirect_to edit_leave_request_leave_statuses_path
+       redirect_to @status
     end
   end
 
   def destroy
-      @status.destroy
-      redirect_to @leave
+      render_403
+      # @status.destroy
+      # redirect_to @leave
   end
 
   private
 
   def leave_status_params
-    params.require(:leave_status).permit(:leave_request_id, :processed_date, :user_id, :comments, :acceptance_status)
+    params.require(:leave_status).permit(:leave_request_id, :processed_date, :user_id, :comments, :acceptance_status).merge(timestamp: @timestamp)
   end
 
   def set_leave_status
