@@ -1,5 +1,7 @@
 class LeaveStatus < ActiveRecord::Base
   unloadable
+
+  default_scope { where.not(acceptance_status: "2").order(updated_at: desc) }
   
   belongs_to :user
   belongs_to :leave_request
@@ -8,7 +10,7 @@ class LeaveStatus < ActiveRecord::Base
   before_validation :set_user
 
 
-  enum acceptance_status: { rejected: 0, accepted: 1 }
+  enum acceptance_status: { rejected: 0, accepted: 1, cancelled: 2 }
 
   validates :user_id, presence: true
   validates :leave_request_id, presence: true

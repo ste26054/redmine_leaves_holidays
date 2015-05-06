@@ -2,7 +2,7 @@ class LeaveRequest < ActiveRecord::Base
   unloadable
   include LeavesHolidaysLogic
 
-  default_scope { where.not(request_status: "3") }
+  default_scope { where.not(request_status: "3").order(from_date: :asc) }
   
   belongs_to :user
   belongs_to :issue
@@ -49,7 +49,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :processable_by, ->(uid) {
     user = User.find(uid)
-    submitted_ids = Array.wrap(submitted).map { |a| a.id }
+    submitted_ids = Array.wrap(submitted + processed).map { |a| a.id }
     submitted_ids.delete_if { |id| !LeavesHolidaysLogic.is_allowed_to_manage_status(user, LeaveRequest.find(id).user) }
     find(submitted_ids)
   }

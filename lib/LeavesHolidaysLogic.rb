@@ -69,16 +69,29 @@ module LeavesHolidaysLogic
 		false
 	end
 
+	#Returns a list of users which are able to approve a leave request
 	def self.can_approve_request(user_request)
 		users = User.where(status: 1)
 		users = users.collect {|t| {uid: t.id, name: t.name}}
 
 		users.delete_if { |u| 
 			uobj = User.find(u[:uid])
-			# (!uobj.allowed_to?(:manage_leaves_requests, nil, :global => true)) || (!self.is_allowed_to_manage_status(uobj, user_request))
 			!self.is_allowed_to_manage_status(uobj, user_request)
 		}
 		return users
+	end
+
+	#Returns a list of users to notify of a leave request. 
+	def self.users_to_notify(user_request)
+
+	end
+
+	def self.working_hours_per_week(user)
+
+	end
+
+	def self.max_leaves_days_per_year(user)
+
 	end
 
 end

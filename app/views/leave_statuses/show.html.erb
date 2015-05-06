@@ -2,4 +2,6 @@
 
 <%= render 'status' %>
 
-<%= link_to 'Edit', edit_leave_request_leave_statuses_path %>
+<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @status.leave_request.user) %>
+	<td><%= link_to 'Manage', edit_leave_request_leave_statuses_path %></td>
+<% end %>

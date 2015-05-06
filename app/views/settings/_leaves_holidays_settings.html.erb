@@ -30,4 +30,10 @@
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.plugin_admins) -%>
 		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10 %>
 	</p>
+
+	<p>
+		<label>Default Leave Request Notification Level: </label>
+		<%= number_field_tag 'settings[default_notification_level]', RedmineLeavesHolidays::Setting.notification_level, :min => 0, :step => 1 %>
+	</p>
+
 </fieldset>

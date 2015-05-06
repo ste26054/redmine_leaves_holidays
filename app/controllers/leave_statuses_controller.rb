@@ -4,7 +4,7 @@ class LeaveStatusesController < ApplicationController
   before_action :set_leave_request
   before_action :set_leave_status
   before_action :view_status, only: [:show]
-  before_action :manage_status
+  before_action :manage_status, except: [:show]
   
 
   def new
@@ -65,8 +65,9 @@ class LeaveStatusesController < ApplicationController
   end
 
   def set_leave_request
-    @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
-    if @leave == nil
+    begin
+      @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
+    rescue ActiveRecord::RecordNotFound
       render_404
     end
   end

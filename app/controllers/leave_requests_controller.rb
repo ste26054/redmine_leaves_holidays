@@ -2,7 +2,7 @@ class LeaveRequestsController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
-  before_action :set_status, only: [:show]
+  before_action :set_status, only: [:show, :destroy]
   before_action :view_request, only: [:show]
   before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
@@ -17,7 +17,6 @@ class LeaveRequestsController < ApplicationController
 
   def new
   	@leave = LeaveRequest.new
-    # Rails.logger.info "ROLES: #{User.current.projects_by_role.to_yaml}"
   end
 
   def create
@@ -75,7 +74,14 @@ class LeaveRequestsController < ApplicationController
     #A leave request which already took place cannot be deleted = Hours won't be deletable.
     # @leave.destroy
     # redirect_to leave_requests_path
+    if @leave.request_status == "processed" && @status.acceptance_status == "accepted"
+      @status.update_attribute(:acceptance_status, "cancelled")
+    else
+      render_403
+      return
+    end
     @leave.update_attribute(:request_status, "cancelled")
+    redirect_to leave_requests_path
   end
 
   private

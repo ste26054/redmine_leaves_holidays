@@ -42,7 +42,7 @@
 	<%= @leave.request_status %>
 </p>
 
-<% if @leave.request_status == "processed" && LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave) %>
+<% if @leave.request_status == "processed" %>
 	<%= render :partial => '/leave_statuses/status' %>
 <% end %>
 
@@ -64,4 +64,8 @@
 
 <% if @leave.request_status == "submitted" && User.current == @leave.user %>
 	<%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave) %>
+<% end %>
+
+<% if User.current == @leave.user && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
+<%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' } %>
 <% end %>

@@ -19,5 +19,9 @@ module RedmineLeavesHolidays
 	    def self.plugin_admins
 	    	::Setting.plugin_redmine_leaves_holidays[:default_plugin_admins]
 	    end
+
+	    def self.notification_level
+	    	::Setting.plugin_redmine_leaves_holidays[:default_notification_level]
+	    end
 	end
 end
