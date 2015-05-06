@@ -63,5 +63,5 @@
 <% end %>
 
 <% if @leave.request_status == "submitted" && User.current == @leave.user %>
-	<%= link_to 'UnSubmit', unsubmit_leave_request_path(@leave) %>
+	<%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave) %>
 <% end %>

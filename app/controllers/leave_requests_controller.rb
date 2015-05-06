@@ -23,6 +23,7 @@ class LeaveRequestsController < ApplicationController
   def create
   	@leave = LeaveRequest.new(leave_request_params)    
   	if @leave.save
+      flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button"
   		redirect_to @leave
   	else
   		render new_leave_request_path
@@ -35,6 +36,7 @@ class LeaveRequestsController < ApplicationController
       return
     else
       @leave.update_attribute(:request_status, "submitted")
+      flash[:notice] = "Your leave request has been submitted for approval"
       redirect_to @leave
     end
   end
@@ -45,6 +47,7 @@ class LeaveRequestsController < ApplicationController
       return
     else
       @leave.update_attribute(:request_status, "created")
+      flash[:notice] = "Your leave request has been unsubmitted."
       redirect_to @leave
     end
   end
@@ -70,8 +73,9 @@ class LeaveRequestsController < ApplicationController
     #Should not delete the leave request in DB
     #Whatever the status of the leave, should notify the users who were informed of the request creation
     #A leave request which already took place cannot be deleted = Hours won't be deletable.
-    @leave.destroy
-    redirect_to leave_requests_path
+    # @leave.destroy
+    # redirect_to leave_requests_path
+    @leave.update_attribute(:request_status, "cancelled")
   end
 
   private
