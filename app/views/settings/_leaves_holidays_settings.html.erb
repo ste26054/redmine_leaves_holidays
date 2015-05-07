@@ -41,7 +41,7 @@
 	<p>
 		<label>Default Region For Public Holidays:</label>
 		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.region) -%>
-		<%= select_tag "settings[default_region]", options, :multiple => false, :width => 80, :size => 10 %>
+		<%= select_tag "settings[default_region]", options, :multiple => false %>
 	</p>
 
 </fieldset>

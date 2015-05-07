@@ -15,23 +15,23 @@
 
 	<div>
 
-	<fieldset>
-		<p>
-			<%= l(:label_leave_approve_reject) %>
-			<%= f.radio_button :acceptance_status, 'accepted' %>
-			<%= f.label :acceptance_status, 'Approve Leave Request', :value => 'accepted' %>
-			<%= f.radio_button :acceptance_status, 'rejected' %>
-			<%= f.label :acceptance_status, 'Reject Leave Request', :value => 'rejected' %>
-		</p>
+		<fieldset>
+			<p>
+				<%= l(:label_leave_approve_reject) %>
+				<%= f.radio_button :acceptance_status, 'accepted' %>
+				<%= f.label :acceptance_status, 'Approve Leave Request', :value => 'accepted' %>
+				<%= f.radio_button :acceptance_status, 'rejected' %>
+				<%= f.label :acceptance_status, 'Reject Leave Request', :value => 'rejected' %>
+			</p>
 
-		<p>
-			<label><%= l(:label_leave_comments) %>:</label>
-			<%= f.text_field :comments, {:size => 75 } %>
-		</p>
+			<p>
+				<label><%= l(:label_leave_comments) %>:</label>
+				<%= f.text_field :comments, {:size => 75 } %>
+			</p>
 
 
-	</fieldset>
-</div>
+		</fieldset>
+	</div>
 	<%= hidden_field_tag "timestamp", @timestamp %>
 	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %>
 <% end %>

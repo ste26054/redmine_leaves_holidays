@@ -11,4 +11,8 @@ RedmineApp::Application.routes.draw do
 		end
 		resource :leave_statuses
 	end
+
+	resources :users do
+		resource :leave_preferences
+	end
 end

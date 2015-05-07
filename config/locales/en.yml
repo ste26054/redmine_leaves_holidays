@@ -7,7 +7,7 @@ en:
   label_leave_id: "Leave ID:"
   label_leave_creator: "Leave Request From:"
   label_leave_period_absence: "Period of Absence (Inclusive):"
-  label_leaves_default_working_hours: "Default Working Hours / Week"
+  label_leaves_default_working_hours: "Default Weekly Working Hours"
   label_leave_from: "From: "
   label_leave_to: "Until: "
   label_leave_half_full_day: "AM / PM Leave (Tick the correct boxes):"

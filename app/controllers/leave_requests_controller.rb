@@ -21,7 +21,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def create
-  	@leave = LeaveRequest.new(leave_request_params)    
+  	@leave = LeaveRequest.new(leave_request_params)
   	if @leave.save
       flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button"
   		redirect_to @leave
@@ -122,7 +122,4 @@ class LeaveRequestsController < ApplicationController
     render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave)
   end
 
-  # def set_approvers
-  #   @approvers = LeavesHolidaysLogic.can_approve_request(User.current) if @approvers == nil
-  # end
 end
