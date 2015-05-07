@@ -1,3 +1,15 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
+
 <h1>Leaves Dashboard</h1>
 
-<p class="list time-entries"><%= render_tabs leaves_holidays_tabs %></p>
+<!-- <h3>Users that will be notified of leave requests:</h3>
+<% @approvers.each do |i| %>
+	<p>
+		<%= i %>
+	</p>
+<% end %> -->
+
+<p class="tabular2"><%= render_tabs leaves_holidays_tabs %></p>

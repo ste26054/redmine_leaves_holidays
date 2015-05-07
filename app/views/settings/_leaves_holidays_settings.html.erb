@@ -36,4 +36,12 @@
 		<%= number_field_tag 'settings[default_notification_level]', RedmineLeavesHolidays::Setting.notification_level, :min => 0, :step => 1 %>
 	</p>
 
+		<%- Holidays.load_all -%>
+		<%- regions = Holidays.regions.sort -%>
+	<p>
+		<label>Default Region For Public Holidays:</label>
+		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.region) -%>
+		<%= select_tag "settings[default_region]", options, :multiple => false, :width => 80, :size => 10 %>
+	</p>
+
 </fieldset>

@@ -13,6 +13,7 @@ class LeaveRequestsController < ApplicationController
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
     # @leave_requests = LeaveRequest.all
   	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.pending
+    @approvers = LeavesHolidaysLogic.users_to_notify_of_request(User.current) if @approvers == nil
   end
 
   def new
@@ -121,7 +122,7 @@ class LeaveRequestsController < ApplicationController
     render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave)
   end
 
-  def set_approvers
-    @approvers = LeavesHolidaysLogic.can_approve_request(User.current) if @approvers == nil
-  end
+  # def set_approvers
+  #   @approvers = LeavesHolidaysLogic.can_approve_request(User.current) if @approvers == nil
+  # end
 end

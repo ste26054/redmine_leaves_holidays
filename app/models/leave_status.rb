@@ -1,7 +1,7 @@
 class LeaveStatus < ActiveRecord::Base
   unloadable
 
-  default_scope { where.not(acceptance_status: "2").order(updated_at: desc) }
+  default_scope { where.not(acceptance_status: "2").order(updated_at: :desc) }
   
   belongs_to :user
   belongs_to :leave_request
