@@ -2,16 +2,16 @@
 
 <%= form_for [@user, @preference], :url => user_leave_preferences_path do |f| %>
 
-	<div class="box tabular">
-	<% if @preference.errors.any? %>
-	<div class="flash">
-		<ul>
-	  		<% @preference.errors.full_messages.each do |msg| %>
-	    		<li><%= msg %></li>
-	  		<% end %>
-		</ul>
-	</div>
-	<% end %>
+ 	<div class="box tabular">
+		<% if @preference.errors.any? %>
+			<div class="flash">
+				<ul>
+			  		<% @preference.errors.full_messages.each do |msg| %>
+			    		<li><%= msg %></li>
+			  		<% end %>
+				</ul>
+			</div>
+		<% end %>
 	</div>
 
 	<div>

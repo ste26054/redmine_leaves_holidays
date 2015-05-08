@@ -128,12 +128,27 @@ module LeavesHolidaysLogic
 		users_to_notify.sort_by { |e| -e[:role_details][:role_position].to_i }
 	end
 
-	def self.working_hours_per_week(user)
+	def self.get_region_list
+		Holidays.load_all
+		return Holidays.regions.sort
+	end
 
+	def self.working_hours_per_week(user)
+		prefs = LeavePreference.where(user_id: user.id).first
+		return prefs.weekly_working_hours if prefs != nil
+		RedmineLeavesHolidays::Setting.working_hours_week.to_i
 	end
 
 	def self.max_leaves_days_per_year(user)
+		prefs = LeavePreference.where(user_id: user.id).first
+		return prefs.annual_leave_days_max if prefs != nil
+		RedmineLeavesHolidays::Setting.days_leaves_year.to_i
+	end
 
+	def self.region(user)
+		prefs = LeavePreference.where(user_id: user.id).first
+		return prefs.region.to_sym if prefs != nil
+		RedmineLeavesHolidays::Setting.region.to_sym
 	end
 
 end

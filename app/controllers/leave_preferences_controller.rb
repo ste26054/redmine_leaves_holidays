@@ -19,11 +19,12 @@ class LeavePreferencesController < ApplicationController
   end
 
   def create
-  	@preference = LeavePreference.new(leave_preference_params)
+  	@preference = LeavePreference.new(leave_preference_params) if @preference == nil
   	if @preference.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user.name}"
   		redirect_to edit_user_path(@user)
   	else
+  		flash[:error] = "Invalid preferences"
   		redirect_to new_user_leave_preferences_path
   	end
   end
@@ -37,6 +38,7 @@ class LeavePreferencesController < ApplicationController
   	   flash[:notice] = "Preferences were sucessfully saved for user #{@user.name}"
        redirect_to edit_user_path(@user)
     else
+    	flash[:error] = "Invalid preferences"
        redirect_to edit_user_leave_preferences_path
     end
   end
@@ -58,8 +60,7 @@ private
   end
 
   def set_holidays
-  	Holidays.load_all
-	@regions = Holidays.regions.sort
+	@regions = LeavesHolidaysLogic.get_region_list
   end
 
   def set_leave_preference

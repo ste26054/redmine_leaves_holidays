@@ -12,4 +12,8 @@
 	</p>
 <% end %> -->
 
+<%=LeavesHolidaysLogic.working_hours_per_week(User.current)%>
+<%=LeavesHolidaysLogic.max_leaves_days_per_year(User.current)%>
+<%=LeavesHolidaysLogic.region(User.current)%>
+
 <p class="tabular2"><%= render_tabs leaves_holidays_tabs %></p>

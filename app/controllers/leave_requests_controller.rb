@@ -70,17 +70,17 @@ class LeaveRequestsController < ApplicationController
   end
 
   def destroy
-    #Should not delete the leave request in DB
-    #Whatever the status of the leave, should notify the users who were informed of the request creation
-    #A leave request which already took place cannot be deleted = Hours won't be deletable.
-    # @leave.destroy
-    # redirect_to leave_requests_path
-    if @leave.request_status == "processed" && @status.acceptance_status == "accepted"
+    leave_relations = LeaveRequest.where(id: @leave.id)
+
+    if leave_relations.processed.exists?
+      if leave_relations.accepted.ongoing_or_finished.exists?
+        flash[:error] = "You cannot cancel this leave as it has already been approved and is in the past"
+        redirect_to leave_requests_path
+        return
+      end
       @status.update_attribute(:acceptance_status, "cancelled")
-    else
-      render_403
-      return
     end
+
     @leave.update_attribute(:request_status, "cancelled")
     redirect_to leave_requests_path
   end

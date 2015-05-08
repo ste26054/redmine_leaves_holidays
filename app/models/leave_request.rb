@@ -1,6 +1,8 @@
 class LeaveRequest < ActiveRecord::Base
   unloadable
   include LeavesHolidaysLogic
+  include Redmine::Utils::DateCalculation
+
 
   default_scope { where.not(request_status: "3").order(from_date: :asc) }
   
@@ -9,6 +11,7 @@ class LeaveRequest < ActiveRecord::Base
   has_one :leave_status, dependent: :destroy
 
   before_validation :set_user
+  before_validation :set_region
   before_update :validate_update
 
   enum request_status: { created: 0, submitted: 1, processed: 2, cancelled: 3 }
@@ -20,6 +23,7 @@ class LeaveRequest < ActiveRecord::Base
   validates :issue_id, presence: true
   validates :request_type, presence: true
   validates :request_status, presence: true
+  validates :region, presence: true
 
    validate :validate_set_request_type
    validate :validate_date_period
@@ -41,7 +45,13 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :processed, -> { where(request_status: "2") }
 
+  scope :cancelled, -> { where(request_status: "3") }
+
   scope :coming, -> { where("from_date > ?", Date.today) }
+
+  scope :finished, -> { where("to_date < ?", Date.today) }
+
+  scope :ongoing_or_finished, -> { where("from_date <= ? OR to_date <= ?", Date.today, Date.today) }  
 
   scope :ongoing, -> { where("from_date <= ? AND to_date >= ?", Date.today, Date.today) }
 
@@ -62,17 +72,58 @@ class LeaveRequest < ActiveRecord::Base
     return self.request_type == "pm" || self.request_type == "ampm"
   end
 
+  def half_day?
+    return self.request_type != "ampm"
+  end
+
+  def real_leave_days
+    return 0.5 if half_day?
+    return ((to_date - from_date).to_i + 1)
+  end
+
+  def actual_leave_days
+    return 0.5 if half_day?
+
+    working_days = working_days(from_date, to_date + 1)
+
+    real_leave_days.times do |i|
+      if (from_date + i).holiday?(region.to_sym) && !non_working_week_days.include?((from_date + i).cwday)
+        working_days -= 1
+      end          
+    end
+
+    return working_days
+  end
 
 	private
 
 	def validate_date_period
+    Rails.logger.info "NUMBER OF ACTUAL DAYS: #{actual_leave_days}"
 		if to_date != nil && from_date != nil && to_date < from_date
-			errors.add(:base,"The Leave period entered is invalid")
+			errors.add(:base,"The end of the leave cannot take place before its beginning")
 		end
 
-    if to_date != nil && from_date != nil && self.request_type != "ampm" && (to_date - from_date).to_i > 0
+    if to_date != nil && from_date != nil && half_day? && (to_date - from_date).to_i > 0
       errors.add(:base,"Half day leaves cannot be more than 1 day")
     end
+
+    # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
+    #   errors.add(:base,"Your leave is in the past")
+    # end
+
+    #check leave is not in a week-end or bank holiday
+    count = 0
+
+    real_leave_days.ceil.times do |i|
+      if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
+        count += 1
+      end          
+    end
+
+    if count == real_leave_days.ceil
+      errors.add(:base,"A leave cannot occur on a bank holiday or a non working day")
+    end
+
 	end
 
 	def validate_issue
@@ -100,6 +151,12 @@ class LeaveRequest < ActiveRecord::Base
 
   def set_user
     self.user_id = User.current.id
+  end
+
+  def set_region
+    user = User.find(user_id)
+    user_region = LeavesHolidaysLogic.region(user)
+    self.region = user_region.to_sym
   end
 
   def validate_overlaps
