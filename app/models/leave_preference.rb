@@ -31,7 +31,6 @@ class LeavePreference < ActiveRecord::Base
 
   def validate_region
   	regions = LeavesHolidaysLogic.get_region_list
-  	Rails.logger.info"REGIONS ARE: #{regions}. SELECTED IS: #{self.region}"
   	unless regions.include?(self.region.to_sym)
   		errors.add(:region, "is invalid")
   	end 

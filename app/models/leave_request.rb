@@ -98,7 +98,6 @@ class LeaveRequest < ActiveRecord::Base
 	private
 
 	def validate_date_period
-    Rails.logger.info "NUMBER OF ACTUAL DAYS: #{actual_leave_days}"
 		if to_date != nil && from_date != nil && to_date < from_date
 			errors.add(:base,"The end of the leave cannot take place before its beginning")
 		end

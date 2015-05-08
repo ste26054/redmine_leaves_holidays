@@ -6,6 +6,7 @@
 	<table>
 		<thead>
 			<th>Id</th>
+			<th>Number of Days</th>
 			<th>Leave From</th>
 			<th>Leave To</th>
 			<th>Reason</th>
@@ -18,6 +19,7 @@
 			<% @leave_requests['requests'].each do |leave_request| %>
 				<tr class="<%= cycle("odd", "even") %>">
 					<td><%= leave_request.id %></td>
+					<td><%= leave_request.actual_leave_days %></td>
 					<td><%= leave_request.from_date %></td>
 					<td><%= leave_request.to_date %></td>
 					<td><%= leave_request.issue.subject %></td>
