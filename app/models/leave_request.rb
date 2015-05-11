@@ -24,6 +24,8 @@ class LeaveRequest < ActiveRecord::Base
   validates :request_type, presence: true
   validates :request_status, presence: true
   validates :region, presence: true
+  validates :comments, presence: true
+  validates_length_of :comments, :maximum => 255
 
    validate :validate_set_request_type
    validate :validate_date_period
@@ -106,6 +108,7 @@ class LeaveRequest < ActiveRecord::Base
       errors.add(:base,"Half day leaves cannot be more than 1 day")
     end
 
+    # Forbid the leave creation if it's in the past
     # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
     #   errors.add(:base,"Your leave is in the past")
     # end
@@ -120,7 +123,7 @@ class LeaveRequest < ActiveRecord::Base
     end
 
     if count == real_leave_days.ceil
-      errors.add(:base,"A leave cannot occur on a bank holiday or a non working day")
+      errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
     end
 
 	end
@@ -181,5 +184,7 @@ class LeaveRequest < ActiveRecord::Base
       errors.add(:base, "You cannot update this leave request as it has already been processed") 
     end
   end
+
+
 	
 end

@@ -8,6 +8,10 @@ module RedmineLeavesHolidays
 	      ::Setting.plugin_redmine_leaves_holidays[:default_project_id]
 	    end
 
+	    def self.default_activity_id
+	      ::Setting.plugin_redmine_leaves_holidays[:default_activity_id]
+	    end
+
 	    def self.working_hours_week
 	    	::Setting.plugin_redmine_leaves_holidays[:default_working_hours_week]
 	    end

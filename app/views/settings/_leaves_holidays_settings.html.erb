@@ -14,6 +14,13 @@
 		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
 	</p>
 
+		<%- activities = TimeEntryActivity.where(:active => true).collect{|t| [t.name, t.id]} -%>
+	<p>
+		<label>Default Activity to log time:</label>
+		<%- options = options_for_select(activities, RedmineLeavesHolidays::Setting.default_activity_id) -%>
+		<%= select_tag "settings[default_activity_id]", options, :multiple => false %>
+	</p>
+
 	<p>
 		<label><%= l(:label_leaves_default_working_hours) %>:</label>
 		<%= number_field_tag 'settings[default_working_hours_week]', RedmineLeavesHolidays::Setting.working_hours_week, :min => 0, :max => 90, :step => 1 %>

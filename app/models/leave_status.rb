@@ -1,5 +1,6 @@
 class LeaveStatus < ActiveRecord::Base
   unloadable
+  include Redmine::Utils::DateCalculation
 
   default_scope { where.not(acceptance_status: "2").order(updated_at: :desc) }
   
@@ -8,6 +9,7 @@ class LeaveStatus < ActiveRecord::Base
 
   before_destroy :set_submitted
   before_validation :set_user
+  after_commit :update_log_time
 
 
   enum acceptance_status: { rejected: 0, accepted: 1, cancelled: 2 }
@@ -25,6 +27,8 @@ class LeaveStatus < ActiveRecord::Base
   scope :for_request, ->(rid) { where('leave_request_id = ?', rid) }
 
 
+
+
   private
 
 
@@ -39,6 +43,39 @@ class LeaveStatus < ActiveRecord::Base
     end
   end
 
+  def update_log_time
+    Rails.logger.info "IN UPDATE LOG TIME. ACCEPTANCE STATUS: #{acceptance_status}"
+    request = LeaveRequest.find(self.leave_request_id)
+    user = User.find(request.user_id)
+    hours_per_day = LeavesHolidaysLogic.working_hours_per_week(user).to_f / (7.0 - non_working_week_days.count )
+    
+    if request.half_day?
+      hours_per_day /= 2.0
+    end
 
+    request.real_leave_days.ceil.times do |i|
+      unless (request.from_date + i).holiday?(request.region.to_sym) || non_working_week_days.include?((request.from_date + i).cwday)
+        begin
+          time_entry = TimeEntry.where(:issue_id => request.issue_id, 
+                                                :spent_on => request.from_date + i, 
+                                                :user => user).first
+
+          if time_entry != nil && (acceptance_status == "cancelled" || acceptance_status == "rejected")
+            time_entry.destroy!
+          end
+
+          if time_entry == nil && acceptance_status == "accepted"
+            time_entry = TimeEntry.new(:issue_id => request.issue_id, 
+                                                  :spent_on => request.from_date + i,
+                                                  :activity => TimeEntryActivity.find(RedmineLeavesHolidays::Setting.default_activity_id),
+                                                  :hours => hours_per_day,
+                                                  :comments => request.comments, 
+                                                  :user => user)
+            time_entry.save!
+          end
+        end
+      end          
+    end
+  end
 
 end
