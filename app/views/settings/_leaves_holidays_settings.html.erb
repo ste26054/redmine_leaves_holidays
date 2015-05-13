@@ -2,53 +2,58 @@
 	<legend><%= "Plugin parameters" %></legend>
 	<%- trackers = Tracker.all.collect{|t| [t.name, t.id]} -%>
 	<p>
-		<label><%= l(:label_tracker) %>:</label>
-		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.default_tracker_id) -%>
+		<label>Tracker for Leave Reasons:</label>
+		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)) -%>
 		<%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
 	</p>
 
 	<%- projects = Project.all.collect{|t| [t.name, t.id]} -%>
 	<p>
-		<label><%= l(:label_project) %>:</label>
-		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.default_project_id) -%>
+		<label>Project for Logging Leaves:</label>
+		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)) -%>
 		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
 	</p>
 
 		<%- activities = TimeEntryActivity.where(:active => true).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label>Default Activity to log time:</label>
-		<%- options = options_for_select(activities, RedmineLeavesHolidays::Setting.default_activity_id) -%>
+		<%- options = options_for_select(activities, RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)) -%>
 		<%= select_tag "settings[default_activity_id]", options, :multiple => false %>
 	</p>
 
 	<p>
 		<label><%= l(:label_leaves_default_working_hours) %>:</label>
-		<%= number_field_tag 'settings[default_working_hours_week]', RedmineLeavesHolidays::Setting.working_hours_week, :min => 0, :max => 90, :step => 1 %>
+		<%= number_field_tag 'settings[default_working_hours_week]', RedmineLeavesHolidays::Setting.defaults_settings(:default_working_hours_week), :min => 0, :max => 90, :step => 1 %>
 	</p>
 
 	<p>
 		<label><%= l(:label_leaves_default_days_year) %>:</label>
-		<%= number_field_tag 'settings[default_days_leaves_year]', RedmineLeavesHolidays::Setting.days_leaves_year, :min => 0, :step => 1 %>
+		<%= number_field_tag 'settings[default_days_leaves_year]', RedmineLeavesHolidays::Setting.defaults_settings(:default_days_leaves_year), :min => 0, :step => 1 %>
 	</p>
 
 	<%- users = User.where(status: 1).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:label_plugin_admins) %></label>
-		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.plugin_admins) -%>
+		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins)) -%>
 		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10 %>
 	</p>
 
 	<p>
 		<label>Default Leave Request Notification Level: </label>
-		<%= number_field_tag 'settings[default_notification_level]', RedmineLeavesHolidays::Setting.notification_level, :min => 0, :step => 1 %>
+		<%= number_field_tag 'settings[default_notification_level]', RedmineLeavesHolidays::Setting.defaults_settings(:default_notification_level), :min => 0, :step => 1 %>
 	</p>
 
 		<%- Holidays.load_all -%>
 		<%- regions = Holidays.regions.sort -%>
 	<p>
 		<label>Default Region For Public Holidays:</label>
-		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.region) -%>
-		<%= select_tag "settings[default_region]", options, :multiple => false %>
+		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.defaults_settings(:region)) -%>
+		<%= select_tag "settings[region]", options, :multiple => false %>
+	</p>
+
+	<p>
+		<label>Default Contract Start date for auto increment / report of available leave days at the anniversary date:</label>
+		<%= date_field_tag "settings[default_contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:default_contract_start_date) %>
 	</p>
 
 </fieldset>

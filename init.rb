@@ -12,6 +12,8 @@ Redmine::Plugin.register :redmine_leaves_holidays do
 
   permission :view_all_leaves_requests, { :leaves_requests => :view_all }
   permission :manage_leaves_requests, { :leaves_requests => :manage }
+  permission :vote_leaves_requests, { :leaves_requests => :vote }
+  permission :manage_user_leaves_preferences, { :leaves_requests => :manage_user_prefs }
 end
 
 # ActionDispatch::Callbacks.to_prepare do

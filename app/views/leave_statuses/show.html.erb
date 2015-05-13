@@ -1,5 +1,3 @@
-<h2>LeaveStatusController#show</h2>
-
 <%= render 'status' %>
 
 <% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @status.leave_request.user) %>

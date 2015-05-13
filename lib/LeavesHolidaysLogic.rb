@@ -1,8 +1,8 @@
 module LeavesHolidaysLogic
 
 	def self.issues_list
-		issues_tracker = RedmineLeavesHolidays::Setting.default_tracker_id
-		issues_project = RedmineLeavesHolidays::Setting.default_project_id
+		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
+		issues_project = RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)
 		return Issue.where(project_id: issues_project, tracker_id: issues_tracker) #.collect{|t| [t.subject, t.id] }
 	end
 
@@ -11,7 +11,7 @@ module LeavesHolidaysLogic
 	end
 
 	def self.plugin_admins
-		RedmineLeavesHolidays::Setting.plugin_admins.map(&:to_i)
+		RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins).map(&:to_i)
 	end
 
 	def self.has_manage_rights(user)
@@ -114,17 +114,17 @@ module LeavesHolidaysLogic
 		users.delete_if { |u| 
 			u[:role_details].empty?
 		}
-		return users
+		return users.sort_by { |e| -e[:role_details][:role_position].to_i }
 	end
 
 	#Returns a list of users to notify of a leave request. 
 	def self.users_to_notify_of_request(user_request)
-		notification_level = RedmineLeavesHolidays::Setting.notification_level.to_i
+		notification_level = RedmineLeavesHolidays::Setting.defaults_settings(:default_notification_level).to_i
 		users = self.can_approve_request(user_request)
 		users_to_notify = users.dup
 		users = users.sort_by { |e| e[:role_details][:role_position].to_i }.reverse!
 		roles = users.map { |e| e[:role_details][:role_position].to_i }.uniq.first(notification_level)
-		users_to_notify.delete_if { |u| !roles.include?(u[:role_details][:role_position].to_i) }
+		users_to_notify.delete_if { |u| !roles.include?(u[:role_details][:role_position].to_i) || u[:role_details][:user_id].to_i == user_request.id }
 		users_to_notify.sort_by { |e| -e[:role_details][:role_position].to_i }
 	end
 
@@ -133,22 +133,10 @@ module LeavesHolidaysLogic
 		return Holidays.regions.sort
 	end
 
-	def self.working_hours_per_week(user)
+	def self.user_params(user, arg)
 		prefs = LeavePreference.where(user_id: user.id).first
-		return prefs.weekly_working_hours if prefs != nil
-		RedmineLeavesHolidays::Setting.working_hours_week.to_i
-	end
-
-	def self.max_leaves_days_per_year(user)
-		prefs = LeavePreference.where(user_id: user.id).first
-		return prefs.annual_leave_days_max if prefs != nil
-		RedmineLeavesHolidays::Setting.days_leaves_year.to_i
-	end
-
-	def self.region(user)
-		prefs = LeavePreference.where(user_id: user.id).first
-		return prefs.region.to_sym if prefs != nil
-		RedmineLeavesHolidays::Setting.region.to_sym
+		return prefs.send(arg) if prefs != nil
+		RedmineLeavesHolidays::Setting.defaults_settings(arg)
 	end
 
 end

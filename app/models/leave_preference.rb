@@ -5,11 +5,13 @@ class LeavePreference < ActiveRecord::Base
   before_validation :set_user
 
   belongs_to :user
-  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id
+  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days
 
 
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
   validates :annual_leave_days_max, presence: true, numericality: true, inclusion: { in: 0..365}
+  validates :contract_start_date, presence: true, date: true
+  validates :extra_leave_days, presence: true, numericality: true, inclusion: { in: 0..365}
   validates :region, presence: true
   validates :user_id, presence: true
 

@@ -1,5 +1,3 @@
-<h2>LeaveRequestController#show</h2>
-
 <p>
 	<strong><%= l(:label_leave_id) %></strong>
 	<%= @leave.id %>
@@ -51,6 +49,7 @@
 </p>
 
 <% if @leave.request_status == "processed" %>
+	<hr />
 	<%= render :partial => '/leave_statuses/status' %>
 <% end %>
 

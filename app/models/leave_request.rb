@@ -11,7 +11,7 @@ class LeaveRequest < ActiveRecord::Base
   has_one :leave_status, dependent: :destroy
 
   before_validation :set_user
-  before_validation :set_region
+  before_validation :set_user_preferences
   before_update :validate_update
 
   enum request_status: { created: 0, submitted: 1, processed: 2, cancelled: 3 }
@@ -23,7 +23,11 @@ class LeaveRequest < ActiveRecord::Base
   validates :issue_id, presence: true
   validates :request_type, presence: true
   validates :request_status, presence: true
+
   validates :region, presence: true
+  validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
+  validates :annual_leave_days_max, presence: true, numericality: true, inclusion: { in: 0..365}
+
   validates :comments, presence: true
   validates_length_of :comments, :maximum => 255
 
@@ -100,31 +104,34 @@ class LeaveRequest < ActiveRecord::Base
 	private
 
 	def validate_date_period
-		if to_date != nil && from_date != nil && to_date < from_date
-			errors.add(:base,"The end of the leave cannot take place before its beginning")
-		end
+    if to_date != nil && from_date != nil
+  		if to_date < from_date
+  			errors.add(:base,"The end of the leave cannot take place before its beginning")
+  		end
 
-    if to_date != nil && from_date != nil && half_day? && (to_date - from_date).to_i > 0
-      errors.add(:base,"Half day leaves cannot be more than 1 day")
-    end
+      if half_day? && (to_date - from_date).to_i > 0
+        errors.add(:base,"Half day leaves cannot be more than 1 day")
+      end
 
-    # Forbid the leave creation if it's in the past
-    # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
-    #   errors.add(:base,"Your leave is in the past")
-    # end
+      # Forbid the leave creation if it's in the past
+      # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
+      #   errors.add(:base,"Your leave is in the past")
+      # end
 
-    #check leave is not in a week-end or bank holiday
-    count = 0
+      #check leave is not in a week-end or bank holiday
 
-    real_leave_days.ceil.times do |i|
-      if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
-        count += 1
-      end          
-    end
+        count = 0
 
-    if count == real_leave_days.ceil
-      errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
-    end
+        real_leave_days.ceil.times do |i|
+          if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
+            count += 1
+          end          
+        end
+
+        if count == real_leave_days.ceil
+          errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
+        end
+      end
 
 	end
 
@@ -155,10 +162,12 @@ class LeaveRequest < ActiveRecord::Base
     self.user_id = User.current.id
   end
 
-  def set_region
+  def set_user_preferences
     user = User.find(user_id)
-    user_region = LeavesHolidaysLogic.region(user)
+    user_region = LeavesHolidaysLogic.user_params(user, :region)
     self.region = user_region.to_sym
+    self.weekly_working_hours = LeavesHolidaysLogic.user_params(user, :weekly_working_hours)
+    self.annual_leave_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max)
   end
 
   def validate_overlaps
@@ -185,6 +194,4 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
-
-	
 end

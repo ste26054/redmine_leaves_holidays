@@ -7,13 +7,20 @@ class LeaveRequestsController < ApplicationController
   before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
-  # before_action :set_approvers, only: [:index]
   def index
     @leave_requests = {}
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
     # @leave_requests = LeaveRequest.all
   	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.pending
-    @approvers = LeavesHolidaysLogic.users_to_notify_of_request(User.current) if @approvers == nil
+    @notifiers = LeavesHolidaysLogic.users_to_notify_of_request(User.current)
+    @approvers = LeavesHolidaysLogic.can_approve_request(User.current)
+
+    # job = Rufus::Scheduler.singleton.every '30s' do
+    #     Rails.logger.info "SCHEDULER: time flies, it's now #{Time.now}"
+    # end
+    # p job.running?   # true
+    # job.kill if job.running?
+    # p job.running?   # false
   end
 
   def new
