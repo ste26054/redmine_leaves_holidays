@@ -45,6 +45,11 @@
 				<%= f.text_field :contract_start_date %><%= calendar_for('leave_preference_contract_start_date') %>
 			</p>
 
+			<p>
+				<label>User is a Contractor (Disables the approval system):</label>
+				<%= f.check_box :is_contractor %>
+			</p>
+
 
 
 		</fieldset>

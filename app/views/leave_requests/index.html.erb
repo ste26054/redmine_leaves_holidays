@@ -5,21 +5,10 @@
 
 <h1>Leaves Dashboard</h1>
 
-<h4>Users able to approve the leave request of the current user:</h4>
-<% @approvers.each do |i| %>
-	<p>
-		<%= i[:name] %> | Role level: <%= i[:role_details][:role_position] %>
-	</p>
-<% end %>
+<!-- <h3>Leave days accumulated this year: <%= @dates %></h3> -->
 
-<hr />
 
-<h4>Users that will be notified of leave requests:</h4>
-<% @notifiers.each do |i| %>
-	<p>
-		<%= i[:name] %> | Role level: <%= i[:role_details][:role_position] %>
-	</p>
-<% end %>
+
 
 <hr />
 

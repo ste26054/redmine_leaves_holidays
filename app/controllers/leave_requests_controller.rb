@@ -1,6 +1,7 @@
 class LeaveRequestsController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
+  include LeavesHolidaysDates
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   before_action :set_status, only: [:show, :destroy]
   before_action :view_request, only: [:show]
@@ -12,15 +13,15 @@ class LeaveRequestsController < ApplicationController
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
     # @leave_requests = LeaveRequest.all
   	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.pending
-    @notifiers = LeavesHolidaysLogic.users_to_notify_of_request(User.current)
-    @approvers = LeavesHolidaysLogic.can_approve_request(User.current)
-
+    # @notifiers = LeavesHolidaysLogic.users_to_notify_of_request(User.current)
+    # @approvers = LeavesHolidaysLogic.can_approve_request(User.current)
     # job = Rufus::Scheduler.singleton.every '30s' do
     #     Rails.logger.info "SCHEDULER: time flies, it's now #{Time.now}"
     # end
     # p job.running?   # true
     # job.kill if job.running?
     # p job.running?   # false
+    @dates = LeavesHolidaysDates.total_leave_days_available(User.current, Date.today)
   end
 
   def new
@@ -60,6 +61,9 @@ class LeaveRequestsController < ApplicationController
   end
 
   def show
+    # @a = Date.civil(2015,1,1)
+    # @b = Date.civil(2015,12,31)
+    # @testt = @leave.actual_leave_days_within(@a, @b)
   end
 
   def edit
@@ -67,8 +71,6 @@ class LeaveRequestsController < ApplicationController
   end
 
   def update
-    # If Leave is updated while already approved, we must restart the approval process ?
-    # Or forbid the update ?
     if @leave.update(leave_request_params)
   		redirect_to @leave #:action => 'index'
   	else

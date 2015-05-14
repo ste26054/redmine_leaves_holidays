@@ -28,7 +28,7 @@
 
 	<p>
 		<label><%= l(:label_leaves_default_days_year) %>:</label>
-		<%= number_field_tag 'settings[default_days_leaves_year]', RedmineLeavesHolidays::Setting.defaults_settings(:default_days_leaves_year), :min => 0, :step => 1 %>
+		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), :min => 0, :step => 1 %>
 	</p>
 
 	<%- users = User.where(status: 1).collect{|t| [t.name, t.id]} -%>
@@ -53,7 +53,7 @@
 
 	<p>
 		<label>Default Contract Start date for auto increment / report of available leave days at the anniversary date:</label>
-		<%= date_field_tag "settings[default_contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:default_contract_start_date) %>
+		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date) %>
 	</p>
 
 </fieldset>

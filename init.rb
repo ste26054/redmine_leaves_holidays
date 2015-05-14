@@ -1,5 +1,6 @@
 require 'redmine'
 require 'LeavesHolidaysLogic'
+require 'LeavesHolidaysDates'
 
 Redmine::Plugin.register :redmine_leaves_holidays do
   name 'Redmine Leaves Holidays plugin'
@@ -8,7 +9,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   version '0.0.1'
 
   settings :default => {:default_tracker_id => "1", :default_project_id => "1", :default_working_hours_week => "37",
-  						:default_days_leaves_year => "25"}, :partial => "settings/leaves_holidays_settings"
+  						:annual_leave_days_max => "25"}, :partial => "settings/leaves_holidays_settings"
 
   permission :view_all_leaves_requests, { :leaves_requests => :view_all }
   permission :manage_leaves_requests, { :leaves_requests => :manage }

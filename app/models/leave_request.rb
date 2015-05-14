@@ -28,7 +28,6 @@ class LeaveRequest < ActiveRecord::Base
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
   validates :annual_leave_days_max, presence: true, numericality: true, inclusion: { in: 0..365}
 
-  validates :comments, presence: true
   validates_length_of :comments, :maximum => 255
 
    validate :validate_set_request_type
@@ -90,14 +89,42 @@ class LeaveRequest < ActiveRecord::Base
   def actual_leave_days
     return 0.5 if half_day?
 
-    working_days = working_days(from_date, to_date + 1)
+    working_days = (to_date + 1 - from_date).to_i
 
     real_leave_days.times do |i|
-      if (from_date + i).holiday?(region.to_sym) && !non_working_week_days.include?((from_date + i).cwday)
+      if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
         working_days -= 1
       end          
     end
 
+    return working_days
+  end
+
+  # Restricts the actual leave days to a given period
+  def actual_leave_days_within(from, to)
+    if half_day?
+      if (from_date <= to && from <= to_date)
+        return 0.5
+      else
+        return 0.0
+      end
+    end
+
+    working_days = (to_date + 1 - from_date).to_i
+
+    real_leave_days.times do |i|
+      end_bound = from_date + i
+      # If Not working day
+      if (end_bound).holiday?(region.to_sym) || non_working_week_days.include?((end_bound).cwday)
+        # Decrement working days count
+        working_days -= 1
+      else # If working day
+        # Remove day anyway if it is not in [from : to range]
+        if !(from_date <= to && from <= end_bound) || !(end_bound <= to && from <= to_date)
+          working_days -= 1
+        end 
+      end
+    end
     return working_days
   end
 

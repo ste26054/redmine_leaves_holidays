@@ -23,7 +23,7 @@
 	<%= @leave.real_leave_days - @leave.actual_leave_days %>
 </p>
 <p>
-	<strong><%= l(:label_leave_comments) %></strong>
+	<strong><%= l(:label_leave_comments) %>:</strong>
 	<%= @leave.comments %>
 </p>
 <p>
@@ -47,6 +47,8 @@
 	<strong>Leave Status:</strong>
 	<%= @leave.request_status %>
 </p>
+
+
 
 <% if @leave.request_status == "processed" %>
 	<hr />

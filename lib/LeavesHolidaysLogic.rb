@@ -53,6 +53,7 @@ module LeavesHolidaysLogic
 
 	def self.is_allowed_to_manage_status(user, user_request)
 		return true if self.plugin_admins.include?(user.id) #A plugin Admin can approve all the requests including his own requests
+		return true if user.id == user_request.id && self.user_params(user, :is_contractor) == true
 		return false if !user.allowed_to?(:manage_leaves_requests, nil, :global => true)
 		return false if self.plugin_admins.include?(user_request.id) #User req is plugin admin and hence his role >>> user -> Disallow
 		return false if user.id == user_request.id #Any non plugin admin cannot approve his own requests
@@ -138,5 +139,7 @@ module LeavesHolidaysLogic
 		return prefs.send(arg) if prefs != nil
 		RedmineLeavesHolidays::Setting.defaults_settings(arg)
 	end
+
+
 
 end
