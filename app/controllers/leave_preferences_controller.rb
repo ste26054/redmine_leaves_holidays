@@ -13,7 +13,7 @@ class LeavePreferencesController < ApplicationController
       redirect_to edit_user_leave_preferences_path
     else
   		@preference = LeavePreference.new
-  		@preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:default_working_hours_week)
+  		@preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
   		@preference.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
   		@preference.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
   		@preference.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)

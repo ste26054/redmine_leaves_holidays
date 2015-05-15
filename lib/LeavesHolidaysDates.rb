@@ -20,20 +20,41 @@ module LeavesHolidaysDates
 	end
 
 	# Leave days accumulated for the year starting with the user's contract day and month, ignoring leaves taken
-	def self.total_leave_days_available(user, date)
+	def self.total_leave_days_accumulated(user, from, to)
 		prefs = LeavePreference.where(user_id: user.id).first
 		total = 0.0
 		total += prefs.extra_leave_days if prefs != nil
-		contract_start_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-		months = self.months_between(contract_start_date, date) % 12
-		#months = ((((date - contract_start_date).to_i) % self.average_days_per_year) / self.average_days_per_months).floor
+		months = self.months_between(from, to) % 12
 		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
 		return self.floor_to_nearest_half_day(leave_days) + total
 	end
 
-	# leave days taken by for user starting from the users's contract day and month, 
-	def self.total_leave_days_taken(user, date)
+	def self.total_leave_days_remaining(user, from, to)
 		prefs = LeavePreference.where(user_id: user.id).first
+		remaining = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
+		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
+
+		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to)
+		leaves_list.find_each do |l|
+			unless l.from_date < from
+				remaining -= l.actual_leave_days
+			end
+		end
+		return remaining
+	end
+
+
+
+	# leave days taken by for user starting from the users's contract day and month, 
+	def self.total_leave_days_taken(user, from, to)
+		prefs = LeavePreference.where(user_id: user.id).first
+		total = 0.0
+
+		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to)
+		leaves_list.find_each do |l|
+			total += l.actual_leave_days_within(from, to)
+		end
+		return total
 	end
 
 end

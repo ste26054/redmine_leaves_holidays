@@ -25,7 +25,12 @@
 					<td><%= leave_request.issue.subject %></td>
 					<td><%= leave_request.comments %></td>
 					<td><%= leave_request.request_type %></td>
-					<td><%= leave_request.request_status %></td>
+					<!-- <td><%= leave_request.request_status %></td> -->
+					<% if leave_request.request_status == "processed" %>
+						<td><%= LeaveStatus.for_request(leave_request.id).first.acceptance_status %></td>
+					<% else %>
+						<td><%= leave_request.request_status %></td>
+					<% end %>
 					<td><%= link_to 'Details', leave_request %></td>
 					<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, leave_request.user) %>
 						<td><%= link_to 'Manage', new_leave_request_leave_statuses_path(leave_request) %></td>

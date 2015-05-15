@@ -17,7 +17,9 @@
 		</thead>
 		<tbody>
 			<% @leave_requests['requests'].each do |leave_request| %>
+				
 				<tr class="<%= cycle("odd", "even") %>">
+
 					<td><%= leave_request.id %></td>
 					<td><%= leave_request.actual_leave_days %></td>
 					<td><%= leave_request.from_date %></td>
@@ -33,6 +35,7 @@
 					<% end %>
 
 					<td><%= link_to 'Details', leave_request %></td>
+					
 				</tr>
 			<% end %>
 		</tbody>
