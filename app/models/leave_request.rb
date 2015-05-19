@@ -10,12 +10,13 @@ class LeaveRequest < ActiveRecord::Base
   belongs_to :user
   belongs_to :issue
   has_one :leave_status, dependent: :destroy
+  has_many :leave_vote, dependent: :destroy
 
   before_validation :set_user
   before_validation :set_user_preferences
   before_update :validate_update
 
-  enum request_status: { created: 0, submitted: 1, processed: 2, cancelled: 3 }
+  enum request_status: { created: 0, submitted: 1, processed: 2, cancelled: 3, processing: 4 }
   enum request_type: { am: 0, pm: 1, ampm: 2 }
 
   validates :from_date, date: true, presence: true
@@ -49,6 +50,8 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :submitted, -> { where(request_status: "1") }
 
+  scope :processing, -> { where(request_status: "4") }
+
   scope :processed, -> { where(request_status: "2") }
 
   scope :cancelled, -> { where(request_status: "3") }
@@ -65,7 +68,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :processable_by, ->(uid) {
     user = User.find(uid)
-    submitted_ids = Array.wrap(submitted + processed).map { |a| a.id }
+    submitted_ids = Array.wrap(submitted + processing + processed).map { |a| a.id }
     submitted_ids.delete_if { |id| !LeavesHolidaysLogic.is_allowed_to_manage_status(user, LeaveRequest.find(id).user) }
     find(submitted_ids)
   }

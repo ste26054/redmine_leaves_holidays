@@ -51,7 +51,7 @@ class LeaveStatusesController < ApplicationController
   private
 
   def leave_status_params
-    params.require(:leave_status).permit(:leave_request_id, :processed_date, :user_id, :comments, :acceptance_status).merge(timestamp: @timestamp)
+    params.require(:leave_status).permit(:leave_request_id, :processed_date, :user_id, :comments, :acceptance_status)
   end
 
   def set_leave_status

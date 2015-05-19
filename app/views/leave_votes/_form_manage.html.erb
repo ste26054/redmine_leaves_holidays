@@ -1,0 +1,40 @@
+<h2>Vote for this Leave Request:</h2>
+<strong>Note: This vote is consultative only, and cannot, itself, approve or reject the Leave Request.
+</strong>
+<%= form_for [leave, vote] do |f| %>
+	
+ 	<div class="box tabular">
+		<% if vote.errors.any? %>
+			<div class="flash">
+				<ul>
+			  		<% vote.errors.full_messages.each do |msg| %>
+			    		<li><%= msg %></li>
+			  		<% end %>
+				</ul>
+			</div>
+		<% end %>
+	</div>
+
+	<div>
+
+		<fieldset>
+			<p>
+				Vote:
+				<%= f.radio_button :vote, 'yes' %>
+				<%= f.label :vote, 'Yes', :value => 'yes' %>
+				<%= f.radio_button :vote, 'no' %>
+				<%= f.label :vote, 'No', :value => 'no' %>
+			</p>
+
+			<p>
+				<label>Comments:</label>
+				<%= f.text_field :comments, {:size => 75 } %>
+			</p>
+
+
+		</fieldset>
+	</div>
+	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %>
+<% end %>
+
+<%= link_to 'Back', leave_request_path(leave) %>

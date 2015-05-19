@@ -38,7 +38,8 @@ module LeavesHolidaysLogic
 		false
 	end
 
-	def self.is_allowed_to_manage_request(user, request)
+
+	def self.is_allowed_to_edit_request(user, request)
 		return true if user.id == request.user.id #Only the creator of the request can change it
 		false
 	end
@@ -72,6 +73,17 @@ module LeavesHolidaysLogic
 			end
 			
 		end
+		false
+	end
+
+	def self.is_allowed_to_vote_request(user, user_request)
+		# return true
+		return false if user.id == user_request.id #A user cannot vote for his own leave request
+		#  DEBUG ONLY
+		return true if self.plugin_admins.include?(user.id)
+		return false if user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+		
+		return true if user.allowed_to?(:vote_leaves_requests, nil, :global => true)
 		false
 	end
 

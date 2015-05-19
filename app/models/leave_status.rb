@@ -18,8 +18,7 @@ class LeaveStatus < ActiveRecord::Base
   validates :leave_request_id, presence: true
   validates :acceptance_status, presence: true
 
-  attr_accessor :timestamp
-  attr_accessible :acceptance_status, :leave_request_id, :comments, :timestamp
+  attr_accessible :acceptance_status, :leave_request_id, :comments
 
   scope :rejected, -> { where(acceptance_status: "0") }
   scope :accepted, -> { where(acceptance_status: "1") }

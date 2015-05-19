@@ -10,6 +10,7 @@ RedmineApp::Application.routes.draw do
 			get 'unsubmit'
 		end
 		resource :leave_statuses
+		resources :leave_votes
 	end
 
 	resources :users do

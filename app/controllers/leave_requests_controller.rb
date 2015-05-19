@@ -128,7 +128,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def manage_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_request(User.current, @leave)
+    render_403 unless LeavesHolidaysLogic.is_allowed_to_edit_request(User.current, @leave)
   end
 
 end

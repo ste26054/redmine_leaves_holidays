@@ -22,10 +22,12 @@
 	<strong>Non Working Days or Bank Holidays:</strong>
 	<%= @leave.real_leave_days - @leave.actual_leave_days %>
 </p>
-<p>
-	<strong><%= l(:label_leave_comments) %>:</strong>
-	<%= @leave.comments %>
-</p>
+<% if @leave.comments != "" %>
+	<p>
+		<strong><%= l(:label_leave_comments) %>:</strong>
+		<%= @leave.comments %>
+	</p>
+<% end %>
 <p>
 	<strong>Leave AM/PM:</strong>
 	<%= @leave.request_type %>
@@ -67,8 +69,7 @@
 <hr />
 
 <% if @leave.request_status == "processed" %>
-	<hr />
-	<%= render :partial => '/leave_statuses/status' %>
+	<%= render partial: '/leave_statuses/status', locals: {status: @status} %>
 <% end %>
 
 <%= link_to 'Back', leave_requests_path %>
@@ -79,6 +80,16 @@
 
 <% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user) %>
 	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
+<% end %>
+
+<% if LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, @leave.user)%>
+
+	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing") %>
+	| <%= link_to 'Vote', new_leave_request_leave_vote_path(@leave) %>
+	<% end %>
+	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing" || @leave.request_status == "processed") %>
+	| <%= link_to 'Vote Results', leave_request_leave_votes_path(@leave) %>
+	<% end %>
 <% end %>
 
 <% if @leave.request_status == "created" && User.current == @leave.user %>

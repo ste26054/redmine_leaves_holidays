@@ -1,0 +1,38 @@
+<hr />
+<h3>Votes summary for the leave request <%= @leave.id %></h3>
+<hr />
+
+
+<% if !@votes.empty? %>
+	<div class="list">
+		<table>
+			<thead>
+				<th>Id</th>
+				<th>Voter</th>
+				<th>Answer</th>
+				<th>Date of Vote</th>
+				<th>Comments</th>
+			</thead>
+			<tbody>
+				<% @votes.each do |vote| %>
+					
+					<tr class="<%= cycle("odd", "even") %>">
+
+						<td><%= vote.id %></td>
+						<td><%= vote.user.name %></td>
+						<td><%= vote.vote %></td>
+						<td><%= vote.updated_at %></td>
+						<td><%= vote.comments %></td>
+						
+					</tr>
+				<% end %>
+			</tbody>
+		</table>
+	</div>
+<% else %>
+	<h3>There are no votes for this leave request</h3>
+<% end %>
+
+<br>
+<%= link_to 'Back', leave_request_path(@leave) %>
+

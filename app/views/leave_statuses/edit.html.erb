@@ -1,2 +1,1 @@
-<%= render 'form_manage' %>
-<!-- <%= link_to 'Destroy', leave_request_leave_statuses_path(@status), method: :delete, data: { confirm: 'Are you sure?' } %> -->
+<%= render partial: 'form_manage', locals: {leave: @leave, status: @status} %>
