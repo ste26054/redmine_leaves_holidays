@@ -1,6 +1,10 @@
 <h2>Vote for this Leave Request:</h2>
-<strong>Note: This vote is consultative only, and cannot, itself, approve or reject the Leave Request.
+<%  role = LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, leave.user) %>
+<strong>Note: This vote is consultative only, and cannot, itself, approve or reject the Leave Request. You are voting as a <%= role[:name] %>
 </strong>
+
+
+
 <%= form_for [leave, vote] do |f| %>
 	
  	<div class="box tabular">

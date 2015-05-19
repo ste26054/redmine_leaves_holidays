@@ -68,7 +68,7 @@ class LeaveVotesController < ApplicationController
   end
 
   def check_change
-  	render_403 unless LeavesHolidaysLogic.is_allowed_to_vote_request(@user, @leave.user)
+  	render_403 unless !LeavesHolidaysLogic.is_allowed_to_vote_request(@user, @leave.user).empty?
   end
 
 

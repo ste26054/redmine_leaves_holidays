@@ -15,7 +15,11 @@ module LeavesHolidaysLogic
 	end
 
 	def self.has_manage_rights(user)
-		self.plugin_admins.include?(user.id) || user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+		user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+	end
+
+	def self.has_vote_rights(user)
+		user.allowed_to?(:vote_leaves_requests, nil, :global => true)
 	end
 
 	def self.project_list_for_user(user)
@@ -26,14 +30,14 @@ module LeavesHolidaysLogic
 		allowed = {}
 		allowed[:user_id] = user.id
 		allowed_roles = user.roles_for_project(project).sort.uniq
-		allowed[:roles] = allowed_roles.collect{|r| { position: r.position, allowed: r.allowed_to?(:manage_leaves_requests)}}
+		allowed[:roles] = allowed_roles.collect{|r| { name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
 		return allowed
 	end
 
 	def self.is_allowed_to_view_request(user, request)
 		return true if user.id == request.user.id
 		return false if request.request_status == "created"
-		return true if user.allowed_to?(:view_all_leaves_requests, nil, :global => true) || user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+		return true if user.allowed_to?(:view_all_leaves_requests, nil, :global => true) || user.allowed_to?(:manage_leaves_requests, nil, :global => true) || user.allowed_to?(:vote_leaves_requests, nil, :global => true)
 		return true if self.plugin_admins.include?(user.id)
 		false
 	end
@@ -66,7 +70,7 @@ module LeavesHolidaysLogic
 				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
 				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
 				array_roles_user[:roles].each do |role|
-					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:allowed]
+					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:manage]
 						return true
 					end
 				end
@@ -77,14 +81,27 @@ module LeavesHolidaysLogic
 	end
 
 	def self.is_allowed_to_vote_request(user, user_request)
+		role = {}
 		# return true
-		return false if user.id == user_request.id #A user cannot vote for his own leave request
+		return role if user.id == user_request.id #A user cannot vote for his own leave request
 		#  DEBUG ONLY
-		return true if self.plugin_admins.include?(user.id)
-		return false if user.allowed_to?(:manage_leaves_requests, nil, :global => true)
-		
-		return true if user.allowed_to?(:vote_leaves_requests, nil, :global => true)
-		false
+		#return true if self.plugin_admins.include?(user.id)
+		return role if !user.allowed_to?(:vote_leaves_requests, nil, :global => true)
+		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
+		if !common_projects.empty?
+			common_projects.each do |p|
+				project = Project.find(p)
+				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
+				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
+				array_roles_user[:roles].each do |role|
+					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:vote] && !role[:manage]
+						return role
+					end
+				end
+			end
+			
+		end
+		role
 	end
 
 	def self.user_role_details(user, user_request)
@@ -106,7 +123,7 @@ module LeavesHolidaysLogic
 				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
 				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
 				array_roles_user[:roles].each do |role|
-					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:allowed]
+					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:manage]
 						user_role_details[:user_id] = array_roles_user[:user_id]
 						user_role_details[:role_position] = role[:position]
 						return user_role_details

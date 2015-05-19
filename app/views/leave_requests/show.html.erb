@@ -82,14 +82,15 @@
 	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
 <% end %>
 
-<% if LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, @leave.user)%>
+<% if !LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, @leave.user).empty? %>
 
 	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing") %>
 	| <%= link_to 'Vote', new_leave_request_leave_vote_path(@leave) %>
 	<% end %>
-	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing" || @leave.request_status == "processed") %>
-	| <%= link_to 'Vote Results', leave_request_leave_votes_path(@leave) %>
-	<% end %>
+<% end %>
+
+<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user) || !LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, @leave.user).empty? %>
+| <%= link_to 'Vote Results', leave_request_leave_votes_path(@leave) %>
 <% end %>
 
 <% if @leave.request_status == "created" && User.current == @leave.user %>
