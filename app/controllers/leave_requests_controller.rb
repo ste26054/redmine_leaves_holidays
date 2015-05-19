@@ -21,13 +21,10 @@ class LeaveRequestsController < ApplicationController
     # p job.running?   # true
     # job.kill if job.running?
     # p job.running?   # false
-    @a = Date.civil(2015,1,1)
-    @a = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
-    @b = @a + 1.year - 1.day
-    # @dates = LeavesHolidaysDates.total_leave_days_available(User.current, Date.today)
-    @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @a, @b)
-    @dates2 = LeavesHolidaysDates.total_leave_days_taken(User.current, @a, @b)
-    @dates3 = LeavesHolidaysDates.total_leave_days_accumulated(User.current, @a, Date.today)
+    @d_start = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
+    @d_end = @d_start + 1.year - 1.day
+    @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
+
   end
 
   def new
@@ -67,9 +64,6 @@ class LeaveRequestsController < ApplicationController
   end
 
   def show
-     @a = Date.civil(2015,1,1)
-     @b = Date.civil(2015,12,31)
-    # @testt = @leave.actual_leave_days_within(@a, @b)
   end
 
   def edit

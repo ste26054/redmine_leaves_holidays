@@ -1,6 +1,7 @@
 class LeaveRequest < ActiveRecord::Base
   unloadable
   include LeavesHolidaysLogic
+  include LeavesHolidaysDates
   include Redmine::Utils::DateCalculation
 
 
@@ -68,6 +69,34 @@ class LeaveRequest < ActiveRecord::Base
     submitted_ids.delete_if { |id| !LeavesHolidaysLogic.is_allowed_to_manage_status(user, LeaveRequest.find(id).user) }
     find(submitted_ids)
   }
+
+  def get_days(arg)
+    res = {}
+    user = User.find(self.user_id)
+    contract_start = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
+    contract_end = contract_start + 1.year - 1.day
+    date_end = self.created_at.to_date
+
+    case arg
+    when :remaining
+      res[:start] = contract_start
+      res[:end] = contract_end
+      res[:result] = LeavesHolidaysDates.total_leave_days_remaining(user, contract_start, contract_end)
+      return res
+    when :accumulated
+      res[:start] = contract_start
+      res[:end] = date_end
+      res[:result] = LeavesHolidaysDates.total_leave_days_accumulated(user, contract_start, date_end)
+      return res
+    when :taken
+      res[:start] = contract_start
+      res[:end] = contract_end
+      res[:result] = LeavesHolidaysDates.total_leave_days_taken(user, contract_start, contract_end)
+      return res
+    else
+      return res
+    end
+  end
 
   def has_am?
     return self.request_type == "am" || self.request_type == "ampm"

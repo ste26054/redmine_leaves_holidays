@@ -6,12 +6,8 @@ class LeaveStatusesController < ApplicationController
   before_action :view_status, only: [:show]
   before_action :manage_status, except: [:show]
   
-
   def new
-     # @leave = LeaveRequest.find(params[:leave_request_id])
-     # @status = LeaveStatus.new if @status == nil
     if @status != nil
-      # redirect_to leave_request_leave_status_path
       redirect_to edit_leave_request_leave_statuses_path
     else
       @status = LeaveStatus.new
@@ -50,8 +46,6 @@ class LeaveStatusesController < ApplicationController
 
   def destroy
       render_403
-      # @status.destroy
-      # redirect_to @leave
   end
 
   private

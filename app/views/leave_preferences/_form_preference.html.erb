@@ -64,7 +64,7 @@
 
 <% end %>
 
-<%= link_to 'Back', edit_user_path(@user) %>
+| <%= link_to 'Back', edit_user_path(@user) %> |
 <% if @exists && @user.allowed_to?(:manage_user_leaves_preferences, nil, :global => true) %>
 <%= link_to 'Revert to Defaults', user_leave_preferences_path(@user), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>

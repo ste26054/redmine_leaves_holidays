@@ -27,10 +27,7 @@ class LeaveStatus < ActiveRecord::Base
   scope :for_request, ->(rid) { where('leave_request_id = ?', rid) }
 
 
-
-
   private
-
 
   def set_user
     self.user_id = User.current.id

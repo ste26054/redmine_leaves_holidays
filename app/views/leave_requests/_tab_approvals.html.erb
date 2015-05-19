@@ -5,32 +5,40 @@
 		<thead>
 			<th>Id</th>
 			<th>Creator</th>
-			<th>Days</th>
+			<th>Creation Date</th>
+			<th>Length</th>
 			<th>Leave From</th>
 			<th>Leave To</th>
 			<th>Reason</th>
 			<th>Comments</th>
 			<th>Type</th>
 			<th>Status</th>
+			<th>Remaining</th>
+			<th>Accumulated</th>
+			<th>Taken</th>
+
 			<th colspan="3"></th>
 		</thead>
 		<tbody>
 			<% @leave_requests['approvals'].each do |leave_request| %>
 				<tr class="<%= cycle("odd", "even") %>">
 					<td><%= leave_request.id %></td>
-					<td><%= leave_request.user.name %></td>
-					<td><%= leave_request.actual_leave_days %></td>
+					<td><strong><%= leave_request.user.name %></strong></td>
+					<td><%= leave_request.created_at.to_date %></td>
+					<td><%= leave_request.actual_leave_days %>d (<%= (leave_request.actual_leave_days * LeavesHolidaysLogic.user_params(leave_request.user, :daily_working_hours)).round(1) %>h)</td>
 					<td><%= leave_request.from_date %></td>
 					<td><%= leave_request.to_date %></td>
 					<td><%= leave_request.issue.subject %></td>
 					<td><%= leave_request.comments %></td>
 					<td><%= leave_request.request_type %></td>
-					<!-- <td><%= leave_request.request_status %></td> -->
 					<% if leave_request.request_status == "processed" %>
-						<td><%= LeaveStatus.for_request(leave_request.id).first.acceptance_status %></td>
+						<td><strong><%= LeaveStatus.for_request(leave_request.id).first.acceptance_status %></strong></td>
 					<% else %>
-						<td><%= leave_request.request_status %></td>
+						<td><strong><%= leave_request.request_status %></strong></td>
 					<% end %>
+					<td><%= leave_request.get_days(:remaining)[:result].round(1) %>d</td>
+					<td><%= leave_request.get_days(:accumulated)[:result].round(1) %>d</td>
+					<td><%= leave_request.get_days(:taken)[:result].round(1) %>d</td>
 					<td><%= link_to 'Details', leave_request %></td>
 					<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, leave_request.user) %>
 						<td><%= link_to 'Manage', new_leave_request_leave_statuses_path(leave_request) %></td>

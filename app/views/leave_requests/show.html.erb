@@ -48,33 +48,47 @@
 	<%= @leave.request_status %>
 </p>
 
-
+<% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user) %>
+	<hr />
+	<h3>Leave days metrics (ignores leaves not yet accepted for the user):</h3>
+	<p>
+		<strong>Days remaining from <%= @leave.get_days(:remaining)[:start] %> to <%= @leave.get_days(:remaining)[:end] %>:</strong>
+		<%= @leave.get_days(:remaining)[:result] %>
+	</p>
+	<p>
+		<strong>Days accumulated from <%= @leave.get_days(:accumulated)[:start] %> to <%= @leave.get_days(:accumulated)[:end] %>:</strong>
+		<%= @leave.get_days(:accumulated)[:result] %>
+	</p>
+	<p>
+		<strong>Days taken from <%= @leave.get_days(:taken)[:start] %> to <%= @leave.get_days(:taken)[:end] %>:</strong>
+		<%= @leave.get_days(:taken)[:result] %>
+	</p>
+<% end %>
+<hr />
 
 <% if @leave.request_status == "processed" %>
 	<hr />
 	<%= render :partial => '/leave_statuses/status' %>
 <% end %>
 
-
 <%= link_to 'Back', leave_requests_path %>
 
 <% if @leave.request_status == "created" && User.current == @leave.user %>
-	<%= link_to 'Edit', edit_leave_request_path(@leave) %>
+	| <%= link_to 'Edit', edit_leave_request_path(@leave) %>
 <% end %>
 
 <% if LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user) %>
-	<%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
+	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
 <% end %>
 
-
 <% if @leave.request_status == "created" && User.current == @leave.user %>
-	<%= link_to 'Submit', submit_leave_request_path(@leave) %>
+	| <%= link_to 'Submit', submit_leave_request_path(@leave) %>
 <% end %>
 
 <% if @leave.request_status == "submitted" && User.current == @leave.user %>
-	<%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave) %>
+	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave) %>
 <% end %>
 
 <% if User.current == @leave.user && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
-<%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' } %>
+| <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' } %>
 <% end %>
