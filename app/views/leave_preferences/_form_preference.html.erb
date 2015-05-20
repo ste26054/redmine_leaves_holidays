@@ -56,7 +56,8 @@
 
 		</fieldset>
 	</div>
-	<% if user.allowed_to?(:manage_user_leaves_preferences, nil, :global => true) %>
+
+	<% if LeavesHolidaysLogic.has_right(user, user_pref, preference, :update) %>
 		<%= f.submit 'Save' %>
 	<% else %>
 		<p>Save Function is disabled as you do not have sufficient rights</p>
@@ -68,6 +69,6 @@
 
 | <%= link_to 'Back', edit_user_path(user_pref) %> |
 
-<% if @exists && user.allowed_to?(:manage_user_leaves_preferences, nil, :global => true) %>
+<% if @exists && LeavesHolidaysLogic.has_right(user, user_pref, preference, :delete) %>
 <%= link_to 'Revert to Defaults', user_leave_preferences_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>

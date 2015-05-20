@@ -1,3 +1,5 @@
+<h3>Leaves/Holidays/Work Preferences for <%= @user_pref.name %>:</h3>
+
 <p>
 	<strong>Weekly Working Hours:</strong>
 	<%= @preference.weekly_working_hours %>
@@ -14,8 +16,10 @@
 <p>
 	<strong>Extra Leave Days:</strong>
 	<%= @preference.extra_leave_days %>
-	<strong>Comments:</strong>
-	<%= @preference.annual_max_comments %>
+	<% if @preference.annual_max_comments != "" %>
+		<strong>Comments:</strong>
+		<%= @preference.annual_max_comments %>
+	<% end %>
 <p>
 	<strong>Contract Start Date:</strong>
 	<%= @preference.contract_start_date %>
@@ -26,3 +30,6 @@
 </p>
 
 <%= link_to 'Back', edit_user_path(@user) %>
+<% if LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, :update) %>
+	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %>	
+<% end %>

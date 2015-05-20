@@ -1,11 +1,11 @@
 class LeavePreferencesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
+  
   before_action :set_user
   before_action :set_leave_preference
+  before_filter :authenticate, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_holidays, only: [:new, :create, :edit, :update]
-  before_action :check_rights, only: [:new, :create, :edit, :update, :destroy]
-
 
   def new
   	if @exists
@@ -28,6 +28,7 @@ class LeavePreferencesController < ApplicationController
   end
 
   def show
+    render_403 unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
   end
 
   def edit
@@ -74,16 +75,6 @@ private
     end
   end
 
-  def check_rights
-  	unless @user.allowed_to?(:manage_user_leaves_preferences, nil, :global => true)
-		# flash[:error] = "You do not have sufficient rights to change these settings"
-	 #  	redirect_to new_user_leave_preferences_path
-	 #  	return
-      redirect_to user_leave_preferences_path
-      return
-	  end
-  end
-
   def retrieve_leave_preferences
       @preference = LeavePreference.new
       @preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
@@ -95,4 +86,10 @@ private
       @preference.user_id = @user_pref.id
   end
 
+  def authenticate
+    unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
+      redirect_to user_leave_preferences_path
+      return
+    end
+  end
 end

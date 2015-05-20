@@ -169,6 +169,157 @@ module LeavesHolidaysLogic
 		RedmineLeavesHolidays::Setting.defaults_settings(arg)
 	end
 
+	def self.allowed_common_project(user, user_request, mode)
+		#Modes: 1, 2, 3
+		#1 - role has Manage OR Vote
+		#2 - role has Vote AND not Manage
+		#3 - role has Manage
+
+		role = {}
+
+		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
+		if !common_projects.empty?
+			common_projects.each do |p|
+				project = Project.find(p)
+				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
+				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
+				array_roles_user[:roles].each do |role|
+					case mode
+					when 1
+						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] || role[:manage])
+							return role
+						end
+					when 2
+						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] && !role[:manage])
+							return role
+						end
+					when 3
+						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:manage])
+							return role
+						end
+					else
+					end
+				end
+			end
+		end
+		return role
+	end
+
+	def self.has_right(user_accessor, user_owner, object, action)
+
+		Rails.logger.info "IN HAS RIGHTS: #{user_accessor}, #{user_owner}, #{object}, #{action}"
+		object_list = [LeavePreference, LeaveRequest, LeaveStatus, LeaveVote]
+	 	action_list = [:create, :read, :update, :delete, :cancel, :submit, :unsubmit]
+
+	 	# Rename supefluous actions from controllers
+	 	if !action.in?(action_list)
+	 		action = :create if action == :new
+	 		action = :read if action == :show
+	 		action = :update if action == :edit 
+	 		action = :delete if action == :destroy
+	 	end
+
+		raise ArgumentError, 'Argument is not a user' unless user_accessor.is_a?(User)
+		raise ArgumentError, 'Argument is not a user' unless user_owner.is_a?(User)
+		raise ArgumentError, "Argument is not a leave object: #{object.class}" unless object.class.in?(object_list) || object.in?(object_list)
+		raise ArgumentError, 'Argument is not a valid action' unless action.in?(action_list)
+
+		case object
+		when LeavePreference
+			if action == :cancel
+				return false
+			else
+				if action.in?([:create, :read, :update, :delete])
+					if self.plugin_admins.include?(user_accessor.id) || user_accessor.allowed_to?(:manage_user_leaves_preferences, nil, :global => true)
+						return true
+					else
+						if action == :read
+							if user_accessor.id == user_owner.id || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+								return true
+							end
+						end
+					end	
+				end
+			end
+
+		when LeaveRequest 
+			leave = object
+			return true if action == :create
+			return false if leave.request_status == "cancelled"
+			if action == :read
+				return true if user_accessor.id == user_owner.id
+				if leave.request_status.in?(["submitted", "processing", "processed"])
+					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+						return true
+					else
+						if leave.request_status == "processed"
+							return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+						end
+					end
+				end
+			end
+			if user_accessor.id == user_owner.id
+				if action == :update || action == :submit
+					return true if leave.request_status == "created"
+				end
+				if action == :delete
+					return true
+				end
+				if action == :unsubmit
+					return true if leave.request_status == "submitted"
+				end
+			end
+
+		when LeaveVote
+			vote = object
+			leave = vote.leave_request
+
+			if action == :create
+				if leave.request_status.in?(["submitted", "processing"])
+					return true if !self.allowed_common_project(user_accessor, user_owner, 2).empty?
+				end
+			end
+			if leave.request_status == "processing"	
+				if action == :read
+					if self.plugin_admins.include?(user_accessor.id)
+						return true
+					end
+					if !self.allowed_common_project(user_accessor, user_owner, 2).empty?
+						return true
+					end
+					if !self.allowed_common_project(user_accessor, user_owner, 3).empty?
+						return true
+					end
+				end
+				if action == :update
+					return true if user_accessor.id == user_owner.id && !self.allowed_common_project(user_accessor, user_owner, 2).empty?
+				end
+			end
+
+		when LeaveStatus
+			status = object
+			leave = status.leave_request
+			if action == :create
+				if leave.request_status.in?(["submitted", "processing"])
+					return true if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 3).empty?
+				end
+			end
+			if leave.request_status == "processed"
+				if action.in?([:read, :update])
+					return true if self.plugin_admins.include?(user_accessor.id)
+					return true if !self.allowed_common_project(user_accessor, user_owner, 3).empty?
+				end
+				if action == :read
+					return true if user_accessor.id == user_owner.id
+					return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+				end
+			end
+		else
+
+		end
+		return false
+	end
+
 
 
 end

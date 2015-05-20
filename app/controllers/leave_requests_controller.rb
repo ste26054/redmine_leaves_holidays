@@ -4,10 +4,12 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysDates
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   before_action :set_status, only: [:show, :destroy]
-  before_action :view_request, only: [:show]
-  before_action :manage_request, only: [:edit, :update, :destroy]
+  before_filter :authenticate, only: [:show, :edit, :update, :destroy]
+  # before_action :view_request, only: [:show]
+  # before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
+
   def index
     @leave_requests = {}
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
@@ -67,7 +69,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def edit
-    render_403 unless @leave.request_status == "created" && User.current == @leave.user
+    # render_403 unless @leave.request_status == "created" && User.current == @leave.user
   end
 
   def update
@@ -123,12 +125,19 @@ class LeaveRequestsController < ApplicationController
   	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments)
   end
 
-  def view_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave)
-  end
+  # def view_request
+  #   render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave)
+  # end
 
-  def manage_request
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_edit_request(User.current, @leave)
+  # def manage_request
+  #   render_403 unless LeavesHolidaysLogic.is_allowed_to_edit_request(User.current, @leave)
+  # end
+
+  def authenticate
+    render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, @leave, params[:action].to_sym)
+      # redirect_to user_leave_preferences_path
+      # return
+      # end
   end
 
 end
