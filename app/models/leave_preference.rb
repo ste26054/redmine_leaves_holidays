@@ -3,10 +3,10 @@ class LeavePreference < ActiveRecord::Base
   include Redmine::Utils::DateCalculation
   include LeavesHolidaysLogic
 
-  before_validation :set_user
+  # before_validation :set_user
 
   belongs_to :user
-  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days, :is_contractor
+  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days, :is_contractor,:annual_max_comments
 
 
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
@@ -29,9 +29,9 @@ class LeavePreference < ActiveRecord::Base
     return LeavesHolidaysLogic.user_params(user, :weekly_working_hours).to_f / (7.0 - non_working_week_days.count )
   end
 
-  def set_user
-    self.user_id = User.current.id
-  end
+  # def set_user
+  #   self.user_id = User.find(user_pref)
+  # end
 
 
   def validate_region

@@ -1,0 +1,28 @@
+<p>
+	<strong>Weekly Working Hours:</strong>
+	<%= @preference.weekly_working_hours %>
+</p>
+<p>
+	<strong>Annual Leave Days Max:</strong>
+	<%= @preference.annual_leave_days_max %>
+</p>
+<p>
+	<strong>Holidays Region:</strong>
+	<%= @preference.region %>
+</p>
+
+<p>
+	<strong>Extra Leave Days:</strong>
+	<%= @preference.extra_leave_days %>
+	<strong>Comments:</strong>
+	<%= @preference.annual_max_comments %>
+<p>
+	<strong>Contract Start Date:</strong>
+	<%= @preference.contract_start_date %>
+</p>
+<p>
+	<strong>User is a Contractor:</strong>
+	<%= @preference.is_contractor %>
+</p>
+
+<%= link_to 'Back', edit_user_path(@user) %>

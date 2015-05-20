@@ -1,4 +1,4 @@
-<h3>Leaves/Holidays/Work Preferences for <%= user.name %>:</h3>
+<h3>Leaves/Holidays/Work Preferences for <%= user_pref.name %>:</h3>
 
 <%= form_for [user, preference], :url => user_leave_preferences_path do |f| %>
 
@@ -38,6 +38,8 @@
 			<p>
 				<label>Extra Leave Days:</label>
 				<%= f.text_field :extra_leave_days %>
+				<label>Comments:</label>
+				<%= f.text_field :annual_max_comments %>
 			</p>
 
 			<p>
@@ -64,7 +66,8 @@
 
 <% end %>
 
-| <%= link_to 'Back', edit_user_path(user) %> |
+| <%= link_to 'Back', edit_user_path(user_pref) %> |
+
 <% if @exists && user.allowed_to?(:manage_user_leaves_preferences, nil, :global => true) %>
-<%= link_to 'Revert to Defaults', user_leave_preferences_path(user), method: :delete, data: { confirm: 'Are you sure?' } %>
+<%= link_to 'Revert to Defaults', user_leave_preferences_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>
