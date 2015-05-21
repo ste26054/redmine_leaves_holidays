@@ -125,19 +125,8 @@ class LeaveRequestsController < ApplicationController
   	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments)
   end
 
-  # def view_request
-  #   render_403 unless LeavesHolidaysLogic.is_allowed_to_view_request(User.current, @leave)
-  # end
-
-  # def manage_request
-  #   render_403 unless LeavesHolidaysLogic.is_allowed_to_edit_request(User.current, @leave)
-  # end
-
   def authenticate
     render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, @leave, params[:action].to_sym)
-      # redirect_to user_leave_preferences_path
-      # return
-      # end
   end
 
 end

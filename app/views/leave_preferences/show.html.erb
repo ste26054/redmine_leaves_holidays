@@ -30,6 +30,6 @@
 </p>
 
 <%= link_to 'Back', edit_user_path(@user) %>
-<% if LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, :update) %>
+<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
 	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %>	
 <% end %>

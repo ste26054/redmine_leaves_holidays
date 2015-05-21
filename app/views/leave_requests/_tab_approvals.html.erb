@@ -34,7 +34,9 @@
 					<td><%= leave_request.comments %></td>
 					<td><%= leave_request.request_type %></td>
 					<% if leave_request.request_status == "processed" %>
-						<td><strong><%= LeaveStatus.for_request(leave_request.id).first.acceptance_status %></strong></td>
+					<% status = LeaveStatus.for_request(leave_request.id).first %>
+
+						<td><strong><%= status.acceptance_status %> by <%= status.user.name %></strong></td>
 					<% else %>
 						<td><strong><%= leave_request.request_status %></strong></td>
 					<% end %>
@@ -42,7 +44,8 @@
 					<td><%= leave_request.get_days(:accumulated)[:result].round(1) %>d</td>
 					<td><%= leave_request.get_days(:taken)[:result].round(1) %>d</td>
 					<td><%= link_to 'Details', leave_request %></td>
-					<% if LeavesHolidaysLogic.has_right(User.current, leave_request.user, leave_request, :update) %>
+
+					<% if LeavesHolidaysLogic.has_rights(User.current, leave_request.user, LeaveStatus, [:create, :update], leave_request, :or) %>
 						<td><%= link_to 'Manage', new_leave_request_leave_statuses_path(leave_request) %></td>
 					<% end %>
 				</tr>
@@ -50,6 +53,6 @@
 		</tbody>
 		</table>
 	<% else %>
-		<h3>You do not have any leave to approve at the moment</h3>
+		<h3>You do not have any leave to manage at the moment</h3>
 	<% end %>
 </div>

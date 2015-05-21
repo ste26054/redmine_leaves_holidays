@@ -10,7 +10,8 @@
 				<th>Id</th>
 				<th>Voter</th>
 				<th>Answer</th>
-				<th>Date of Vote</th>
+				<th>Date of Consultation</th>
+				<th>Role Consulted as</th>
 				<th>Comments</th>
 			</thead>
 			<tbody>
@@ -22,6 +23,7 @@
 						<td><%= vote.user.name %></td>
 						<td><%= vote.vote %></td>
 						<td><%= vote.updated_at %></td>
+						<td><%= LeavesHolidaysLogic.allowed_common_project(vote.user, @leave.user, 2)[:name] %></td>
 						<td><%= vote.comments %></td>
 						
 					</tr>

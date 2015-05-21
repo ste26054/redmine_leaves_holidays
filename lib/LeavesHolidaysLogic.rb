@@ -205,16 +205,16 @@ module LeavesHolidaysLogic
 		return role
 	end
 
-	def self.has_right(user_accessor, user_owner, object, action)
+	def self.has_right(user_accessor, user_owner, object, action, leave_request = nil )
 
-		Rails.logger.info "IN HAS RIGHTS: #{user_accessor}, #{user_owner}, #{object}, #{action}"
 		object_list = [LeavePreference, LeaveRequest, LeaveStatus, LeaveVote]
-	 	action_list = [:create, :read, :update, :delete, :cancel, :submit, :unsubmit]
+	 	action_list = [:create, :read, :update, :delete, :cancel, :submit, :unsubmit, :index]
 
 	 	# Rename supefluous actions from controllers
 	 	if !action.in?(action_list)
 	 		action = :create if action == :new
 	 		action = :read if action == :show
+	 		action = :read if action == :index
 	 		action = :update if action == :edit 
 	 		action = :delete if action == :destroy
 	 	end
@@ -224,8 +224,8 @@ module LeavesHolidaysLogic
 		raise ArgumentError, "Argument is not a leave object: #{object.class}" unless object.class.in?(object_list) || object.in?(object_list)
 		raise ArgumentError, 'Argument is not a valid action' unless action.in?(action_list)
 
-		case object
-		when LeavePreference
+
+		if object == LeavePreference || object.class == LeavePreference
 			if action == :cancel
 				return false
 			else
@@ -241,8 +241,9 @@ module LeavesHolidaysLogic
 					end	
 				end
 			end
+		end
 
-		when LeaveRequest 
+		if object == LeaveRequest || object.class == LeaveRequest
 			leave = object
 			return true if action == :create
 			return false if leave.request_status == "cancelled"
@@ -250,9 +251,11 @@ module LeavesHolidaysLogic
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+						Rails.logger.info "IN HAS RIGHT: IS PLUGIN ADMIN: #{self.plugin_admins.include?(user_accessor.id)}, COMMON PROJECTS: #{self.allowed_common_project(user_accessor, user_owner, 1)}"
 						return true
 					else
 						if leave.request_status == "processed"
+							Rails.logger.info "IN HAS RIGHT: CHECK VIEW ALL: #{user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)}"
 							return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 						end
 					end
@@ -269,17 +272,22 @@ module LeavesHolidaysLogic
 					return true if leave.request_status == "submitted"
 				end
 			end
-
-		when LeaveVote
+		end
+		if object == LeaveVote || object.class == LeaveVote
 			vote = object
-			leave = vote.leave_request
+
+			if (defined?(vote.leave_request)).nil?
+				leave = leave_request
+			else
+				leave = vote.leave_request
+			end
 
 			if action == :create
 				if leave.request_status.in?(["submitted", "processing"])
 					return true if !self.allowed_common_project(user_accessor, user_owner, 2).empty?
 				end
 			end
-			if leave.request_status == "processing"	
+			if leave.request_status.in?(["processing", "processed"])
 				if action == :read
 					if self.plugin_admins.include?(user_accessor.id)
 						return true
@@ -291,14 +299,20 @@ module LeavesHolidaysLogic
 						return true
 					end
 				end
-				if action == :update
-					return true if user_accessor.id == user_owner.id && !self.allowed_common_project(user_accessor, user_owner, 2).empty?
+				if action == :update && leave.request_status == "processing"
+
+					return true if user_accessor.id == user_owner.id# && !self.allowed_common_project(user_accessor, user_owner, 2).empty?
 				end
 			end
-
-		when LeaveStatus
+		end
+		if object == LeaveStatus || object.class == LeaveStatus
 			status = object
-			leave = status.leave_request
+			if (defined?(status.leave_request)).nil?
+				leave = leave_request
+			else
+				leave = status.leave_request
+			end
+
 			if action == :create
 				if leave.request_status.in?(["submitted", "processing"])
 					return true if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 3).empty?
@@ -314,12 +328,23 @@ module LeavesHolidaysLogic
 					return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 				end
 			end
-		else
-
 		end
 		return false
 	end
 
+	def self.has_rights(user_accessor, user_owner, objects, actions, leave_request = nil, criteria)
+		if !objects.is_a?(Array)
+			objects = [objects]
+		end
 
+		objects.each do |object|
+			actions.each do |action|
+				return true if criteria == :or && self.has_right(user_accessor, user_owner, object, action, leave_request)
+				return false if criteria == :and && !self.has_right(user_accessor, user_owner, object, action, leave_request)
+			end
+		end
+		return false if criteria == :or
+		return true if criteria == :and
+	end
 
 end

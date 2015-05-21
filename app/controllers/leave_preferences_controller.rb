@@ -4,7 +4,7 @@ class LeavePreferencesController < ApplicationController
   
   before_action :set_user
   before_action :set_leave_preference
-  before_filter :authenticate, only: [:new, :create, :edit, :update, :destroy]
+  before_filter :authenticate, except: [:show]
   before_action :set_holidays, only: [:new, :create, :edit, :update]
 
   def new
@@ -28,7 +28,7 @@ class LeavePreferencesController < ApplicationController
   end
 
   def show
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
+    render_403 unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, :show)
   end
 
   def edit
@@ -84,6 +84,7 @@ private
       @preference.extra_leave_days = 0.0
       @preference.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
       @preference.user_id = @user_pref.id
+      @preference.annual_max_comments = ""
   end
 
   def authenticate

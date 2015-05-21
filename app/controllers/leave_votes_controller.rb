@@ -3,8 +3,8 @@ class LeaveVotesController < ApplicationController
   before_action :set_user
   before_action :set_leave_request
   before_action :set_leave_vote
-  before_action :check_change, only: [:new, :create, :edit, :update]
-
+  before_filter :authenticate, only: [:new, :create]
+  before_filter :authenticate_edit, only: [:edit, :update]
 
   def new
     if @vote != nil
@@ -29,6 +29,7 @@ class LeaveVotesController < ApplicationController
   end
 
   def index
+    render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave)
   	@votes = LeaveVote.for_request(@leave.id)
   end
 
@@ -67,9 +68,12 @@ class LeaveVotesController < ApplicationController
     @vote = LeaveVote.for_user(@user.id).where(leave_request_id: @leave.id).first if @vote == nil
   end
 
-  def check_change
-  	render_403 unless !LeavesHolidaysLogic.is_allowed_to_vote_request(@user, @leave.user).empty?
+  def authenticate
+    render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, LeaveVote, params[:action].to_sym, @leave)
   end
 
+  def authenticate_edit
+    render_403 unless LeavesHolidaysLogic.has_right(@user, @vote.user, @vote, :edit)
+  end  
 
 end

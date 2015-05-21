@@ -1,7 +1,6 @@
 <h2>Vote for this Leave Request:</h2>
-<%  role = LeavesHolidaysLogic.is_allowed_to_vote_request(User.current, leave.user) %>
-<strong>Note: This vote is consultative only, and cannot, itself, approve or reject the Leave Request. You are voting as a <%= role[:name] %>
-</strong>
+<% role = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
+<strong>Note: You are being consulted as a <%= role[:name] %> on this leave request</strong>
 
 
 
@@ -23,7 +22,7 @@
 
 		<fieldset>
 			<p>
-				Vote:
+				Consultation:
 				<%= f.radio_button :vote, 'yes' %>
 				<%= f.label :vote, 'Yes', :value => 'yes' %>
 				<%= f.radio_button :vote, 'no' %>

@@ -3,9 +3,9 @@ class LeaveStatusesController < ApplicationController
   include LeavesHolidaysLogic
   before_action :set_leave_request
   before_action :set_leave_status
-  before_action :view_status, only: [:show]
-  before_action :manage_status, except: [:show]
-  
+
+  before_filter :authenticate
+
   def new
     if @status != nil
       redirect_to edit_leave_request_leave_statuses_path
@@ -66,12 +66,10 @@ class LeaveStatusesController < ApplicationController
     end
   end
 
-  def view_status
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_view_status(User.current, @leave.user)
-  end
-
-  def manage_status
-    render_403 unless LeavesHolidaysLogic.is_allowed_to_manage_status(User.current, @leave.user)
+  def authenticate
+    unless (@status != nil && params[:action].to_sym == :new)
+      render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveStatus, params[:action].to_sym, @leave)
+    end
   end
 
 end
