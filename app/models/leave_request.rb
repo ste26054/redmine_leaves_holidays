@@ -69,7 +69,7 @@ class LeaveRequest < ActiveRecord::Base
   scope :processable_by, ->(uid) {
     user = User.find(uid)
     submitted_ids = Array.wrap(submitted + processing + processed).map { |a| a.id }
-    submitted_ids.delete_if { |id| !(LeavesHolidaysLogic.has_rights(user, LeaveRequest.find(id).user, [LeaveStatus, LeaveVote], [:read, :create, :update], LeaveRequest.find(id), :or))}
+    submitted_ids.delete_if { |id| !(LeavesHolidaysLogic.has_rights(user, LeaveRequest.find(id).user, [LeaveStatus, LeaveVote], [:create, :update], LeaveRequest.find(id), :or))}
     find(submitted_ids)
   }
 

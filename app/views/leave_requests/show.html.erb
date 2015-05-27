@@ -52,7 +52,7 @@
 
 <% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or)   %>
 	<hr />
-	<h3>Leave days metrics (ignores leaves not yet accepted for the user):</h3>
+	<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
 	<p>
 		<strong>Days remaining from <%= @leave.get_days(:remaining)[:start] %> to <%= @leave.get_days(:remaining)[:end] %>:</strong>
 		<%= @leave.get_days(:remaining)[:result] %>
