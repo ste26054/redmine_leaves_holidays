@@ -10,11 +10,24 @@ class LeaveRequestsController < ApplicationController
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
 
+  helper :sort
+  include SortHelper
+
   def index
+    sort_init 'from_date', 'asc'
+
+    sort_update 'id' => "#{LeaveRequest.table_name}.id",
+                'from_date' => "#{LeaveRequest.table_name}.from_date",
+                'to_date' => "#{LeaveRequest.table_name}.to_date"
+
+
+
     @leave_requests = {}
-    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id)#.pending
+    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)#.pending
     # @leave_requests = LeaveRequest.all
-  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.pending
+  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id)#.reorder(sort_clause)#.pending
+
+    # @leave_requests['requests'] =  @leave_requests['requests'].reorder(sort_clause)
     # @notifiers = LeavesHolidaysLogic.users_to_notify_of_request(User.current)
     # @approvers = LeavesHolidaysLogic.can_approve_request(User.current)
     # job = Rufus::Scheduler.singleton.every '30s' do

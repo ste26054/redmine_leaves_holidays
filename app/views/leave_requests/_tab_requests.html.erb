@@ -1,47 +1,53 @@
 <hr />
-<h3>Total leave days remaining from <%= @d_start %> to <%= @d_end %>: <%= @dates %></h3>
+<h3>Total leave days remaining from <%= format_date(@d_start) %> to <%= format_date(@d_end) %>: <%= @dates %></h3>
 <hr />
 
 
 <% if !@leave_requests['requests'].empty? %>
-	<div class="list">
-		<table>
+
+
+
+<!-- %w(id, number_days, from_date, to_date, reason) -->
+
+		<div class="autoscroll">
+		<table class="list">
 			<thead>
-				<th>Id</th>
-				<th>Number of Days</th>
-				<th>Leave From</th>
-				<th>Leave To</th>
-				<th>Reason</th>
-				<th>Comments</th>
-				<th>Type</th>
-				<th>Status</th>
-				<th colspan="3"></th>
-			</thead>
+			<tr>
+			<%= sort_header_tag('id', caption: "Id") %>
+			<th>Number of Days</th>
+			<%= sort_header_tag('from_date', caption: "Leave From") %>
+			<%= sort_header_tag('to_date', caption: "Leave To") %>
+			<th>Reason</th>
+			<th>Comments</th>
+			<th>Type</th>
+			<th>Status</th>
+			<th></th>
+ 			</tr></thead>
 			<tbody>
-				<% @leave_requests['requests'].each do |leave_request| %>
-					
+				<% for req in @leave_requests['requests'] -%>
 					<tr class="<%= cycle("odd", "even") %>">
+					<td class="id"><%= req.id %></td>
+					<td class="number_days"><%= req.actual_leave_days %></td>
+					<td class="from_date"><%= req.from_date %></td>
+					<td class="to_date"><%= req.to_date %></td>
+					<td class="reason"><%= req.issue.subject %></td>
+					<td class="comments"><%= req.comments %></td>
+					<td class="request_type"><%= req.request_type %></td>
+					<td class="status">
+					<% if req.request_status == "processed" %>
+						<%= LeaveStatus.for_request(req.id).first.acceptance_status %>
+					<% else %>
+						<%= req.request_status %>
+					<% end %>
+					</td>
+					<td>
+					<%= link_to 'Details', req %>
+					</td>
 
-						<td><%= leave_request.id %></td>
-						<td><%= leave_request.actual_leave_days %></td>
-						<td><%= leave_request.from_date %></td>
-						<td><%= leave_request.to_date %></td>
-						<td><%= leave_request.issue.subject %></td>
-						<td><%= leave_request.comments %></td>
-						<td><%= leave_request.request_type %></td>
-
-						<% if leave_request.request_status == "processed" %>
-							<td><%= LeaveStatus.for_request(leave_request.id).first.acceptance_status %></td>
-						<% else %>
-							<td><%= leave_request.request_status %></td>
-						<% end %>
-
-						<td><%= link_to 'Details', leave_request %></td>
-						
-					</tr>
-				<% end %>
+				<% end -%>
 			</tbody>
 		</table>
+
 	</div>
 <% else %>
 	<h3>You do not have any leave request</h3>

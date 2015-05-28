@@ -1,4 +1,5 @@
 module LeavesHolidaysLogic
+	using LeavesHolidaysExtensions
 
 	def self.issues_list
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
@@ -15,11 +16,18 @@ module LeavesHolidaysLogic
 	end
 
 	def self.has_manage_rights(user)
+		Rails.logger.info "IN HAS MANAGE RIGHTS: #{user.allowed_to?(:manage_leaves_requests, nil, :global => true)}"
 		user.allowed_to?(:manage_leaves_requests, nil, :global => true)
 	end
 
 	def self.has_vote_rights(user)
+		Rails.logger.info "IN HAS VOTE RIGHTS: #{user.allowed_to?(:vote_leaves_requests, nil, :global => true)}"
 		user.allowed_to?(:vote_leaves_requests, nil, :global => true)
+	end
+
+	def self.has_view_all_rights(user)
+		Rails.logger.info "IN HAS VIEW ALL RIGHTS: #{user.allowed_to?(:view_all_leaves_requests, nil, :global => true)}"
+		user.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 	end
 
 	def self.project_list_for_user(user)

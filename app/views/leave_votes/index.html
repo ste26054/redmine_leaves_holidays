@@ -22,7 +22,7 @@
 						<td><%= vote.id %></td>
 						<td><%= vote.user.name %></td>
 						<td><%= vote.vote %></td>
-						<td><%= vote.updated_at %></td>
+						<td><%= format_time(vote.updated_at) %></td>
 						<td><%= LeavesHolidaysLogic.allowed_common_project(vote.user, @leave.user, 2)[:name] %></td>
 						<td><%= vote.comments %></td>
 						

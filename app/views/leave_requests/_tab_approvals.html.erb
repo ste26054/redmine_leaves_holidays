@@ -26,10 +26,10 @@
 					<td><strong>
 					<%= link_to leave_request.user.name, user_path(leave_request.user) %>
 					</strong></td>
-					<td><%= leave_request.created_at.to_date %></td>
+					<td><%= format_date(leave_request.created_at.to_date) %></td>
 					<td><%= leave_request.actual_leave_days %>d (<%= (leave_request.actual_leave_days * LeavesHolidaysLogic.user_params(leave_request.user, :daily_working_hours)).round(1) %>h)</td>
-					<td><%= leave_request.from_date %></td>
-					<td><%= leave_request.to_date %></td>
+					<td><%= format_date(leave_request.from_date) %></td>
+					<td><%= format_date(leave_request.to_date) %></td>
 					<td><strong><%= link_to leave_request.issue.subject, issue_path(leave_request.issue) %></strong></td>
 					<td><%= leave_request.comments %></td>
 					<td><%= leave_request.request_type %></td>

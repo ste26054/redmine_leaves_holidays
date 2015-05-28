@@ -20,8 +20,8 @@
 		<p><%= l(:label_leave_period_absence) %></p>
 		
 		<p>
-			<%= l(:label_leave_from) %><%= f.text_field :from_date %><%= calendar_for('leave_request_from_date') %>
-			<%= l(:label_leave_to) %><%= f.text_field :to_date %><%= calendar_for('leave_request_to_date') %>
+			<%= l(:label_leave_from) %><%= f.text_field :from_date, readonly: true %><%= calendar_for('leave_request_from_date') %>
+			<%= l(:label_leave_to) %><%= f.text_field :to_date, readonly: true %><%= calendar_for('leave_request_to_date') %>
 		</p>
 
 		<p>

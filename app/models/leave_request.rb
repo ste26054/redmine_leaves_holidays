@@ -5,7 +5,7 @@ class LeaveRequest < ActiveRecord::Base
   include Redmine::Utils::DateCalculation
 
 
-  default_scope { where.not(request_status: "3").order(from_date: :asc) }
+  default_scope { where.not(request_status: "3") }
   
   belongs_to :user
   belongs_to :issue

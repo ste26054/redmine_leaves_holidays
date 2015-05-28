@@ -8,11 +8,11 @@
 </p>
 <p>
 	<strong>Leave From:</strong>
-	<%= @leave.from_date %>
+	<%= format_date(@leave.from_date) %>
 </p>
 <p>
 	<strong>Leave Until:</strong>
-	<%= @leave.to_date %>
+	<%= format_date(@leave.to_date) %>
 </p>
 <p>
 	<strong>Actual Leave Days for the period:</strong>
@@ -38,11 +38,11 @@
 </p>
 <p>
 	<strong>Created on:</strong>
-	<%= @leave.created_at %>
+	<%= format_time(@leave.created_at) %>
 </p>
 <p>
 	<strong>Last updated:</strong>
-	<%= @leave.updated_at %>
+	<%= format_time(@leave.updated_at) %>
 </p>
 
 <p>
@@ -50,15 +50,15 @@
 	<%= @leave.request_status %>
 </p>
 
-<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or)   %>
+<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or) || LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveStatus], [:create, :update], @leave, :or)   %>
 	<hr />
 	<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
 	<p>
-		<strong>Days remaining from <%= @leave.get_days(:remaining)[:start] %> to <%= @leave.get_days(:remaining)[:end] %>:</strong>
+		<strong>Days remaining from <%= format_date(@leave.get_days(:remaining)[:start]) %> to <%= format_date(@leave.get_days(:remaining)[:end]) %>:</strong>
 		<%= @leave.get_days(:remaining)[:result] %>
 	</p>
 	<p>
-		<strong>Days accumulated from <%= @leave.get_days(:accumulated)[:start] %> to <%= @leave.get_days(:accumulated)[:end] %>:</strong>
+		<strong>Days accumulated from <%= format_date(@leave.get_days(:accumulated)[:start]) %> to <%= format_date(@leave.get_days(:accumulated)[:end]) %>:</strong>
 		<%= @leave.get_days(:accumulated)[:result] %>
 	</p>
 	<p>
