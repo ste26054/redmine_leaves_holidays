@@ -22,31 +22,34 @@
 				<% for req in @leave_requests['approvals'] -%>
 					<tr class="<%= cycle("odd", "even") %>">
 					<td class="id"><%= req.id %></td>
-					<td>
-						<strong><%= link_to req.user.name, user_path(req.user) %></strong>
-					</td>
+					<td><%= link_to req.user.name, user_path(req.user) %></td>
 					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
 					<td><%= req.actual_leave_days %>d (<%= (req.actual_leave_days * LeavesHolidaysLogic.user_params(req.user, :daily_working_hours)).round(1) %>h)
 					</td>
 					<td><%= format_date(req.from_date) %></td>
 					<td><%= format_date(req.to_date) %></td>
-					<td><strong><%= link_to req.issue.subject, issue_path(req.issue) %></strong></td>
+					<td><%= link_to req.issue.subject, issue_path(req.issue) %></td>
 					<td><%= req.comments %></td>
 					<td><%= req.request_type %></td>
 					<% if req.request_status == "processed" %>
 						<% status = LeaveStatus.for_request(req.id).first %>
 
-						<td><strong><%= status.acceptance_status %> by <%= link_to status.user.name, user_path(status.user) %></strong></td>
+						<td><%= status.acceptance_status %> by <%= link_to status.user.name, user_path(status.user) %></td>
 					<% else %>
-						<td><strong><%= req.request_status %></strong></td>
+						<td><%= req.request_status %></td>
 					<% end %>
 					<td><%= req.get_days(:remaining)[:result].round(1) %>d</td>
 					<td><%= req.get_days(:accumulated)[:result].round(1) %>d</td>
 					<td><%= req.get_days(:taken)[:result].round(1) %>d</td>
 					<td class="buttons">
-						<%= link_to 'Details', req %>
+						<%= link_to 'Details', req, :class => 'icon icon-details' %>
 						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveStatus, [:create, :update], req, :or) %>
-							<%= link_to 'Manage', new_leave_request_leave_statuses_path(req) %>
+							<%= link_to 'Manage', new_leave_request_leave_statuses_path(req), :class => 'icon icon-edit' %>
+						<% end %>
+						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveVote, [:create, :update], req, :or) %>
+							<% if (req.request_status == "submitted" || req.request_status == "processing") %>
+							<%= link_to 'Consult', new_leave_request_leave_vote_path(req), :class => 'icon icon-edit' %>
+							<% end %>
 						<% end %>
 					</td>
 

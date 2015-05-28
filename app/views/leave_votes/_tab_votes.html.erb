@@ -1,33 +1,33 @@
 <% if !votes.empty? %>
-	<div class="list">
-		<table>
+	<div class="autoscroll">
+		<table class="list">
 			<thead>
-				<th>Id</th>
-				<th>Consulted</th>
-				<th>Answer</th>
-				<th>Date of Consultation</th>
-				<th>Role Consulted as</th>
-				<th>Common Project</th>
-				<th>Comments</th>
-			</thead>
+			<tr>
+			<th>Id</th>
+			<th>Consulted</th>
+			<th>Answer</th>
+			<th>Date of Consultation</th>
+			<th>Role Consulted as</th>
+			<th>Project Consulted as</th>
+			<th>Comments</th>
+				</tr></thead>
 			<tbody>
-				<% votes.each do |vote| %>
+				<% for vote in votes -%>
 					<% roles = LeavesHolidaysLogic.allowed_common_project(vote.user, leave.user, 2) %>
 					<tr class="<%= cycle("odd", "even") %>">
+					<td><%= vote.id %></td>
+					<td><%= link_to vote.user.name, user_path(vote.user) %></td>
+					<td><%= vote.vote %></td>
+					<td><%= format_time(vote.updated_at) %></td>
+					<td><%= roles.map {|role| role[:name].to_s }.join(", ") %></td>
+					<td><%= roles.map {|role| role[:project].to_s }.join(", ") %></td>
+					<td><%= vote.comments %></td>
 
-						<td><%= vote.id %></td>
-						<td><%= vote.user.name %></td>
-						<td><%= vote.vote %></td>
-						<td><%= format_time(vote.updated_at) %></td>
-						<td><%= roles.map {|role| role[:name].to_s }.join(", ") %></td>
-						<td><%= roles.map {|role| role[:project].to_s }.join(", ") %></td>
-						<td><%= vote.comments %></td>
-						
 					</tr>
-				<% end %>
+				<% end -%>
 			</tbody>
 		</table>
 	</div>
 <% else %>
-	<h3>There are no Consultations for this leave request</h3>
+	There are no Consultations for this leave request
 <% end %>

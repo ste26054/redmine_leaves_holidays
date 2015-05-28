@@ -1,7 +1,6 @@
 module LeavesHolidaysExtensions
 	refine User do
 		def allowed_to?(action, context, options={}, &block)
-			Rails.logger.info "IN REFINED METHOD ****************"
 		    if context && context.is_a?(Project)
 		      return false unless context.allows_to?(action)
 		      # Admin users are authorized for anything else

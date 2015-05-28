@@ -75,7 +75,7 @@
 <%= link_to 'Back', leave_requests_path %>
 
 <% if @leave.request_status == "created" && User.current == @leave.user %>
-	| <%= link_to 'Edit', edit_leave_request_path(@leave) %>
+	| <%= link_to 'Edit', edit_leave_request_path(@leave), :class => 'icon icon-edit' %>
 <% end %>
 
 <% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, LeaveStatus, [:create, :update], @leave, :or) %>
@@ -89,18 +89,18 @@
 	<% end %>
 <% end %>
 
-<% if LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave)  %>
+<% if LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave) && @leave.request_status == "processed"  %>
 | <%= link_to 'Consultative Results', leave_request_leave_votes_path(@leave) %>
 <% end %>
 
 <% if @leave.request_status == "created" && User.current == @leave.user %>
-	| <%= link_to 'Submit', submit_leave_request_path(@leave) %>
+	| <%= link_to 'Submit', submit_leave_request_path(@leave), :class => 'icon icon-checked' %>
 <% end %>
 
 <% if @leave.request_status == "submitted" && User.current == @leave.user %>
-	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave) %>
+	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave), :class => 'icon icon-cancel' %>
 <% end %>
 
 <% if User.current == @leave.user && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
-| <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' } %>
+| <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' }, :class => 'icon icon-del' %>
 <% end %>

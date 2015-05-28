@@ -16,17 +16,14 @@ module LeavesHolidaysLogic
 	end
 
 	def self.has_manage_rights(user)
-		Rails.logger.info "IN HAS MANAGE RIGHTS: #{user.allowed_to?(:manage_leaves_requests, nil, :global => true)}"
 		user.allowed_to?(:manage_leaves_requests, nil, :global => true)
 	end
 
 	def self.has_vote_rights(user)
-		Rails.logger.info "IN HAS VOTE RIGHTS: #{user.allowed_to?(:vote_leaves_requests, nil, :global => true)}"
 		user.allowed_to?(:vote_leaves_requests, nil, :global => true)
 	end
 
 	def self.has_view_all_rights(user)
-		Rails.logger.info "IN HAS VIEW ALL RIGHTS: #{user.allowed_to?(:view_all_leaves_requests, nil, :global => true)}"
 		user.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 	end
 
@@ -38,8 +35,7 @@ module LeavesHolidaysLogic
 		allowed = {}
 		allowed[:user_id] = user.id
 		allowed_roles = user.roles_for_project(project).sort.uniq
-		allowed[:roles] = allowed_roles.collect{|r| { project: project.name, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
-		Rails.logger.info "IN ALLOWED ROLES: #{allowed}"
+		allowed[:roles] = allowed_roles.collect{|r| { user_id: user.id, project: project.name, project_id: project.id, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
 		return allowed
 	end
 
@@ -217,7 +213,22 @@ module LeavesHolidaysLogic
 		return roles
 	end
 
-	def self.has_right(user_accessor, user_owner, object, action, leave_request = nil )
+	def self.users_allowed_common_project(user_request, mode)
+		users = User.where(status: 1)
+		allowed = []
+		users.each do |user|
+			if user.id != user_request.id && has_vote_rights(user)
+				res = []
+				res = self.allowed_common_project(user, user_request, mode)
+				unless res.empty?
+					allowed  << res
+				end
+			end
+		end
+		return allowed
+	end
+
+	def self.has_right(user_accessor, user_owner, object, action, leave_request = nil)
 
 		object_list = [LeavePreference, LeaveRequest, LeaveStatus, LeaveVote]
 	 	action_list = [:create, :read, :update, :delete, :cancel, :submit, :unsubmit, :index]
@@ -263,11 +274,9 @@ module LeavesHolidaysLogic
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
-						Rails.logger.info "IN HAS RIGHT: IS PLUGIN ADMIN: #{self.plugin_admins.include?(user_accessor.id)}, COMMON PROJECTS: #{self.allowed_common_project(user_accessor, user_owner, 1)}"
 						return true
 					else
 						if leave.request_status == "processed"
-							Rails.logger.info "IN HAS RIGHT: CHECK VIEW ALL: #{user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)}"
 							return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 						end
 					end
@@ -295,9 +304,7 @@ module LeavesHolidaysLogic
 			end
 
 			if action == :create
-				Rails.logger.info "IN LEAVE VOTE CREATE"
 				if leave.request_status.in?(["submitted", "processing"])
-					Rails.logger.info "IN SUBMITTED/PROCESSING: #{self.allowed_common_project(user_accessor, user_owner, 2)}"
 					return true if !self.allowed_common_project(user_accessor, user_owner, 2).empty?
 				end
 			end
@@ -359,6 +366,17 @@ module LeavesHolidaysLogic
 		end
 		return false if criteria == :or
 		return true if criteria == :and
+	end
+
+	# Returns a list of users left to vote
+	def self.vote_list_left(leave_request)
+		list = LeavesHolidaysLogic.users_allowed_common_project(leave_request.user, 2)
+		if leave_request == nil
+			return list
+		else
+			list.delete_if { |u| !LeaveVote.for_request(leave_request.id).for_user(u.first[:user_id]).empty? }
+		end
+		return list
 	end
 
 end

@@ -1,13 +1,18 @@
-<h2>Vote for this Leave Request:</h2>
+
+<h3>Consultation for the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h3>
+<br />
+
 <% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
-<p>Note: You are being consulted as a:</p>
+
+<fieldset>
+<strong>You are being consulted as a:</strong>
 <% roles.each do |role| %>
- <p><strong><%= role[:name] %></strong> for the project <strong><%= role[:project] %></strong></p>
+ <p><strong><%= role[:name] %></strong> - <strong><%= role[:project] %></strong></p>
 <% end %>
 
 <%= form_for [leave, vote] do |f| %>
 	
- 	<div class="box tabular">
+ 	
 		<% if vote.errors.any? %>
 			<div class="flash">
 				<ul>
@@ -17,11 +22,9 @@
 				</ul>
 			</div>
 		<% end %>
-	</div>
-
+	
 	<div>
 
-		<fieldset>
 			<p>
 				Consultation:
 				<%= f.radio_button :vote, 'yes' %>
@@ -35,10 +38,15 @@
 				<%= f.text_field :comments, {:size => 75 } %>
 			</p>
 
-
-		</fieldset>
 	</div>
-	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %>
+	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %> |
 <% end %>
-
 <%= link_to 'Back', leave_request_path(leave) %>
+</fieldset>
+<br />
+<fieldset>
+<h3>Consulted:</h3>
+	
+<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
+
+</fieldset>

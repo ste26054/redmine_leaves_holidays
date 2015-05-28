@@ -4,8 +4,12 @@ class LeaveStatusesController < ApplicationController
   before_action :set_leave_request
   before_action :set_leave_status
   before_action :set_leave_vote
+  before_action :set_vote_list
 
   before_filter :authenticate
+
+  helper :sort
+  include SortHelper
 
   def new
     if @status != nil
@@ -69,6 +73,14 @@ class LeaveStatusesController < ApplicationController
 
   def set_leave_vote
       @votes = LeaveVote.for_request(@leave.id) if @votes == nil
+  end
+
+  def set_vote_list
+    list = LeavesHolidaysLogic.vote_list_left(@leave)
+    @vote_list = []
+    list.each do |l|
+      @vote_list << {user: User.find(l.first[:user_id]), role_name: l.first[:name], project_name: l.first[:project]}
+    end
   end
 
   def authenticate

@@ -18,7 +18,6 @@ class LeavePreferencesController < ApplicationController
   def create
   	@preference = LeavePreference.new(leave_preference_params) unless @exists
     @preference.user_id = @user_pref.id
-    Rails.logger.info "IN CREATE: CONTRACT START DATE: #{RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)}"
     @preference.triggered_at = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date).to_datetime
   	if @preference.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"

@@ -21,8 +21,6 @@ class LeaveRequestsController < ApplicationController
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
 
-
-
     @leave_requests = {}
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)#.pending
     # @leave_requests = LeaveRequest.all
@@ -39,7 +37,7 @@ class LeaveRequestsController < ApplicationController
     @d_start = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
     @d_end = @d_start + 1.year - 1.day
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-
+    
   end
 
   def new
