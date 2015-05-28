@@ -1,3 +1,5 @@
+<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
+
 
 <%= form_for [leave, status], :url => leave_request_leave_statuses_path do |f| %>
 	

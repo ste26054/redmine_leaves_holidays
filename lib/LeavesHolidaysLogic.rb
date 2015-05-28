@@ -38,7 +38,8 @@ module LeavesHolidaysLogic
 		allowed = {}
 		allowed[:user_id] = user.id
 		allowed_roles = user.roles_for_project(project).sort.uniq
-		allowed[:roles] = allowed_roles.collect{|r| { name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
+		allowed[:roles] = allowed_roles.collect{|r| { project: project.name, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
+		Rails.logger.info "IN ALLOWED ROLES: #{allowed}"
 		return allowed
 	end
 
@@ -182,7 +183,7 @@ module LeavesHolidaysLogic
 		#1 - role has Manage OR Vote
 		#2 - role has Vote AND not Manage
 		#3 - role has Manage
-
+		roles = []
 		role = {}
 
 		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
@@ -195,22 +196,25 @@ module LeavesHolidaysLogic
 					case mode
 					when 1
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] || role[:manage])
-							return role
+							roles << role
+							return roles
 						end
 					when 2
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] && !role[:manage])
-							return role
+							roles << role
+							return roles
 						end
 					when 3
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:manage])
-							return role
+							roles << role
+							return roles
 						end
 					else
 					end
 				end
 			end
 		end
-		return role
+		return roles
 	end
 
 	def self.has_right(user_accessor, user_owner, object, action, leave_request = nil )
@@ -291,7 +295,9 @@ module LeavesHolidaysLogic
 			end
 
 			if action == :create
+				Rails.logger.info "IN LEAVE VOTE CREATE"
 				if leave.request_status.in?(["submitted", "processing"])
+					Rails.logger.info "IN SUBMITTED/PROCESSING: #{self.allowed_common_project(user_accessor, user_owner, 2)}"
 					return true if !self.allowed_common_project(user_accessor, user_owner, 2).empty?
 				end
 			end

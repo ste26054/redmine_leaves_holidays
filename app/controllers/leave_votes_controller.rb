@@ -65,7 +65,11 @@ class LeaveVotesController < ApplicationController
   end
 
   def set_leave_vote
-    @vote = LeaveVote.for_user(@user.id).where(leave_request_id: @leave.id).first if @vote == nil
+    begin
+      @vote = LeaveVote.for_user(@user.id).where(leave_request_id: @leave.id).first if @vote == nil
+    rescue ActiveRecord::RecordNotFound
+      render_404
+    end
   end
 
   def authenticate
@@ -73,6 +77,10 @@ class LeaveVotesController < ApplicationController
   end
 
   def authenticate_edit
+    if @vote == nil
+      render_404
+      return
+    end
     render_403 unless LeavesHolidaysLogic.has_right(@user, @vote.user, @vote, :edit)
   end  
 

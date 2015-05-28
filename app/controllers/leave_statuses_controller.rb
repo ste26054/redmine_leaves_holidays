@@ -3,6 +3,7 @@ class LeaveStatusesController < ApplicationController
   include LeavesHolidaysLogic
   before_action :set_leave_request
   before_action :set_leave_status
+  before_action :set_leave_vote
 
   before_filter :authenticate
 
@@ -64,6 +65,10 @@ class LeaveStatusesController < ApplicationController
     rescue ActiveRecord::RecordNotFound
       render_404
     end
+  end
+
+  def set_leave_vote
+      @votes = LeaveVote.for_request(@leave.id) if @votes == nil
   end
 
   def authenticate

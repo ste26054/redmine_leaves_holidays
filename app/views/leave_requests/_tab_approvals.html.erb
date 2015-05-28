@@ -1,58 +1,60 @@
-<div class="tabular">
+<% if !@leave_requests['approvals'].empty? %>
+	<div class="autoscroll">
+		<table class="list">
+			<thead>
+			<tr>
+				<%= sort_header_tag('id', caption: "Id") %>
+				<th>Creator</th>
+				<%= sort_header_tag('created_at', caption: "Creation Date") %>
+				<th>Length</th>
+				<%= sort_header_tag('from_date', caption: "Leave From") %>
+				<%= sort_header_tag('to_date', caption: "Leave To") %>
+				<th>Reason</th>
+				<th>Comments</th>
+				<th>Type</th>
+				<th>Status</th>
+				<th>Remaining</th>
+				<th>Accumulated</th>
+				<th>Taken</th>
+				<th></th>
+			</tr></thead>
+			<tbody>
+				<% for req in @leave_requests['approvals'] -%>
+					<tr class="<%= cycle("odd", "even") %>">
+					<td class="id"><%= req.id %></td>
+					<td>
+						<strong><%= link_to req.user.name, user_path(req.user) %></strong>
+					</td>
+					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
+					<td><%= req.actual_leave_days %>d (<%= (req.actual_leave_days * LeavesHolidaysLogic.user_params(req.user, :daily_working_hours)).round(1) %>h)
+					</td>
+					<td><%= format_date(req.from_date) %></td>
+					<td><%= format_date(req.to_date) %></td>
+					<td><strong><%= link_to req.issue.subject, issue_path(req.issue) %></strong></td>
+					<td><%= req.comments %></td>
+					<td><%= req.request_type %></td>
+					<% if req.request_status == "processed" %>
+						<% status = LeaveStatus.for_request(req.id).first %>
 
-	<% if !@leave_requests['approvals'].empty? %>
-		<table>
-		<thead>
-			<th>Id</th>
-			<th>Creator</th>
-			<th>Creation Date</th>
-			<th>Length</th>
-			<th>Leave From</th>
-			<th>Leave To</th>
-			<th>Reason</th>
-			<th>Comments</th>
-			<th>Type</th>
-			<th>Status</th>
-			<th>Remaining</th>
-			<th>Accumulated</th>
-			<th>Taken</th>
-
-			<th colspan="3"></th>
-		</thead>
-		<tbody>
-			<% @leave_requests['approvals'].each do |leave_request| %>
-				<tr class="<%= cycle("odd", "even") %>">
-					<td><%= leave_request.id %></td>
-					<td><strong>
-					<%= link_to leave_request.user.name, user_path(leave_request.user) %>
-					</strong></td>
-					<td><%= format_date(leave_request.created_at.to_date) %></td>
-					<td><%= leave_request.actual_leave_days %>d (<%= (leave_request.actual_leave_days * LeavesHolidaysLogic.user_params(leave_request.user, :daily_working_hours)).round(1) %>h)</td>
-					<td><%= format_date(leave_request.from_date) %></td>
-					<td><%= format_date(leave_request.to_date) %></td>
-					<td><strong><%= link_to leave_request.issue.subject, issue_path(leave_request.issue) %></strong></td>
-					<td><%= leave_request.comments %></td>
-					<td><%= leave_request.request_type %></td>
-					<% if leave_request.request_status == "processed" %>
-					<% status = LeaveStatus.for_request(leave_request.id).first %>
-
-						<td><strong><%= status.acceptance_status %> by <%= status.user.name %></strong></td>
+						<td><strong><%= status.acceptance_status %> by <%= link_to status.user.name, user_path(status.user) %></strong></td>
 					<% else %>
-						<td><strong><%= leave_request.request_status %></strong></td>
+						<td><strong><%= req.request_status %></strong></td>
 					<% end %>
-					<td><%= leave_request.get_days(:remaining)[:result].round(1) %>d</td>
-					<td><%= leave_request.get_days(:accumulated)[:result].round(1) %>d</td>
-					<td><%= leave_request.get_days(:taken)[:result].round(1) %>d</td>
-					<td><%= link_to 'Details', leave_request %></td>
+					<td><%= req.get_days(:remaining)[:result].round(1) %>d</td>
+					<td><%= req.get_days(:accumulated)[:result].round(1) %>d</td>
+					<td><%= req.get_days(:taken)[:result].round(1) %>d</td>
+					<td class="buttons">
+						<%= link_to 'Details', req %>
+						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveStatus, [:create, :update], req, :or) %>
+							<%= link_to 'Manage', new_leave_request_leave_statuses_path(req) %>
+						<% end %>
+					</td>
 
-					<% if LeavesHolidaysLogic.has_rights(User.current, leave_request.user, LeaveStatus, [:create, :update], leave_request, :or) %>
-						<td><%= link_to 'Manage', new_leave_request_leave_statuses_path(leave_request) %></td>
-					<% end %>
-				</tr>
-			<% end %>
-		</tbody>
+					</tr>
+				<% end -%>
+			</tbody>
 		</table>
-	<% else %>
-		<h3>You do not have any leave to manage at the moment</h3>
-	<% end %>
-</div>
+	</div>
+<% else %>
+	<h3>You do not have any leave to manage at the moment</h3>
+<% end %>

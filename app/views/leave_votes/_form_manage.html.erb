@@ -1,8 +1,9 @@
 <h2>Vote for this Leave Request:</h2>
-<% role = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
-<strong>Note: You are being consulted as a <%= role[:name] %> on this leave request</strong>
-
-
+<% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
+<p>Note: You are being consulted as a:</p>
+<% roles.each do |role| %>
+ <p><strong><%= role[:name] %></strong> for the project <strong><%= role[:project] %></strong></p>
+<% end %>
 
 <%= form_for [leave, vote] do |f| %>
 	

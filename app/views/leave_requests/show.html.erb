@@ -82,7 +82,7 @@
 	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
 <% end %>
 
-<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, LeaveVote, [:create, :update], @leave, :or) && LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave) %>
+<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, LeaveVote, [:create, :update], @leave, :or) %>
 
 	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing") %>
 	| <%= link_to 'Consult', new_leave_request_leave_vote_path(@leave) %>
