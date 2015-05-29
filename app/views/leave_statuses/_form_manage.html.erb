@@ -1,13 +1,13 @@
 
 
-<h3>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h3>
-
+<h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
+<br />
 <% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
+<p>You are being consulted as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
+
+<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
 <fieldset>
-<strong>You are being consulted as a:</strong>
-<% roles.each do |role| %>
- <p><strong><%= role[:name] %></strong> - <strong><%= role[:project] %></strong></p>
-<% end %>
+
 
 <%= form_for [leave, status], :url => leave_request_leave_statuses_path do |f| %>
 	
@@ -48,9 +48,20 @@
 <fieldset>
 	<% if !vote_list.empty? %>
 		<h3>Not Consulted:</h3>
-		<% for entry in vote_list -%>
-			<p><%= link_to entry[:user].name, user_path(entry[:user]) %> (<%= entry[:role_name] %> - <%= entry[:project_name] %>)</p>
+		
+		<% for uid in vote_list -%>
+			<% user = User.find(uid) %>
+			<% roles = LeavesHolidaysLogic.allowed_common_project(user, leave.user, 2) %>
+
+			<p><%= link_to user.name, user_path(user) %>: 
+
+			<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+
+			<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+
+			</p>
 		<% end %>
+
 	<% end %>
 	<h3>Consulted:</h3>
 	

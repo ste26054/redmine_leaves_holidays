@@ -62,7 +62,7 @@
 		<%= @leave.get_days(:accumulated)[:result] %>
 	</p>
 	<p>
-		<strong>Days taken from <%= @leave.get_days(:taken)[:start] %> to <%= @leave.get_days(:taken)[:end] %>:</strong>
+		<strong>Days taken from <%= format_date(@leave.get_days(:taken)[:start]) %> to <%= format_date(@leave.get_days(:taken)[:end]) %>:</strong>
 		<%= @leave.get_days(:taken)[:result] %>
 	</p>
 <% end %>

@@ -34,8 +34,11 @@ class LeaveRequestsController < ApplicationController
     # p job.running?   # true
     # job.kill if job.running?
     # p job.running?   # false
-    @d_start = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
-    @d_end = @d_start + 1.year - 1.day
+    period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
+    @d_start = period[:start]
+    # @d_start = @d_start.change(:year => Time.now.year - 1)
+
+    @d_end = period[:end]
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
     
   end

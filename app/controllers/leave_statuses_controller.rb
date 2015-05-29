@@ -76,11 +76,17 @@ class LeaveStatusesController < ApplicationController
   end
 
   def set_vote_list
-    list = LeavesHolidaysLogic.vote_list_left(@leave)
-    @vote_list = []
-    list.each do |l|
-      @vote_list << {user: User.find(l.first[:user_id]), role_name: l.first[:name], project_name: l.first[:project]}
-    end
+    # list = LeavesHolidaysLogic.vote_list_left(@leave)
+    # Rails.logger.info "SET VOTE LIST: #{list}"
+    # @vote_list = []
+    # list.each do |entry|
+    #   entry.each do |l|
+    #     @vote_list << {user: User.find(l[:user_id]), role_name: l[:name], project_name: l[:project]}
+    #   end
+    # end
+    # Rails.logger.info "LIST IS: #{@vote_list}"
+    @vote_list = LeavesHolidaysLogic.vote_list_left(@leave)
+
   end
 
   def authenticate

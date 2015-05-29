@@ -19,6 +19,8 @@ class LeavePreference < ActiveRecord::Base
 
   validate :validate_region
 
+  scope :for_user, ->(uid) { where(user_id: uid) }
+
   private
 
   def default_days_leaves_months

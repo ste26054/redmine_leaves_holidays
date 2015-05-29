@@ -2,6 +2,7 @@ require 'redmine'
 require 'LeavesHolidaysExtensions'
 require 'LeavesHolidaysLogic'
 require 'LeavesHolidaysDates'
+require 'LeavesHolidaysTriggers'
 
 
 Redmine::Plugin.register :redmine_leaves_holidays do
@@ -21,8 +22,11 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays'
 end
 
-# ActionDispatch::Callbacks.to_prepare do
-# 	require 'redmine_leaves_holidays'
-# end
-
 require_dependency 'redmine_leaves_holidays/hooks'
+
+Rails.configuration.to_prepare do
+  require 'rufus/scheduler'
+  # job = Rufus::Scheduler.singleton.every '10s' do
+  #   Rails.logger.info "SCHEDULER: time flies, it's now #{Time.now}"
+  # end
+end

@@ -57,4 +57,29 @@ module LeavesHolidaysDates
 		return total
 	end
 
+	def self.get_contract_period(contract_date)
+		res = {}
+		today = Date.today
+		# today = Date.civil(2016,2,29)
+
+		if self.months_between(contract_date, today) >= 12  #(contract_date.year < today.year)
+			if  (contract_date.month < today.month) || (contract_date.month == today.month) && (contract_date.day <= today.day)
+				res[:start] = contract_date
+				# res[:start] = res[:start].change(:year => Time.now.year)
+				res[:start] = res[:start] + (Time.now.year - res[:start].year).year
+				res[:end] = res[:start] + 1.year - 1.day
+			else
+				res[:start] = contract_date
+				# res[:start] = res[:start].change(:year => Time.now.year - 1)
+				res[:start] = res[:start] + (Time.now.year + 1 - res[:start].year).year
+				res[:end] = res[:start] + 1.year - 1.day
+			end
+
+		else# (contract_date.year == today.year)
+			res[:start] = contract_date
+			res[:end] = res[:start] + 1.year - 1.day
+		end
+		return res
+	end
+
 end

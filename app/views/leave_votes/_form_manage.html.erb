@@ -1,15 +1,17 @@
 
-<h3>Consultation for the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h3>
+<h2>Consultation for the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
 <br />
 
 <% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
 
-<fieldset>
-<strong>You are being consulted as a:</strong>
-<% roles.each do |role| %>
- <p><strong><%= role[:name] %></strong> - <strong><%= role[:project] %></strong></p>
-<% end %>
 
+
+<p>You are being consulted as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
+
+<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
+
+
+<fieldset>
 <%= form_for [leave, vote] do |f| %>
 	
  	

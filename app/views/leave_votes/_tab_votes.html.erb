@@ -7,8 +7,8 @@
 			<th>Consulted</th>
 			<th>Answer</th>
 			<th>Date of Consultation</th>
-			<th>Role Consulted as</th>
-			<th>Project Consulted as</th>
+			<th>Role(s) Consulted as</th>
+			<th>Project(s) Consulted as</th>
 			<th>Comments</th>
 				</tr></thead>
 			<tbody>
@@ -19,8 +19,8 @@
 					<td><%= link_to vote.user.name, user_path(vote.user) %></td>
 					<td><%= vote.vote %></td>
 					<td><%= format_time(vote.updated_at) %></td>
-					<td><%= roles.map {|role| role[:name].to_s }.join(", ") %></td>
-					<td><%= roles.map {|role| role[:project].to_s }.join(", ") %></td>
+					<td><%= roles.map {|role| role[:name].to_s }.uniq.join(", ") %></td>
+					<td><%= roles.map {|role| role[:project].to_s }.uniq.join(", ") %></td>
 					<td><%= vote.comments %></td>
 
 					</tr>

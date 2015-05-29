@@ -193,17 +193,17 @@ module LeavesHolidaysLogic
 					when 1
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] || role[:manage])
 							roles << role
-							return roles
+							# return roles
 						end
 					when 2
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:vote] && !role[:manage])
 							roles << role
-							return roles
+							# return roles
 						end
 					when 3
 						if (role[:position] < array_roles_user_req[:roles].first[:position]) && (role[:manage])
 							roles << role
-							return roles
+							# return roles
 						end
 					else
 					end
@@ -376,7 +376,8 @@ module LeavesHolidaysLogic
 		else
 			list.delete_if { |u| !LeaveVote.for_request(leave_request.id).for_user(u.first[:user_id]).empty? }
 		end
-		return list
+		
+		return list.collect { |t| t.first[:user_id] }
 	end
 
 end
