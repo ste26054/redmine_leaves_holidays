@@ -23,14 +23,19 @@ class LeaveRequestsController < ApplicationController
     @leave_requests = {}
     @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)
 
-  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id).reorder(sort_clause)
+    if LeavesHolidaysLogic.has_view_all_rights(User.current)
+      @leave_requests['approvals'] = LeaveRequest.accepted.reorder(sort_clause)
+    else
+      @leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id).reorder(sort_clause)
+    end
+  	
 
     period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
     @d_start = period[:start]
 
     @d_end = period[:end]
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-    LeavesHolidaysTriggers.check_perform_users_renewal
+
   end
 
   def new

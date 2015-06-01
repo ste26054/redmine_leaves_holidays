@@ -3,7 +3,7 @@ class LeaveEvent < ActiveRecord::Base
 
   default_scope { order(updated_at: :asc) }
 
-  enum event_type: { contract_renewal: 0 }
+  enum event_type: { contract_renewal: 0, leave_notification: 1 }
 
   validates :event_type, presence: true
 

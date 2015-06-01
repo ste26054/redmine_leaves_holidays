@@ -14,8 +14,8 @@
 				<th>Type</th>
 				<th>Status</th>
 				<th>Remaining</th>
-				<th>Accumulated</th>
 				<th>Taken</th>
+				<th>Accumulated</th>
 				<th></th>
 			</tr></thead>
 			<tbody>
@@ -38,9 +38,18 @@
 					<% else %>
 						<td><%= req.request_status %></td>
 					<% end %>
-					<td><%= req.get_days(:remaining)[:result].round(1) %>d</td>
+
+					<% if req.request_status != "processed" %>
+						<td><%= req.get_days(:remaining)[:result].round(1) %>d (excl), <%= req.get_days(:remaining)[:result].round(1) - req.actual_leave_days %>d (incl)</td>
+						<td><%= req.get_days(:taken)[:result].round(1) %>d (excl), <%= req.get_days(:taken)[:result].round(1) + req.actual_leave_days %>d (incl)</td>
+					<% else %>
+						<td><%= req.get_days(:remaining)[:result].round(1) %>d</td>
+						<td><%= req.get_days(:taken)[:result].round(1) %>d</td>
+					<% end %>
+					
+
 					<td><%= req.get_days(:accumulated)[:result].round(1) %>d</td>
-					<td><%= req.get_days(:taken)[:result].round(1) %>d</td>
+					
 					<td class="buttons">
 						<%= link_to 'Details', req, :class => 'icon icon-details' %>
 						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveStatus, [:create, :update], req, :or) %>

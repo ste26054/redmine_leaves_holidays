@@ -233,7 +233,7 @@ module LeavesHolidaysLogic
 		object_list = [LeavePreference, LeaveRequest, LeaveStatus, LeaveVote]
 	 	action_list = [:create, :read, :update, :delete, :cancel, :submit, :unsubmit, :index]
 
-	 	# Rename supefluous actions from controllers
+	 	# Rename superfluous actions from controllers
 	 	if !action.in?(action_list)
 	 		action = :create if action == :new
 	 		action = :read if action == :show
@@ -267,13 +267,19 @@ module LeavesHolidaysLogic
 		end
 
 		if object == LeaveRequest || object.class == LeaveRequest
-			leave = object
+			if leave_request == nil
+				leave = object
+			else
+				leave = leave_request
+			end
 			return true if action == :create
 			return false if leave.request_status == "cancelled"
 			if action == :read
+				Rails.logger.info "IN ACTION READ HAS RIGHTS"
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+						Rails.logger.info "IN IF ************************"
 						return true
 					else
 						if leave.request_status == "processed"
