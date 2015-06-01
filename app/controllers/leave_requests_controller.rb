@@ -2,11 +2,10 @@ class LeaveRequestsController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
+  include LeavesHolidaysTriggers
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   before_action :set_status, only: [:show, :destroy]
   before_filter :authenticate, only: [:show, :edit, :update, :destroy]
-  # before_action :view_request, only: [:show]
-  # before_action :manage_request, only: [:edit, :update, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
 
@@ -22,25 +21,16 @@ class LeaveRequestsController < ApplicationController
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
 
     @leave_requests = {}
-    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)#.pending
-    # @leave_requests = LeaveRequest.all
-  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id).reorder(sort_clause)#.pending
-    # @leave_requests['requests'] =  @leave_requests['requests'].reorder(sort_clause)
-    # @notifiers = LeavesHolidaysLogic.users_to_notify_of_request(User.current)
-    # @approvers = LeavesHolidaysLogic.can_approve_request(User.current)
-    # job = Rufus::Scheduler.singleton.every '30s' do
-    #     Rails.logger.info "SCHEDULER: time flies, it's now #{Time.now}"
-    # end
-    # p job.running?   # true
-    # job.kill if job.running?
-    # p job.running?   # false
+    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)
+
+  	@leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id).reorder(sort_clause)
+
     period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
     @d_start = period[:start]
-    # @d_start = @d_start.change(:year => Time.now.year - 1)
 
     @d_end = period[:end]
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-    
+    LeavesHolidaysTriggers.check_perform_users_renewal
   end
 
   def new
@@ -83,12 +73,11 @@ class LeaveRequestsController < ApplicationController
   end
 
   def edit
-    # render_403 unless @leave.request_status == "created" && User.current == @leave.user
   end
 
   def update
     if @leave.update(leave_request_params)
-  		redirect_to @leave #:action => 'index'
+  		redirect_to @leave
   	else
   		render :edit
   	end

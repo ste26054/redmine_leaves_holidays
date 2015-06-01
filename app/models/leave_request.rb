@@ -74,28 +74,37 @@ class LeaveRequest < ActiveRecord::Base
     where(id: submitted_ids)
   }
 
+  scope :viewable_by, ->(uid) {
+    user = User.find(uid)
+    processed_ids = Array.wrap(processed).map { |a| a.id }
+    processed_ids.delete_if { |id| !(LeavesHolidaysLogic.has_rights(user, LeaveRequest.find(id).user, [LeaveStatus], [:read], LeaveRequest.find(id), :or))}
+    # find(processed_ids)
+    where(id: processed_ids)
+  }
+
+
+
   def get_days(arg)
     res = {}
     user = User.find(self.user_id)
+
     contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-    contract_start = contract_start.change(:year => Time.now.year)
-    contract_end = contract_start + 1.year - 1.day
-    date_end = self.created_at.to_date
+    period = LeavesHolidaysDates.get_contract_period(contract_start)
 
     case arg
     when :remaining
-      res[:start] = contract_start
-      res[:end] = contract_end
+      res[:start] = period[:start]
+      res[:end] = period[:end]
       res[:result] = LeavesHolidaysDates.total_leave_days_remaining(user, res[:start], res[:end])
       return res
     when :accumulated
-      res[:start] = contract_start
-      res[:end] = date_end
+      res[:start] = period[:start]
+      res[:end] = Date.today
       res[:result] = LeavesHolidaysDates.total_leave_days_accumulated(user, res[:start], res[:end])
       return res
     when :taken
-      res[:start] = contract_start
-      res[:end] = date_end
+      res[:start] = period[:start]
+      res[:end] = period[:end]
       res[:result] = LeavesHolidaysDates.total_leave_days_taken(user, res[:start], res[:end])
       return res
     else

@@ -44,7 +44,6 @@ class LeaveVotesController < ApplicationController
     if @vote.update(leave_vote_params)
        redirect_to @leave
     else
-       # redirect_to edit_leave_request_leave_statuses_path
        redirect_to @vote
     end
   end

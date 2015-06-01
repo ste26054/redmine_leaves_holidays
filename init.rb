@@ -6,7 +6,7 @@ require 'LeavesHolidaysTriggers'
 
 
 Redmine::Plugin.register :redmine_leaves_holidays do
-  name 'Redmine Leaves Holidays plugin'
+  name 'Redmine Leave Holidays plugin'
   author 'Stephane EVRARD'
   description 'This is a plugin for Redmine'
   version '0.0.1'
@@ -26,7 +26,10 @@ require_dependency 'redmine_leaves_holidays/hooks'
 
 Rails.configuration.to_prepare do
   require 'rufus/scheduler'
-  # job = Rufus::Scheduler.singleton.every '10s' do
-  #   Rails.logger.info "SCHEDULER: time flies, it's now #{Time.now}"
-  # end
+  job = Rufus::Scheduler.singleton.cron '30 0 * * *' do
+
+    LeavesHolidaysTriggers::check_perform_users_renewal
+    Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
+  end
+
 end

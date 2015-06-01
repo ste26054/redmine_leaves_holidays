@@ -29,7 +29,7 @@
 	<%= @preference.is_contractor %>
 </p>
 
-<%= link_to 'Back', edit_user_path(@user) %>
+<%= link_to 'Back', edit_user_path(@user_pref) %>
 <% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
 	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %>	
 <% end %>

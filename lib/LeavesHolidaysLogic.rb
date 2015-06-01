@@ -296,12 +296,12 @@ module LeavesHolidaysLogic
 		end
 		if object == LeaveVote || object.class == LeaveVote
 			vote = object
-
 			if (defined?(vote.leave_request)).nil?
 				leave = leave_request
 			else
 				leave = vote.leave_request
 			end
+			return false if leave.user_id == user_accessor.id
 
 			if action == :create
 				if leave.request_status.in?(["submitted", "processing"])
@@ -379,5 +379,18 @@ module LeavesHolidaysLogic
 		
 		return list.collect { |t| t.first[:user_id] }
 	end
+
+	def self.retrieve_leave_preferences(user)
+      preference = LeavePreference.new
+      preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
+      preference.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
+      preference.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
+      preference.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
+      preference.extra_leave_days = 0.0
+      preference.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
+      preference.user_id = user.id
+      preference.annual_max_comments = ""
+      return preference
+  end
 
 end

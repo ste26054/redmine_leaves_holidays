@@ -11,7 +11,7 @@ class LeavePreferencesController < ApplicationController
   	if @exists
       redirect_to edit_user_leave_preferences_path
     else
-  		retrieve_leave_preferences
+  		@preference = LeavesHolidaysLogic.retrieve_leave_preferences(@user)
   	end
   end
 
@@ -20,7 +20,7 @@ class LeavePreferencesController < ApplicationController
     @preference.user_id = @user_pref.id
   	if @preference.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
-  		redirect_to edit_user_path(@user_pref)
+  		redirect_to edit_user_leave_preferences_path
   	else
   		flash[:error] = "Invalid preferences"
   		redirect_to new_user_leave_preferences_path
@@ -38,16 +38,15 @@ class LeavePreferencesController < ApplicationController
     @preference.user_id = @user_pref.id
   	if @preference.update(leave_preference_params)
   	   flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
-       redirect_to edit_user_path(@user_pref)
     else
     	flash[:error] = "Invalid preferences"
-       redirect_to edit_user_leave_preferences_path
     end
+    redirect_to edit_user_leave_preferences_path
   end
 
   def destroy
   	@preference.destroy
-  	redirect_to edit_user_path(@user_pref)
+  	redirect_to edit_user_leave_preferences_path
   end
 
 
@@ -71,20 +70,8 @@ private
     @preference = LeavePreference.where(user_id: @user_pref.id).first
     @exists = (@preference != nil)
     if @preference == nil
-      retrieve_leave_preferences
+      @preference = LeavesHolidaysLogic.retrieve_leave_preferences(@user)
     end
-  end
-
-  def retrieve_leave_preferences
-      @preference = LeavePreference.new
-      @preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
-      @preference.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
-      @preference.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
-      @preference.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
-      @preference.extra_leave_days = 0.0
-      @preference.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
-      @preference.user_id = @user_pref.id
-      @preference.annual_max_comments = ""
   end
 
   def authenticate
