@@ -1,54 +1,5 @@
-<p>
-	<strong><%= l(:label_leave_id) %></strong>
-	<%= @leave.id %>
-</p>
-<p>
-	<strong><%= l(:label_leave_creator) %></strong>
-	<%= @leave.user.name %>
-</p>
-<p>
-	<strong>Leave From:</strong>
-	<%= format_date(@leave.from_date) %>
-</p>
-<p>
-	<strong>Leave Until:</strong>
-	<%= format_date(@leave.to_date) %>
-</p>
-<p>
-	<strong>Actual Leave Days for the period:</strong>
-	<%= @leave.actual_leave_days %>
-</p>
-<p>
-	<strong>Non Working Days or Bank Holidays:</strong>
-	<%= @leave.real_leave_days - @leave.actual_leave_days %>
-</p>
-<% if @leave.comments != "" %>
-	<p>
-		<strong><%= l(:label_leave_comments) %>:</strong>
-		<%= @leave.comments %>
-	</p>
-<% end %>
-<p>
-	<strong>Leave AM/PM:</strong>
-	<%= @leave.request_type %>
-</p>
-<p>
-	<strong>Leave Reason:</strong>
-	<%= @leave.issue.subject %>
-</p>
-<p>
-	<strong>Created on:</strong>
-	<%= format_time(@leave.created_at) %>
-</p>
-<p>
-	<strong>Last updated:</strong>
-	<%= format_time(@leave.updated_at) %>
-</p>
 
-<p>
-	<strong>Leave Status:</strong>
-	<%= @leave.request_status %>
-</p>
+<%= render partial: 'details_leave', locals: {leave: @leave} %>
 
 <% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or) || LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveStatus], [:create, :update], @leave, :or)   %>
 	<hr />

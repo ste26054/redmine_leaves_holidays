@@ -1,3 +1,3 @@
-<%="[TEST]: Leave Request Creation"%>
+Leave Request #<%= @leave.id %>
 ----------------------------------------
-<%= link_to 'More Details', @url %>
+<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>

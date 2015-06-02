@@ -1,0 +1,25 @@
+<%= l(:label_leave_id) %>: <%= leave.id %>
+
+<%= l(:label_leave_creator) %>: <%= link_to leave.user.name, leave.user %>
+
+Leave From:	<%= format_date(leave.from_date) %>
+
+Leave Until: <%= format_date(leave.to_date) %>
+
+Actual Leave Days for the period: <%= leave.actual_leave_days %>
+
+Non Working Days or Bank Holidays: <%= leave.real_leave_days - leave.actual_leave_days %>
+
+<% if leave.comments != "" %>
+	<%= l(:label_leave_comments) %>: <%= leave.comments %>
+<% end %>
+
+Leave AM/PM: <%= leave.request_type %>
+
+Leave Reason: <%= leave.issue.subject %>
+
+Created on:	<%= format_time(leave.created_at) %>
+
+Last updated: <%= format_time(leave.updated_at) %>
+
+Leave Status: <%= leave.request_status %>

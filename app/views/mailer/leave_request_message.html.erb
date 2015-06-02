@@ -1,4 +1,4 @@
 <!DOCTYPE html>
-<h1>[TEST]: Leave Request Creation</h1>
+<h1><%= link_to "Leave Request \##{@leave.id}", @leave %></h1>
 <hr />
-<%= link_to 'More Details', @url %>
+<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>

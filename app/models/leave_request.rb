@@ -112,6 +112,14 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
+  def updated_on
+    return self.updated_at.to_date
+  end
+
+  def created_on
+    return self.created_at.to_date
+  end
+
   def has_am?
     return self.request_type == "am" || self.request_type == "ampm"
   end

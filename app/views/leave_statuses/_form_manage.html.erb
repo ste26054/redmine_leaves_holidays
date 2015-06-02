@@ -3,9 +3,11 @@
 <h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
 <br />
 <% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
-<p>You are being consulted as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
+<% if !roles.empty? %>
+	<p>You are being consulted as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
 
-<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
+	<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
+<% end %>
 <fieldset>
 
 
