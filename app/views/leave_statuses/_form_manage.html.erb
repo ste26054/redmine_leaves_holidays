@@ -47,6 +47,7 @@
 </fieldset>
 <br />
 
+<% if User.current.id != leave.user.id %>
 <fieldset>
 	<% if !manage_list.empty? %>
 		<h3>Users able to manage this Leave Request:</h3>
@@ -88,3 +89,4 @@
 	
 	<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
 </fieldset>
+<% end %>

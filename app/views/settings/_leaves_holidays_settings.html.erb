@@ -9,7 +9,7 @@
 
 	<%- projects = Project.all.collect{|t| [t.name, t.id]} -%>
 	<p>
-		<label>Project for Logging Leaves:</label>
+		<label>Project for Logging Leave Requests:</label>
 		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)) -%>
 		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
 	</p>
@@ -54,6 +54,10 @@
 	<p>
 		<label>Default Contract Start date for auto increment / report of available leave days at the anniversary date:</label>
 		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date) %>
+	</p>
+	<p>
+	<label>Activate email notifications:</label>
+		<%= check_box_tag "settings[email_notification]",1, RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1 %>
 	</p>
 
 </fieldset>

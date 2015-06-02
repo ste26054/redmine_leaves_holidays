@@ -4,8 +4,10 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
-  before_action :set_status, only: [:show, :destroy]
+  
   before_filter :authenticate, only: [:show, :edit, :update, :destroy]
+
+  before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
 
@@ -74,7 +76,6 @@ class LeaveRequestsController < ApplicationController
   end
 
   def show
-    Mailer.leave_request_message([User.find(91), User.find(87)], @leave).deliver
   end
 
   def edit
@@ -108,7 +109,7 @@ class LeaveRequestsController < ApplicationController
 
   def set_leave_request
     begin
-  	  @leave = LeaveRequest.find(params[:id])
+  	  @leave = LeaveRequest.unscoped.find(params[:id])
   	rescue ActiveRecord::RecordNotFound
   		render_404
   	end

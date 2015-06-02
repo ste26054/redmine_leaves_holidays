@@ -2,8 +2,7 @@ class LeavePreferencesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
   
-  before_action :set_user
-  before_action :set_leave_preference
+  before_action :set_user, :set_leave_preference
   before_filter :authenticate, except: [:show]
   before_action :set_holidays, only: [:new, :create, :edit, :update]
 

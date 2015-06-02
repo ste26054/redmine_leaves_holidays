@@ -1,0 +1,6 @@
+Leave Request #<%= @leave.id %> was submitted for approval:
+----------------------------------------
+
+To Review/Manage this Leave Request, please go to your <%= link_to "Dashboard", leave_requests_url %>
+
+<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>

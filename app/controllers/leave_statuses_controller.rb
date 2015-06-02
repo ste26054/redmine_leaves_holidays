@@ -2,12 +2,11 @@ class LeaveStatusesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
   before_action :set_leave_request
-  before_action :set_leave_status
-  before_action :set_leave_vote
-  before_action :set_vote_list
-  before_action :set_manage_list
-
+  
   before_filter :authenticate
+
+  before_action :set_leave_status, :set_leave_vote, :set_vote_list, :set_manage_list
+
 
   helper :sort
   include SortHelper

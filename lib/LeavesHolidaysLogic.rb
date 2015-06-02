@@ -216,7 +216,7 @@ module LeavesHolidaysLogic
 				leave = leave_request
 			end
 			return true if action == :create
-			return false if leave.request_status == "cancelled"
+			# return false if leave.request_status == "cancelled"
 			if action == :read
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
@@ -227,6 +227,8 @@ module LeavesHolidaysLogic
 							return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
 						end
 					end
+				else
+					return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true) || self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
 				end
 			end
 			if user_accessor.id == user_owner.id
@@ -280,7 +282,7 @@ module LeavesHolidaysLogic
 			else
 				leave = status.leave_request
 			end
-
+			return true if user_accessor.id == user_owner.id && self.user_params(user_accessor, :is_contractor)
 			if action == :create
 				if leave.request_status.in?(["submitted", "processing"])
 					return true if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 3).empty?

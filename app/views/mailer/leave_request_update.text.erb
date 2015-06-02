@@ -1,0 +1,8 @@
+<%= link_to "Leave Request \##{@leave.id}", @leave %> was <%= @action %> by <%= link_to @user.name, @user %>
+
+----------------------------------------
+
+For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %>
+
+
+<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>

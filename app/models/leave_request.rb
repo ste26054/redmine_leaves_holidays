@@ -15,6 +15,7 @@ class LeaveRequest < ActiveRecord::Base
   before_validation :set_user
   before_validation :set_user_preferences
   before_update :validate_update
+  after_save :send_notifications
 
   enum request_status: { created: 0, submitted: 1, processed: 2, cancelled: 3, processing: 4 }
   enum request_type: { am: 0, pm: 1, ampm: 2 }
@@ -266,9 +267,31 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
+  def status
+    status = LeaveStatus
+  end
+
   def validate_update
     if LeaveRequest.where(id: self.id).processed.exists?
       errors.add(:base, "You cannot update this leave request as it has already been processed") 
+    end
+  end
+
+  def send_notifications
+    changes = self.changes
+    if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+      if changes.has_key?("request_status")
+        if changes["request_status"][1] == "cancelled"
+          Mailer.leave_request_update([User.find(91), User.find(87)], self, {user: User.current, action: "cancelled"}).deliver
+        end
+        if changes["request_status"][1] == "submitted"
+          Mailer.leave_request_add([User.find(91), User.find(87)], self, changes).deliver
+        end
+        if changes["request_status"][1] == "created"
+          Mailer.leave_request_update([User.find(91), User.find(87)], self, {user: User.current, action: "unsubmitted"}).deliver
+        end
+      end
+      
     end
   end
 

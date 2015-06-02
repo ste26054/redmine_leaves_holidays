@@ -1,12 +1,14 @@
 class LeaveVotesController < ApplicationController
   unloadable
-  before_action :set_user
-  before_action :set_leave_request
-  before_action :set_leave_vote
-  before_action :set_leave_votes
+
+  before_action :set_user, :set_leave_request
 
   before_filter :authenticate, only: [:new, :create]
+
+  before_action :set_leave_vote, :set_leave_votes
+
   before_filter :authenticate_edit, only: [:edit, :update]
+  
 
   helper :sort
   include SortHelper
