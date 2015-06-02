@@ -5,6 +5,7 @@ class LeaveStatusesController < ApplicationController
   before_action :set_leave_status
   before_action :set_leave_vote
   before_action :set_vote_list
+  before_action :set_manage_list
 
   before_filter :authenticate
 
@@ -76,6 +77,10 @@ class LeaveStatusesController < ApplicationController
 
   def set_vote_list
     @vote_list = LeavesHolidaysLogic.vote_list_left(@leave)
+  end
+
+  def set_manage_list
+    @manage_list = LeavesHolidaysLogic.manage_list(@leave)
   end
 
   def authenticate

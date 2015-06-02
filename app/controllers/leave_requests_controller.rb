@@ -35,7 +35,7 @@ class LeaveRequestsController < ApplicationController
 
     @d_end = period[:end]
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-
+    # Mailer.deliver_leave_request_message(User.find(87))
   end
 
   def new

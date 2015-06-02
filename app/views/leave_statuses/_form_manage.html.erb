@@ -46,6 +46,25 @@
 <br />
 
 <fieldset>
+	<% if !manage_list.empty? %>
+		<h3>Users able to manage this Leave Request:</h3>
+		<% for uid in manage_list -%>
+			<% user = User.find(uid) %>
+			<% roles = LeavesHolidaysLogic.allowed_common_project(user, leave.user, 3) %>
+
+			<p><%= link_to user.name, user_path(user) %>: 
+
+			<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+
+			<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+
+			</p>
+		<% end %>
+	<% end %>
+</fieldset>
+<br />
+
+<fieldset>
 	<% if !vote_list.empty? %>
 		<h3>Not Consulted:</h3>
 		

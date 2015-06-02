@@ -8,8 +8,8 @@ module RedmineLeavesHolidays
 
     module InstanceMethods
 
-    	def leave_request_message
-    		recipients = ["mail@mail.com"]
+    	def leave_request_message(recipients)
+    		
     		cc = []
     		subject = "TEST LEAVE EMAIL"
 

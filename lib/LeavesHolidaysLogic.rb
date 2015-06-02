@@ -39,76 +39,6 @@ module LeavesHolidaysLogic
 		return allowed
 	end
 
-	def self.is_allowed_to_view_request(user, request)
-		return true if user.id == request.user.id
-		return false if request.request_status == "created"
-		return true if user.allowed_to?(:view_all_leaves_requests, nil, :global => true) || user.allowed_to?(:manage_leaves_requests, nil, :global => true) || user.allowed_to?(:vote_leaves_requests, nil, :global => true)
-		return true if self.plugin_admins.include?(user.id)
-		false
-	end
-
-
-	def self.is_allowed_to_edit_request(user, request)
-		return true if user.id == request.user.id #Only the creator of the request can change it
-		false
-	end
-
-	def self.is_allowed_to_view_status(user, user_request)
-		return true if user.id == user_request.id #A user can see the status of his own requests
-		#A user with this right has access to all the leave request statuses
-		return true if user.allowed_to?(:view_all_leaves_requests, nil, :global => true) || user.allowed_to?(:manage_leaves_requests, nil, :global => true)
-		return true if self.plugin_admins.include?(user.id) 
-		false
-	end
-
-	def self.is_allowed_to_manage_status(user, user_request)
-		return true if self.plugin_admins.include?(user.id) #A plugin Admin can approve all the requests including his own requests
-		return true if user.id == user_request.id && self.user_params(user, :is_contractor) == true
-		return false if !user.allowed_to?(:manage_leaves_requests, nil, :global => true)
-		return false if self.plugin_admins.include?(user_request.id) #User req is plugin admin and hence his role >>> user -> Disallow
-		return false if user.id == user_request.id #Any non plugin admin cannot approve his own requests
-
-		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
-		if !common_projects.empty?
-			common_projects.each do |p|
-				project = Project.find(p)
-				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
-				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
-				array_roles_user[:roles].each do |role|
-					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:manage]
-						return true
-					end
-				end
-			end
-			
-		end
-		false
-	end
-
-	def self.is_allowed_to_vote_request(user, user_request)
-		role = {}
-		# return true
-		return role if user.id == user_request.id #A user cannot vote for his own leave request
-		#  DEBUG ONLY
-		#return true if self.plugin_admins.include?(user.id)
-		return role if !user.allowed_to?(:vote_leaves_requests, nil, :global => true)
-		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
-		if !common_projects.empty?
-			common_projects.each do |p|
-				project = Project.find(p)
-				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
-				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
-				array_roles_user[:roles].each do |role|
-					if (role[:position] < array_roles_user_req[:roles].first[:position]) && role[:vote] && !role[:manage]
-						return role
-					end
-				end
-			end
-			
-		end
-		role
-	end
-
 	def self.user_role_details(user, user_request)
 		user_role_details = {}
 
@@ -213,11 +143,24 @@ module LeavesHolidaysLogic
 		return roles
 	end
 
+	def self.has_global_right(user, right)
+		case right
+		when :manage
+			return user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+		when :vote
+			return user.allowed_to?(:vote_leaves_requests, nil, :global => true)
+		when :view_all
+			return user.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+		else
+			return nil
+		end
+	end
+
 	def self.users_allowed_common_project(user_request, mode)
 		users = User.where(status: 1)
 		allowed = []
 		users.each do |user|
-			if user.id != user_request.id && has_vote_rights(user)
+			if user.id != user_request.id# && has_vote_rights(user)
 				res = []
 				res = self.allowed_common_project(user, user_request, mode)
 				unless res.empty?
@@ -275,11 +218,9 @@ module LeavesHolidaysLogic
 			return true if action == :create
 			return false if leave.request_status == "cancelled"
 			if action == :read
-				Rails.logger.info "IN ACTION READ HAS RIGHTS"
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
-						Rails.logger.info "IN IF ************************"
 						return true
 					else
 						if leave.request_status == "processed"
@@ -386,17 +327,22 @@ module LeavesHolidaysLogic
 		return list.collect { |t| t.first[:user_id] }
 	end
 
+	def self.manage_list(leave_request)
+		list = LeavesHolidaysLogic.users_allowed_common_project(leave_request.user, 3)
+		return list.collect { |t| t.first[:user_id] }
+	end
+
 	def self.retrieve_leave_preferences(user)
-      preference = LeavePreference.new
-      preference.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
-      preference.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
-      preference.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
-      preference.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
-      preference.extra_leave_days = 0.0
-      preference.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
-      preference.user_id = user.id
-      preference.annual_max_comments = ""
-      return preference
+      p = LeavePreference.new
+      p.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
+      p.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
+      p.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
+      p.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
+      p.extra_leave_days = 0.0
+      p.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
+      p.user_id = user.id
+      p.annual_max_comments = ""
+      return p
   end
 
 end
