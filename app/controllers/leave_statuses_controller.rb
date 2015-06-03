@@ -1,11 +1,11 @@
 class LeaveStatusesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
-  before_action :set_leave_request
+  before_action :set_leave_request, :set_leave_status, :set_leave_vote
   
   before_filter :authenticate
 
-  before_action :set_leave_status, :set_leave_vote, :set_vote_list, :set_manage_list
+  before_action :set_vote_list_left, :set_manage_list
 
 
   helper :sort
@@ -74,12 +74,12 @@ class LeaveStatusesController < ApplicationController
       @votes = LeaveVote.for_request(@leave.id) if @votes == nil
   end
 
-  def set_vote_list
-    @vote_list = LeavesHolidaysLogic.vote_list_left(@leave)
+  def set_vote_list_left
+    @vote_list = @leave.vote_list_left
   end
 
   def set_manage_list
-    @manage_list = LeavesHolidaysLogic.manage_list(@leave)
+    @manage_list = @leave.manage_list
   end
 
   def authenticate

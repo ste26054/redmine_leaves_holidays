@@ -38,6 +38,7 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_issue
    validate :validate_overlaps
    validate :validate_update
+   validate :validate_quiet
    
 
   attr_accessor :leave_time_am, :leave_time_pm
@@ -180,6 +181,18 @@ class LeaveRequest < ActiveRecord::Base
     return working_days
   end
 
+  def vote_list_left
+    return LeavesHolidaysLogic.vote_list_left(self)
+  end
+
+  def vote_list
+    return LeavesHolidaysLogic.vote_list(self)
+  end
+
+  def manage_list
+    return LeavesHolidaysLogic.manage_list(self)
+  end
+
 	private
 
 	def validate_date_period
@@ -277,6 +290,12 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
+  def validate_quiet
+    if self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) && self.comments == ""
+      errors.add(:comments, "Are mandatory for this leave reason")
+    end
+  end
+
   def send_notifications
     changes = self.changes
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
@@ -294,5 +313,7 @@ class LeaveRequest < ActiveRecord::Base
       
     end
   end
+
+  
 
 end

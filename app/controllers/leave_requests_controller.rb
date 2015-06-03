@@ -5,7 +5,7 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysTriggers
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_filter :authenticate, only: [:show, :edit, :update, :destroy]
+  before_filter :authenticate, except: [:index, :new, :create]#, only: [:show, :edit, :update, :destroy]
 
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
@@ -37,6 +37,7 @@ class LeaveRequestsController < ApplicationController
 
     @d_end = period[:end]
     @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
+
   end
 
   def new

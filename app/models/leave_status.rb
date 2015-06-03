@@ -10,6 +10,7 @@ class LeaveStatus < ActiveRecord::Base
   before_destroy :set_submitted
   before_validation :set_user
   after_commit :update_log_time
+  after_save :send_notifications
 
 
   enum acceptance_status: { rejected: 0, accepted: 1, cancelled: 2 }
@@ -71,6 +72,31 @@ class LeaveStatus < ActiveRecord::Base
         end
       end          
     end
+  end
+
+  def send_notifications
+    changes = self.changes
+    if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+      if changes.has_key?("acceptance_status")
+        if changes["acceptance_status"][1] == "rejected"
+          
+        end
+        if changes["acceptance_status"][1] == "accepted"
+
+        end
+        if changes["acceptance_status"][1] == "cancelled"
+
+        end
+      end
+    end
+  end
+
+  def vote_list_left
+    return LeavesHolidaysLogic.vote_list_left(self.leave_request)
+  end
+
+  def manage_list
+    return LeavesHolidaysLogic.manage_list(self.leave_request)
   end
 
 end

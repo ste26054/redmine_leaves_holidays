@@ -60,4 +60,11 @@
 		<%= check_box_tag "settings[email_notification]",1, RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1 %>
 	</p>
 
+	<%- issues = LeavesHolidaysLogic.issues_list.collect{|t| [t.subject, t.id]} -%>
+	<p>
+		<label>Disable approval system for issues:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) -%>
+		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true %>
+	</p>
+
 </fieldset>
