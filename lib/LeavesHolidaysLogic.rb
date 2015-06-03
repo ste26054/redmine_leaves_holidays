@@ -211,7 +211,7 @@ module LeavesHolidaysLogic
 			else
 				leave = status.leave_request
 			end
-			return true if user_accessor.id == user_owner.id && self.user_params(user_accessor, :is_contractor)
+			# return true if user_accessor.id == user_owner.id && self.user_params(user_accessor, :is_contractor)
 			if action == :create
 				if leave.request_status.in?(["submitted", "processing"])
 					return true if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 3).empty?

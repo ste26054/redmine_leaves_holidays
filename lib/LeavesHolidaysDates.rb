@@ -34,7 +34,7 @@ module LeavesHolidaysDates
 		remaining = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
 		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
 
-		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to)
+		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
 		leaves_list.find_each do |l|
 			unless l.from_date < from
 				remaining -= l.actual_leave_days
@@ -50,7 +50,7 @@ module LeavesHolidaysDates
 		prefs = LeavePreference.where(user_id: user.id).first
 		total = 0.0
 
-		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to)
+		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
 		leaves_list.find_each do |l|
 			total += l.actual_leave_days_within(from, to)
 		end

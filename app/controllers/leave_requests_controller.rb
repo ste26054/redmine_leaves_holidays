@@ -47,8 +47,8 @@ class LeaveRequestsController < ApplicationController
   def create
   	@leave = LeaveRequest.new(leave_request_params)
   	if @leave.save
-      flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button"
-  		redirect_to @leave
+      self.info_flash
+      redirect_to @leave
   	else
   		render new_leave_request_path
   	end
@@ -59,8 +59,12 @@ class LeaveRequestsController < ApplicationController
       render_403
       return
     else
-      @leave.update_attribute(:request_status, "submitted")
-      flash[:notice] = "Your leave request has been submitted for approval"
+      if (LeavesHolidaysLogic.user_params(@leave.user, :is_contractor) || @leave.is_quiet_leave || LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id))
+        @leave.manage({acceptance_status: "accepted", comments: "AUTO_APPROVED"})
+      else
+        @leave.update_attribute(:request_status, "submitted")
+        flash[:notice] = "Your leave request has been submitted for approval"
+      end
       redirect_to @leave
     end
   end
@@ -84,6 +88,7 @@ class LeaveRequestsController < ApplicationController
 
   def update
     if @leave.update(leave_request_params)
+      self.info_flash
   		redirect_to @leave
   	else
   		render :edit
@@ -104,6 +109,20 @@ class LeaveRequestsController < ApplicationController
 
     @leave.update_attribute(:request_status, "cancelled")
     redirect_to leave_requests_path
+  end
+
+  protected
+
+  def info_flash
+    if LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id)
+      flash[:notice] = "As you are an administrator, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+    elsif LeavesHolidaysLogic.user_params(@leave.user, :is_contractor)
+      flash[:notice] = "As you are a Contractor, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+    elsif @leave.is_quiet_leave
+      flash[:notice] = "As leave reason selected is special (#{@leave.issue.subject}), the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+    else
+      flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button. You will then be able to edit it until it is processed"
+    end  
   end
 
   private

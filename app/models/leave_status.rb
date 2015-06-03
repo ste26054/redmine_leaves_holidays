@@ -91,12 +91,4 @@ class LeaveStatus < ActiveRecord::Base
     end
   end
 
-  def vote_list_left
-    return LeavesHolidaysLogic.vote_list_left(self.leave_request)
-  end
-
-  def manage_list
-    return LeavesHolidaysLogic.manage_list(self.leave_request)
-  end
-
 end

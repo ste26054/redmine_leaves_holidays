@@ -14,6 +14,7 @@ class LeaveRequest < ActiveRecord::Base
 
   before_validation :set_user
   before_validation :set_user_preferences
+  before_validation :set_informational
   before_update :validate_update
   after_save :send_notifications
 
@@ -30,6 +31,7 @@ class LeaveRequest < ActiveRecord::Base
   validates :region, presence: true
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
   validates :annual_leave_days_max, presence: true, numericality: true, inclusion: { in: 0..365}
+  validates :is_informational, :inclusion => {:in => [true, false]}
 
   validates_length_of :comments, :maximum => 255
 
@@ -57,6 +59,8 @@ class LeaveRequest < ActiveRecord::Base
   scope :processed, -> { where(request_status: "2") }
 
   scope :cancelled, -> { where(request_status: "3") }
+
+  scope :not_informational, -> { where(is_informational: "0") }
 
   scope :coming, -> { where("from_date > ?", Date.today) }
 
@@ -181,6 +185,10 @@ class LeaveRequest < ActiveRecord::Base
     return working_days
   end
 
+  def is_quiet_leave
+    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
+  end
+
   def vote_list_left
     return LeavesHolidaysLogic.vote_list_left(self)
   end
@@ -191,6 +199,22 @@ class LeaveRequest < ActiveRecord::Base
 
   def manage_list
     return LeavesHolidaysLogic.manage_list(self)
+  end
+
+  def manage(args = {})
+    status = LeaveStatus.where(leave_request_id: self.id).first
+    if status != nil
+      status.update_attribute(:acceptance_status, args[:acceptance_status])
+      status.update_attribute(:comments, args[:comments])
+    else
+      status = LeaveStatus.new
+      status.leave_request = self
+      status.acceptance_status = args[:acceptance_status]
+      status.comments = args[:comments]
+      if status.save
+        self.update_attribute(:request_status, "processed")
+      end
+    end
   end
 
 	private
@@ -262,6 +286,14 @@ class LeaveRequest < ActiveRecord::Base
     self.annual_leave_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max)
   end
 
+  def set_informational
+    if self.is_quiet_leave
+      self.is_informational = 1
+    else
+      self.is_informational = 0
+    end
+  end
+
   def validate_overlaps
     overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
     
@@ -291,7 +323,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_quiet
-    if self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) && self.comments == ""
+    if self.is_quiet_leave && self.comments == ""
       errors.add(:comments, "Are mandatory for this leave reason")
     end
   end
