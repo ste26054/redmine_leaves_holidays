@@ -332,14 +332,25 @@ class LeaveRequest < ActiveRecord::Base
     changes = self.changes
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
       if changes.has_key?("request_status")
-        if changes["request_status"][1] == "cancelled"
-          Mailer.leave_request_update([User.find(91), User.find(87)], self, {user: User.current, action: "cancelled"}).deliver
-        end
-        if changes["request_status"][1] == "submitted"
-          Mailer.leave_request_add([User.find(91), User.find(87)], self, changes).deliver
-        end
-        if changes["request_status"][1] == "created"
-          Mailer.leave_request_update([User.find(91), User.find(87)], self, {user: User.current, action: "unsubmitted"}).deliver
+        if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
+          user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq - [self.user]
+
+          if user_list.empty?
+            user_list = LeavesHolidaysLogic.plugin_admins_users - [self.user]
+          end
+
+          case changes["request_status"][1]
+          when "submitted"
+            Mailer.leave_request_add(user_list, self, {user: self.user}).deliver
+          when "created"
+            Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver
+          when "cancelled"
+            if changes["request_status"][0].in?(["submitted","processing"])
+              Mailer.leave_request_update(user_list, self, {user: self.user, action: "cancelled"}).deliver
+            end
+          else
+          end
+
         end
       end
       

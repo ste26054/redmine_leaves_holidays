@@ -16,11 +16,13 @@ module RedmineLeavesHolidays
          message_id leave
          references leave
     		@leave = leave
-        @arg = arg
-    		cc = []
-    		subject = "Leave Request \##{leave.id} Submission"
+        @user = arg[:user]
 
-       	mail :to => recipients, :cc => cc, :subject => subject
+        @recp = recipients.collect { |r| r.login }
+    		cc = []
+    		subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Submitted by #{@user.name}"
+
+       	mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
     	end
 
       def leave_request_update(recipients, leave, arg)
@@ -32,13 +34,31 @@ module RedmineLeavesHolidays
         @leave = leave
         @user = arg[:user]
         @action = arg[:action]
+        @recp = recipients.collect { |r| r.login }
 
         cc = []
-        subject = "Leave Request \##{leave.id} Update"
+        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Updated by #{@user.name}"
 
-        mail :to => recipients, :cc => cc, :subject => subject
+        mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
       end
 
+
+      def leave_vote_mail(recipients, leave, arg)
+        redmine_headers 'LeaveRequest-Id' => leave.id,
+                    'LeaveRequest-Author' => leave.user.login
+
+         message_id leave
+         references leave
+        @leave = leave
+        @user = arg[:user]
+        @vote = arg[:vote]
+        @recp = recipients.collect { |r| r.login }
+
+        cc = []
+        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Consulted by #{@user.name}"
+
+        mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
+      end
 
         
 

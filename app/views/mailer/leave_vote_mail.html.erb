@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<h1><%= link_to "Leave Request \##{@leave.id}", @leave %> was <%= @action %> by <%= link_to @user.name, @user %></h1>
+<h1><%= link_to "Leave Request \##{@leave.id}", @leave %> was consulted by <%= link_to @user.name, @user %></h1>
+
+<p>
+	<strong>Consultative answer:</strong>
+	<%= @vote.vote %>
+</p>
+
+
+<% if @vote.comments != "" %>
+	<p>
+		<strong>Comments:</strong>
+		<%= @vote.comments %>
+	</p>
+<% end %>
 
 <hr />
 

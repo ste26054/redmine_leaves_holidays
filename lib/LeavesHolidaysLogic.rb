@@ -15,6 +15,11 @@ module LeavesHolidaysLogic
 		RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins).map(&:to_i)
 	end
 
+	def self.plugin_admins_users
+		ids = RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins).map(&:to_i)
+		return User.find(ids)
+	end
+
 	def self.has_manage_rights(user)
 		user.allowed_to?(:manage_leaves_requests, nil, :global => true)
 	end
@@ -25,6 +30,27 @@ module LeavesHolidaysLogic
 
 	def self.has_view_all_rights(user)
 		user.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+	end
+
+	def self.user_has_rights(user, rights)
+		if !rights.is_a?(Array)
+			rights = [rights]
+		end
+		rights.each do |right|
+			return false if !user.allowed_to?(right, nil, :global => true)
+		end
+		return true
+	end
+
+	def self.users_rights_list(rights)
+		users = User.where(status: 1)
+		allowed = []
+		users.each do |user|
+			if self.user_has_rights(user,rights)
+				allowed  << user
+			end
+		end
+		return allowed
 	end
 
 	def self.project_list_for_user(user)

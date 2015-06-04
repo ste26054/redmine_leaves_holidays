@@ -17,6 +17,8 @@ class LeaveVote < ActiveRecord::Base
 	scope :for_user, ->(uid) { where(user_id: uid) }
 	scope :for_request, ->(rid) { where(leave_request_id: rid).order(:updated_at) }
 
+	after_save :send_notifications
+
   private
 
   def set_user
@@ -27,6 +29,23 @@ class LeaveVote < ActiveRecord::Base
     if LeaveRequest.where(:id => self.leave_request_id).any?
       req = LeaveRequest.find(self.leave_request_id)
       req.update_attribute(:request_status, "processing")
+    end
+  end
+
+  def send_notifications
+    changes = self.changes
+    if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+      if changes.has_key?("vote")
+        user_list = []
+        user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]} - [self.user] - [leave_request.user]
+        
+        if user_list.empty?
+            user_list = LeavesHolidaysLogic.plugin_admins_users - [self.user]
+        end
+
+        Mailer.leave_vote_mail(user_list, self.leave_request, {user: self.user, vote: self}).deliver
+
+      end
     end
   end
 

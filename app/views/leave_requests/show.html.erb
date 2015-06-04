@@ -52,6 +52,6 @@
 	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave), :class => 'icon icon-cancel' %>
 <% end %>
 
-<% if User.current == @leave.user && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
+<% if User.current == @leave.user && @leave.request_status != "cancelled" && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
 | <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' }, :class => 'icon icon-del' %>
 <% end %>

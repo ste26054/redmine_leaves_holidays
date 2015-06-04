@@ -1,4 +1,6 @@
-
+<p>
+	<%= (leave.manage_list + leave.vote_list_left).collect{ |e| e.first[:user].login}.uniq %>
+</p>
 
 <h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
 

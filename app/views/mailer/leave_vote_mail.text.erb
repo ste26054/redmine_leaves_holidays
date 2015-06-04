@@ -1,0 +1,14 @@
+<%= link_to "Leave Request \##{@leave.id}", @leave %> was consulted by <%= link_to @user.name, @user %>
+
+----------------------------------------
+
+Consultative answer: <%= @vote.vote %>
+
+<% if @vote.comments != "" %>
+	Comments: <%= @vote.comments %>
+<% end %>
+
+For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %>
+
+<%= render partial: '/leave_requests/details_leave', :formats => [:text], locals: {leave: @leave} %>
+

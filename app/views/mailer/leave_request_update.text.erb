@@ -5,4 +5,4 @@
 For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %>
 
 
-<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>
+<%= render partial: '/leave_requests/details_leave', :formats => [:text], locals: {leave: @leave} %>
