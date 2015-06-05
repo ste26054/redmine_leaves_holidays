@@ -95,13 +95,15 @@ class LeaveRequest < ActiveRecord::Base
     user = User.find(self.user_id)
 
     contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-    period = LeavesHolidaysDates.get_contract_period(contract_start)
+    renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
+    
+    period = LeavesHolidaysDates.get_contract_period_v2(contract_start, renewal_date)
 
     case arg
     when :remaining
       res[:start] = period[:start]
       res[:end] = period[:end]
-      res[:result] = LeavesHolidaysDates.total_leave_days_remaining(user, res[:start], res[:end])
+      res[:result] = LeavesHolidaysDates.total_leave_days_remaining_v2(user, res[:start], res[:end])
       return res
     when :accumulated
       res[:start] = period[:start]

@@ -1,5 +1,5 @@
 
-<h3>Total leave days remaining from <%= format_date(@d_start) %> to <%= format_date(@d_end) %>: <%= @dates %></h3>
+<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %></h3>
 
 <% if !@leave_requests['requests'].empty? %>
 

@@ -300,6 +300,7 @@ module LeavesHolidaysLogic
       p.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
       p.user_id = user.id
       p.annual_max_comments = ""
+      p.leave_renewal_date = RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
       return p
   end
 

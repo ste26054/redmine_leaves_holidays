@@ -16,8 +16,6 @@
 
 <hr />
 
-<p>email was sent to: <%= @recp %></p>
-
 <h2>For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %></h2>
 
 <%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>

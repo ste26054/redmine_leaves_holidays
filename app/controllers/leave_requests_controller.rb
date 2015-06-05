@@ -32,11 +32,17 @@ class LeaveRequestsController < ApplicationController
     end
   	
 
-    period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
-    @d_start = period[:start]
+    # period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
+    # @d_start = period[:start]
 
-    @d_end = period[:end]
-    @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
+    # @d_end = period[:end]
+
+    contract_date = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
+    renewal_date = LeavesHolidaysLogic.user_params(User.current, :leave_renewal_date).to_date
+    @period = LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
+    @remaining = LeavesHolidaysDates.total_leave_days_remaining_v2(User.current, @period[:start], @period[:end])
+    # @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
+    # @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
 
   end
 

@@ -30,8 +30,22 @@ module LeavesHolidaysDates
 	end
 
 	def self.total_leave_days_remaining(user, from, to)
-		prefs = LeavePreference.where(user_id: user.id).first
 		remaining = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
+		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
+		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
+		leaves_list.find_each do |l|
+			unless l.from_date < from
+				remaining -= l.actual_leave_days
+			end
+		end
+		return remaining
+	end
+
+	def self.total_leave_days_remaining_v2(user, from, to)
+		months = self.months_between(from, to + 1.day)
+
+		remaining = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
+		remaining = self.floor_to_nearest_half_day(remaining)
 		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
 
 		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
@@ -68,6 +82,19 @@ module LeavesHolidaysDates
 		end
 
 		res[:end] = res[:start] + 1.year - 1.day
+
+		return res
+	end
+
+	def self.get_contract_period_v2(contract_date, renewal_date, date = Date.today)
+		renewal_period = self.get_contract_period(renewal_date, date)
+		res = {}
+		if contract_date < renewal_period[:start]
+			res = renewal_period
+		else
+			res[:start] = contract_date
+			res[:end] = renewal_period[:end]
+		end
 
 		return res
 	end

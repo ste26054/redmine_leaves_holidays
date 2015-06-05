@@ -38,11 +38,6 @@
 		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10 %>
 	</p>
 
-	<p>
-		<label>Default Leave Request Notification Level: </label>
-		<%= number_field_tag 'settings[default_notification_level]', RedmineLeavesHolidays::Setting.defaults_settings(:default_notification_level), :min => 0, :step => 1 %>
-	</p>
-
 		<%- Holidays.load_all -%>
 		<%- regions = Holidays.regions.sort -%>
 	<p>
@@ -52,7 +47,7 @@
 	</p>
 
 	<p>
-		<label>Default Contract Start date for auto increment / report of available leave days at the anniversary date:</label>
+		<label>Default Contract Start date:</label>
 		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date) %>
 	</p>
 	<p>
@@ -65,6 +60,12 @@
 		<label>Disable approval system and calculation of remaining leave days for issues:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) -%>
 		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true %>
+	</p>
+
+	<p>
+		<label>Default leave renewal date for auto increment / report of available leave days (year is ignored):</label>
+
+		<%= date_field_tag "settings[leave_renewal_date]", RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date) %>
 	</p>
 
 </fieldset>
