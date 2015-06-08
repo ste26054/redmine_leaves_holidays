@@ -72,8 +72,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :accepted, -> { processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "1" }) }
 
-  scope :processable_by, ->(uid) {
-    user = User.find(uid)
+  scope :processable_by, ->(user) {
     submitted_ids = Array.wrap(submitted + processing + processed).map { |a| a.id }
     submitted_ids.delete_if { |id| leave = LeaveRequest.find(id)
       !(LeavesHolidaysLogic.has_rights(user, leave.user, [LeaveStatus, LeaveVote], [:create, :update], leave, :or))}
@@ -92,10 +91,9 @@ class LeaveRequest < ActiveRecord::Base
 
   def get_days(arg)
     res = {}
-    user = User.find(self.user_id)
 
-    contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-    renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
+    contract_start = LeavesHolidaysLogic.user_params(self.user, :contract_start_date).to_date
+    renewal_date = LeavesHolidaysLogic.user_params(self.user, :leave_renewal_date).to_date
     
     period = LeavesHolidaysDates.get_contract_period_v2(contract_start, renewal_date)
 
@@ -103,17 +101,17 @@ class LeaveRequest < ActiveRecord::Base
     when :remaining
       res[:start] = period[:start]
       res[:end] = period[:end]
-      res[:result] = LeavesHolidaysDates.total_leave_days_remaining_v2(user, res[:start], res[:end])
+      res[:result] = LeavesHolidaysDates.total_leave_days_remaining_v2(self.user, res[:start], res[:end])
       return res
     when :accumulated
       res[:start] = period[:start]
       res[:end] = Date.today
-      res[:result] = LeavesHolidaysDates.total_leave_days_accumulated(user, res[:start], res[:end])
+      res[:result] = LeavesHolidaysDates.total_leave_days_accumulated(self.user, res[:start], res[:end])
       return res
     when :taken
       res[:start] = period[:start]
       res[:end] = period[:end]
-      res[:result] = LeavesHolidaysDates.total_leave_days_taken(user, res[:start], res[:end])
+      res[:result] = LeavesHolidaysDates.total_leave_days_taken(self.user, res[:start], res[:end])
       return res
     else
       return res
@@ -219,6 +217,16 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
+  def deadline(reg = self.region)
+    length = self.actual_leave_days.ceil
+    from = self.from_date
+    deadline = {}
+    deadline[:manage] = LeavesHolidaysDates.same_or_previous_working_day(from - 1.day, reg)  
+    deadline[:consult] = LeavesHolidaysDates.same_or_previous_working_day(from - length.day, reg)
+
+    return deadline
+  end
+    
 	private
 
 	def validate_date_period
@@ -238,18 +246,18 @@ class LeaveRequest < ActiveRecord::Base
 
       #check leave is not in a week-end or bank holiday
 
-        count = 0
+      count = 0
 
-        real_leave_days.ceil.times do |i|
-          if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
-            count += 1
-          end          
-        end
-
-        if count == real_leave_days.ceil
-          errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
-        end
+      real_leave_days.ceil.times do |i|
+        if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
+          count += 1
+        end          
       end
+
+      if count == real_leave_days.ceil
+        errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
+      end
+    end
 
 	end
 
@@ -281,11 +289,11 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def set_user_preferences
-    user = User.find(user_id)
-    user_region = LeavesHolidaysLogic.user_params(user, :region)
+    # user = User.find(user_id)
+    user_region = LeavesHolidaysLogic.user_params(self.user, :region)
     self.region = user_region.to_sym
-    self.weekly_working_hours = LeavesHolidaysLogic.user_params(user, :weekly_working_hours)
-    self.annual_leave_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max)
+    self.weekly_working_hours = LeavesHolidaysLogic.user_params(self.user, :weekly_working_hours)
+    self.annual_leave_days_max = LeavesHolidaysLogic.user_params(self.user, :annual_leave_days_max)
   end
 
   def set_informational
@@ -344,8 +352,8 @@ class LeaveRequest < ActiveRecord::Base
           case changes["request_status"][1]
           when "submitted"
             Mailer.leave_request_add(user_list, self, {user: self.user}).deliver
-          when "created"
-            Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver
+          #when "created"
+          #  Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver
           when "cancelled"
             if changes["request_status"][0].in?(["submitted","processing"])
               Mailer.leave_request_update(user_list, self, {user: self.user, action: "cancelled"}).deliver
@@ -358,7 +366,4 @@ class LeaveRequest < ActiveRecord::Base
       
     end
   end
-
-  
-
 end

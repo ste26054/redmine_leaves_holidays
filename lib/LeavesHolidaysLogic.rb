@@ -21,15 +21,15 @@ module LeavesHolidaysLogic
 	end
 
 	def self.has_manage_rights(user)
-		user.allowed_to?(:manage_leaves_requests, nil, :global => true)
+		user.allowed_to?(:manage_leave_requests, nil, :global => true)
 	end
 
 	def self.has_vote_rights(user)
-		user.allowed_to?(:vote_leaves_requests, nil, :global => true)
+		user.allowed_to?(:consult_leave_requests, nil, :global => true)
 	end
 
 	def self.has_view_all_rights(user)
-		user.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end
 
 	def self.user_has_rights(user, rights)
@@ -60,7 +60,7 @@ module LeavesHolidaysLogic
 	def self.allowed_roles_for_user_for_project(user, project)
 		allowed = {}
 		allowed_roles = user.roles_for_project(project).sort.uniq
-		allowed = allowed_roles.collect{|r| { user: user, user_id: user.id, project: project.name, project_id: project.id, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leaves_requests), vote: r.allowed_to?(:vote_leaves_requests)}}
+		allowed = allowed_roles.collect{|r| { user: user, user_id: user.id, project: project.name, project_id: project.id, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leave_requests), vote: r.allowed_to?(:consult_leave_requests)}}
 		return allowed
 	end
 
@@ -151,7 +151,7 @@ module LeavesHolidaysLogic
 				return false
 			else
 				if action.in?([:create, :read, :update, :delete])
-					if self.plugin_admins.include?(user_accessor.id) || user_accessor.allowed_to?(:manage_user_leaves_preferences, nil, :global => true)
+					if self.plugin_admins.include?(user_accessor.id) || user_accessor.allowed_to?(:manage_user_leave_preferences, nil, :global => true)
 						return true
 					else
 						if action == :read
@@ -179,11 +179,11 @@ module LeavesHolidaysLogic
 						return true
 					else
 						if leave.request_status == "processed"
-							return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+							return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
 						end
 					end
 				else
-					return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true) || self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+					return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true) || self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
 				end
 			end
 			if user_accessor.id == user_owner.id
@@ -250,7 +250,7 @@ module LeavesHolidaysLogic
 				end
 				if action == :read
 					return true if user_accessor.id == user_owner.id
-					return true if user_accessor.allowed_to?(:view_all_leaves_requests, nil, :global => true)
+					return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
 				end
 			end
 		end

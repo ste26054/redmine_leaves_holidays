@@ -58,12 +58,12 @@ class LeaveVotesController < ApplicationController
   end
 
   def set_user
-  	@user = User.current
+  	@user ||= User.current
   end
 
   def set_leave_request
     begin
-      @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
+      @leave ||= LeaveRequest.find(params[:leave_request_id])
     rescue ActiveRecord::RecordNotFound
       render_404
     end
@@ -71,14 +71,14 @@ class LeaveVotesController < ApplicationController
 
   def set_leave_vote
     begin
-      @vote = LeaveVote.for_user(@user.id).where(leave_request_id: @leave.id).first if @vote == nil
+      @vote ||= LeaveVote.for_user(@user.id).where(leave_request_id: @leave.id).first
     rescue ActiveRecord::RecordNotFound
       render_404
     end
   end
 
   def set_leave_votes
-    @votes = LeaveVote.for_request(@leave.id) if @votes == nil
+    @votes ||= LeaveVote.for_request(@leave.id)
   end
 
   def authenticate

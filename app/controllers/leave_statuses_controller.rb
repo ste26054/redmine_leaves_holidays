@@ -59,27 +59,27 @@ class LeaveStatusesController < ApplicationController
   end
 
   def set_leave_status
-    @status = LeaveStatus.where(leave_request_id: @leave.id).first if @status == nil
+    @status ||= LeaveStatus.where(leave_request_id: @leave.id).first
   end
 
   def set_leave_request
     begin
-      @leave = LeaveRequest.find(params[:leave_request_id]) if @leave == nil
+      @leave ||= LeaveRequest.find(params[:leave_request_id])
     rescue ActiveRecord::RecordNotFound
       render_404
     end
   end
 
   def set_leave_vote
-      @votes = LeaveVote.for_request(@leave.id) if @votes == nil
+      @votes ||= LeaveVote.for_request(@leave.id)
   end
 
   def set_vote_list_left
-    @vote_list = @leave.vote_list_left
+    @vote_list ||= @leave.vote_list_left
   end
 
   def set_manage_list
-    @manage_list = @leave.manage_list
+    @manage_list ||= @leave.manage_list
   end
 
   def authenticate

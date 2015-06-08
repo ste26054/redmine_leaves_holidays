@@ -1,5 +1,6 @@
 module LeavesHolidaysDates
 	include LeavesHolidaysLogic
+	include Redmine::Utils::DateCalculation
 
 	def self.months_between(date1, date2)
 		# Thanks http://stackoverflow.com/questions/9428605/find-number-of-months-between-two-dates-in-ruby-on-rails
@@ -15,6 +16,7 @@ module LeavesHolidaysDates
 	end	
 
 	# Used to compute a correct number of leave days
+	# 1.2 -> 1.0, 1.5 -> 1.5, 1.6 -> 1.5, 1.99 -> 1.5...
 	def self.floor_to_nearest_half_day(n)
 		return ((n.to_f * (1 / 0.5)).floor) / (1 / 0.5)
 	end
@@ -59,7 +61,7 @@ module LeavesHolidaysDates
 
 
 
-	# leave days taken by for user starting from the users's contract day and month, 
+	# leave days taken by for user starting from the users's contract day and month
 	def self.total_leave_days_taken(user, from, to)
 		prefs = LeavePreference.where(user_id: user.id).first
 		total = 0.0
@@ -71,6 +73,8 @@ module LeavesHolidaysDates
 		return total
 	end
 
+	#contract_date = 01/01/2013, date = 05/01/2014 -> res[:start] = 01/01/2015, res[:end] = 31/12/2016
+	#contract_date = 23/01/2014, date = 05/02/2014 -> res[:start] = 23/01/2014, res[:end] = 22/01/2015
 	def self.get_contract_period(contract_date, date = Date.today)
 		res = {}
 		today = date
@@ -86,6 +90,8 @@ module LeavesHolidaysDates
 		return res
 	end
 
+	#contract_date = 01/01/2014, renewal_date = 01/06, date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
+	#contract_date = 01/01/2013, renewal_date = 01/06, date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
 	def self.get_contract_period_v2(contract_date, renewal_date, date = Date.today)
 		renewal_period = self.get_contract_period(renewal_date, date)
 		res = {}
@@ -98,5 +104,14 @@ module LeavesHolidaysDates
 
 		return res
 	end
+
+	def self.same_or_previous_working_day(date, region)
+		Holidays.load_all
+	    d = date
+	    while (d).holiday?(region.to_sym) || non_working_week_days.include?((d).cwday)
+	      d -= 1.day
+	    end
+	    return d
+	  end
 
 end

@@ -41,8 +41,8 @@ class LeaveStatus < ActiveRecord::Base
   end
 
   def update_log_time
-    request = LeaveRequest.find(self.leave_request_id)
-    user = User.find(request.user_id)
+    request = self.leave_request
+    user = request.user
     hours_per_day = LeavesHolidaysLogic.user_params(user, :weekly_working_hours).to_f / (7.0 - non_working_week_days.count )
     
     if request.half_day?
@@ -75,42 +75,41 @@ class LeaveStatus < ActiveRecord::Base
   end
 
   def send_notifications
-    changes = self.changes
-    if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
-      if changes.has_key?("acceptance_status")
-        user_list = []
-        unless self.leave_request.is_quiet_leave
-          user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}
-        end
-        
-        case changes["acceptance_status"][1]
-        when "accepted"
-          user_list += (LeavesHolidaysLogic.users_rights_list(:view_all_leaves_requests) + [leave_request.user])
-          user_list = user_list.uniq - [self.user]
-          Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "accepted"}).deliver
-        
-        when "rejected"
-          user_list += [leave_request.user]
-          if changes["acceptance_status"][0] == "accepted"
-            user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leaves_requests)
+      changes = self.changes
+      if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+        if changes.has_key?("acceptance_status")
+          user_list = []
+          unless self.leave_request.is_quiet_leave
+            user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}
           end
-          user_list = user_list.uniq - [self.user]
+          
+          case changes["acceptance_status"][1]
+          when "accepted"
+            user_list += (LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests) + [leave_request.user])
+            user_list = user_list.uniq - [self.user]
+            Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "accepted"}).deliver
+          
+          when "rejected"
+            user_list += [leave_request.user]
+            if changes["acceptance_status"][0] == "accepted"
+              user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests)
+            end
+            user_list = user_list.uniq - [self.user]
 
-          Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "rejected"}).deliver
+            Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "rejected"}).deliver
+          
+          when "cancelled"
         
-        when "cancelled"
-      
-          if changes["acceptance_status"][0] == "accepted"
-            user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leaves_requests)
+            if changes["acceptance_status"][0] == "accepted"
+              user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests)
+            end
+            user_list = user_list.uniq - [self.leave_request.user]
+
+            Mailer.leave_request_update(user_list, self.leave_request, {user: self.leave_request.user, action: "cancelled"}).deliver
+          else
           end
-          user_list = user_list.uniq - [self.leave_request.user]
-
-          Mailer.leave_request_update(user_list, self.leave_request, {user: self.leave_request.user, action: "cancelled"}).deliver
-        else
         end
-
       end
-    end
   end
 
 end

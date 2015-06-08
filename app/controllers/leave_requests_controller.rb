@@ -3,9 +3,10 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
+  before_action :set_user
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_filter :authenticate, except: [:index, :new, :create]#, only: [:show, :edit, :update, :destroy]
+  before_filter :authenticate, except: [:index, :new, :create]
 
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
@@ -21,29 +22,20 @@ class LeaveRequestsController < ApplicationController
                 'created_at' => "#{LeaveRequest.table_name}.created_at",
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
+    @leave_requests = {} 
+    @leave_requests['requests'] ||= LeaveRequest.for_user(@user.id).reorder(sort_clause)
 
-    @leave_requests = {}
-    @leave_requests['requests'] = LeaveRequest.for_user(User.current.id).reorder(sort_clause)
-
-    if LeavesHolidaysLogic.has_view_all_rights(User.current)
-      @leave_requests['approvals'] = LeaveRequest.accepted.reorder(sort_clause)
+    if LeavesHolidaysLogic.has_view_all_rights(@user)
+      @leave_requests['approvals'] ||= LeaveRequest.accepted.reorder(sort_clause)
     else
-      @leave_requests['approvals'] = LeaveRequest.processable_by(User.current.id).reorder(sort_clause)
+      @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user).reorder(sort_clause)
     end
-  	
 
-    # period = LeavesHolidaysDates.get_contract_period(LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date)
-    # @d_start = period[:start]
-
-    # @d_end = period[:end]
-
-    contract_date = LeavesHolidaysLogic.user_params(User.current, :contract_start_date).to_date
-    renewal_date = LeavesHolidaysLogic.user_params(User.current, :leave_renewal_date).to_date
-    @period = LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
-    @remaining = LeavesHolidaysDates.total_leave_days_remaining_v2(User.current, @period[:start], @period[:end])
-    # @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-    # @dates = LeavesHolidaysDates.total_leave_days_remaining(User.current, @d_start, @d_end)
-
+    contract_date = LeavesHolidaysLogic.user_params(@user, :contract_start_date).to_date
+    renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
+    @period ||= LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
+    @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
+    # LeavesHolidaysDates.same_or_previous_working_day(Date.today, :fr)
   end
 
   def new
@@ -61,7 +53,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def submit
-    unless @leave.request_status == "created" && User.current == @leave.user
+    unless @leave.request_status == "created" && @user == @leave.user
       render_403
       return
     else
@@ -76,7 +68,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def unsubmit
-    unless @leave.request_status == "submitted" && User.current == @leave.user
+    unless @leave.request_status == "submitted" && @user == @leave.user
       render_403
       return
     else
@@ -135,7 +127,7 @@ class LeaveRequestsController < ApplicationController
 
   def set_leave_request
     begin
-  	  @leave = LeaveRequest.unscoped.find(params[:id])
+  	  @leave ||= LeaveRequest.unscoped.find(params[:id])
   	rescue ActiveRecord::RecordNotFound
   		render_404
   	end
@@ -143,7 +135,7 @@ class LeaveRequestsController < ApplicationController
 
   def set_status
     if @leave.request_status == "processed"
-      @status = LeaveStatus.for_request(@leave.id).first if @status == nil
+      @status ||= LeaveStatus.for_request(@leave.id).first
     end
   end
 
@@ -153,7 +145,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def set_issue_trackers
-  	@issues_trackers = LeavesHolidaysLogic.issues_list if @issues_trackers == nil
+  	@issues_trackers ||= LeavesHolidaysLogic.issues_list
   end
 
   def leave_request_params
@@ -161,7 +153,11 @@ class LeaveRequestsController < ApplicationController
   end
 
   def authenticate
-    render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, @leave, params[:action].to_sym)
+    render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
+  end
+
+  def set_user
+    @user ||= User.current
   end
 
 end

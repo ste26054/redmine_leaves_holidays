@@ -19,6 +19,8 @@ module RedmineLeavesHolidays
         @user = arg[:user]
 
         @recp = recipients.collect { |r| r.login }
+
+
     		cc = []
     		subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Submitted by #{@user.name}"
 
@@ -37,7 +39,7 @@ module RedmineLeavesHolidays
         @recp = recipients.collect { |r| r.login }
 
         cc = []
-        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Updated by #{@user.name}"
+        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] #{@action.capitalize} by #{@user.name}"
 
         mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
       end
