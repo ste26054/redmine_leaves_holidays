@@ -1,7 +1,7 @@
 
 <%= render partial: 'details_leave', locals: {leave: @leave} %>
 
-<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or) || LeavesHolidaysLogic.has_rights(User.current, @leave.user, [LeaveStatus], [:create, :update], @leave, :or)   %>
+<% if @user.id != @leave.user.id && (LeavesHolidaysLogic.has_rights(@user, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or) || LeavesHolidaysLogic.has_rights(@user, @leave.user, [LeaveStatus], [:create, :update], @leave, :or))   %>
 	<hr />
 	<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
 	<p>
@@ -25,33 +25,33 @@
 
 <%= link_to 'Back', leave_requests_path %>
 
-<% if @leave.request_status == "created" && User.current == @leave.user %>
+<% if @leave.request_status == "created" && @user == @leave.user %>
 	| <%= link_to 'Edit', edit_leave_request_path(@leave), :class => 'icon icon-edit' %>
 <% end %>
 
-<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, LeaveStatus, [:create, :update], @leave, :or) %>
+<% if LeavesHolidaysLogic.has_rights(@user, @leave.user, LeaveStatus, [:create, :update], @leave, :or) %>
 	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
 <% end %>
 
-<% if LeavesHolidaysLogic.has_rights(User.current, @leave.user, LeaveVote, [:create, :update], @leave, :or) %>
+<% if LeavesHolidaysLogic.has_rights(@user, @leave.user, LeaveVote, [:create, :update], @leave, :or) %>
 
 	<% if (@leave.request_status == "submitted" || @leave.request_status == "processing") %>
 	| <%= link_to 'Consult', new_leave_request_leave_vote_path(@leave) %>
 	<% end %>
 <% end %>
 
-<% if LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave) && @leave.request_status == "processed"  %>
+<% if LeavesHolidaysLogic.has_right(@user, @leave.user, LeaveVote, :read, @leave) && @leave.request_status == "processed"  %>
 | <%= link_to 'Consultative Results', leave_request_leave_votes_path(@leave) %>
 <% end %>
 
-<% if @leave.request_status == "created" && User.current == @leave.user %>
+<% if @leave.request_status == "created" && @user == @leave.user %>
 	| <%= link_to 'Submit', submit_leave_request_path(@leave), :class => 'icon icon-checked' %>
 <% end %>
 
-<% if @leave.request_status == "submitted" && User.current == @leave.user %>
+<% if @leave.request_status == "submitted" && @user == @leave.user %>
 	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave), :class => 'icon icon-cancel' %>
 <% end %>
 
-<% if User.current == @leave.user && @leave.request_status != "cancelled" && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
+<% if @user == @leave.user && @leave.request_status != "cancelled" && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
 | <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' }, :class => 'icon icon-del' %>
 <% end %>

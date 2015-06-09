@@ -220,10 +220,8 @@ class LeaveRequest < ActiveRecord::Base
   def deadline(reg = self.region)
     length = self.actual_leave_days.ceil
     from = self.from_date
-    deadline = {}
-    deadline[:manage] = LeavesHolidaysDates.same_or_previous_working_day(from - 1.day, reg)  
-    deadline[:consult] = LeavesHolidaysDates.same_or_previous_working_day(from - length.day, reg)
 
+    deadline = same_or_previous_working_day(from - length.day, reg)
     return deadline
   end
     
@@ -336,6 +334,15 @@ class LeaveRequest < ActiveRecord::Base
     if self.is_quiet_leave && self.comments == ""
       errors.add(:comments, "Are mandatory for this leave reason")
     end
+  end
+
+  def same_or_previous_working_day(date, region)
+    # Holidays.load_all
+      d = date
+      while (d).holiday?(region.to_sym) || non_working_week_days.include?((d).cwday)
+        d -= 1.day
+      end
+      return d
   end
 
   def send_notifications

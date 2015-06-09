@@ -23,6 +23,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
 end
 
 require_dependency 'redmine_leaves_holidays/hooks'
+Holidays.load_all
 
 Rails.configuration.to_prepare do
   require 'rufus/scheduler'

@@ -42,6 +42,10 @@ module LeavesHolidaysLogic
 		return true
 	end
 
+	def self.user_has_any_manage_right(user)
+		return self.has_manage_rights(user) || self.has_vote_rights(user) || self.has_view_all_rights(user) || self.plugin_admins.include?(user.id)
+	end
+
 	def self.users_rights_list(rights)
 		users = User.where(status: 1)
 		allowed = []
@@ -65,7 +69,6 @@ module LeavesHolidaysLogic
 	end
 
 	def self.get_region_list
-		Holidays.load_all
 		return Holidays.regions.sort
 	end
 

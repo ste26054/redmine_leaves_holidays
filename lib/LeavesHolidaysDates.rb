@@ -105,13 +105,6 @@ module LeavesHolidaysDates
 		return res
 	end
 
-	def self.same_or_previous_working_day(date, region)
-		Holidays.load_all
-	    d = date
-	    while (d).holiday?(region.to_sym) || non_working_week_days.include?((d).cwday)
-	      d -= 1.day
-	    end
-	    return d
-	  end
+
 
 end

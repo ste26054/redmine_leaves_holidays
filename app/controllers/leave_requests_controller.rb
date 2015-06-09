@@ -27,15 +27,15 @@ class LeaveRequestsController < ApplicationController
 
     if LeavesHolidaysLogic.has_view_all_rights(@user)
       @leave_requests['approvals'] ||= LeaveRequest.accepted.reorder(sort_clause)
-    else
+    elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
       @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user).reorder(sort_clause)
+    else
     end
 
     contract_date = LeavesHolidaysLogic.user_params(@user, :contract_start_date).to_date
     renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
     @period ||= LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
     @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
-    # LeavesHolidaysDates.same_or_previous_working_day(Date.today, :fr)
   end
 
   def new
