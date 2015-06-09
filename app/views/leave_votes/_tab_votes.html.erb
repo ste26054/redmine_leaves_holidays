@@ -3,7 +3,6 @@
 		<table class="list">
 			<thead>
 			<tr>
-			<th>Id</th>
 			<th>Consulted</th>
 			<th>Answer</th>
 			<th>Date of Consultation</th>
@@ -15,7 +14,6 @@
 				<% for vote in votes -%>
 					<% roles = LeavesHolidaysLogic.allowed_common_project(vote.user, leave.user, 2) %>
 					<tr class="<%= cycle("odd", "even") %>">
-					<td><%= vote.id %></td>
 					<td><%= link_to vote.user.name, user_path(vote.user) %></td>
 					<td><%= vote.vote %></td>
 					<td><%= format_time(vote.updated_at) %></td>
