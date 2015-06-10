@@ -190,15 +190,15 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def vote_list_left
-    return LeavesHolidaysLogic.vote_list_left(self)
+    @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
   end
 
   def vote_list
-    return LeavesHolidaysLogic.vote_list(self)
+    @vote_list ||= LeavesHolidaysLogic.vote_list(self)
   end
 
   def manage_list
-    return LeavesHolidaysLogic.manage_list(self)
+    @manage_list ||= LeavesHolidaysLogic.manage_list(self)
   end
 
   def manage(args = {})
@@ -346,15 +346,19 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def send_notifications
+
     changes = self.changes
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
       if changes.has_key?("request_status")
         if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
-          user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq - [self.user]
+          user_list = []
+          user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
 
-          if user_list.empty?
-            user_list = LeavesHolidaysLogic.plugin_admins_users - [self.user]
+          if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
+            user_list = user_list + LeavesHolidaysLogic.plugin_admins_users
           end
+
+          user_list = user_list - [self.user]
 
           case changes["request_status"][1]
           when "submitted"

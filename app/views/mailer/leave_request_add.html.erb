@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <h1><%= link_to "Leave Request \##{@leave.id}", @leave %> was submitted by <%= link_to @user.name, @user %> for approval:</h1>
 
+<% if Rails.env.development? %>
+	<p>Sent to: <%= @recp %></p>
+<% end %>
+
 <hr />
 
 <h2>To Review/Manage this Leave Request, please go to your <%= link_to "Dashboard", leave_requests_url %></h2>

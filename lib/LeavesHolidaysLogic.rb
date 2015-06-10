@@ -47,9 +47,8 @@ module LeavesHolidaysLogic
 	end
 
 	def self.users_rights_list(rights)
-		users = User.where(status: 1)
 		allowed = []
-		users.each do |user|
+		User.find_each(status: 1) do |user|
 			if self.user_has_rights(user,rights)
 				allowed  << user
 			end
@@ -68,6 +67,35 @@ module LeavesHolidaysLogic
 		return allowed
 	end
 
+	def self.allowed_roles_for_user_for_project_mode(user, project, mode)
+		allowed = {}
+		allowed_roles = user.roles_for_project(project).sort.uniq
+		allowed = allowed_roles.collect{|r| { user: user, user_id: user.id, project: project.name, project_id: project.id, name: r.name, position: r.position, manage: r.allowed_to?(:manage_leave_requests), vote: r.allowed_to?(:consult_leave_requests)}}
+		allowed.delete_if { |role|
+			case mode
+			when 1
+				 !(role[:vote] || role[:manage])
+			when 2
+				 !(role[:vote] && !role[:manage])
+			when 3
+				 !(role[:manage])
+			else
+			end
+		}
+		return allowed
+	end
+
+	def self.allowed_roles_for_project_mode(project, mode)
+		roles = []
+		project.members.find_each do |member|
+			user = member.user
+			user.roles_for_project(project).sort.uniq
+			allowed = self.allowed_roles_for_user_for_project_mode(user, project, mode)
+			roles << allowed unless allowed.empty?
+		end
+		return roles
+	end
+
 	def self.get_region_list
 		return Holidays.regions.sort
 	end
@@ -78,6 +106,7 @@ module LeavesHolidaysLogic
 		RedmineLeavesHolidays::Setting.defaults_settings(arg)
 	end
 
+
 	def self.allowed_common_project(user, user_request, mode)
 		#Modes: 1, 2, 3
 		#1 - role has Manage OR Vote
@@ -86,27 +115,14 @@ module LeavesHolidaysLogic
 		roles = []
 		role = {}
 
-		common_projects = self.project_list_for_user(user) & self.project_list_for_user(user_request)
+		common_projects = user.memberships.uniq.map(&:project) & user_request.memberships.uniq.map(&:project)
 		if !common_projects.empty?
-			common_projects.each do |p|
-				project = Project.find(p)
-				array_roles_user = (self.allowed_roles_for_user_for_project(user, project))
-				array_roles_user_req = (self.allowed_roles_for_user_for_project(user_request, project))
+			common_projects.each do |project|
+				array_roles_user = (self.allowed_roles_for_user_for_project_mode(user, project, mode))
+				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
 				array_roles_user.each do |role|
-					case mode
-					when 1
-						if (role[:position] < array_roles_user_req.first[:position]) && (role[:vote] || role[:manage])
-							roles << role
-						end
-					when 2
-						if (role[:position] < array_roles_user_req.first[:position]) && (role[:vote] && !role[:manage])
-							roles << role
-						end
-					when 3
-						if (role[:position] < array_roles_user_req.first[:position]) && (role[:manage])
-							roles << role
-						end
-					else
+					if (role[:position] < array_roles_user_req.first[:position])
+						roles << role
 					end
 				end
 			end
@@ -115,18 +131,28 @@ module LeavesHolidaysLogic
 	end
 
 	def self.users_allowed_common_project(user_request, mode)
-		users = User.where(status: 1)
+		# Grabs a list of users who have common projects with user_request, removes user_request from the list
+		users_common = user_request.memberships.uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
+		
 		allowed = []
-		users.each do |user|
-			if user.id != user_request.id
-				res = []
-				res = self.allowed_common_project(user, user_request, mode)
-				unless res.empty?
-					allowed  << res
-				end
+		users_common.each do |user|
+			res = []
+			res = self.allowed_common_project(user, user_request, mode)
+			unless res.empty?
+				allowed  << res
 			end
 		end
 		return allowed
+	end
+
+	def self.should_notify_plugin_admin(user_request, mode)
+		projects_common = user_request.memberships.uniq.collect {|m| m.project}
+
+		projects_common.each do |project|
+			allowed_roles = self.allowed_roles_for_project_mode(project, mode)
+			return true if !allowed_roles.empty? && allowed_roles.flatten.first[:user_id] == user_request.id
+		end
+		return false
 	end
 
 	def self.has_right(user_accessor, user_owner, object, action, leave_request = nil)

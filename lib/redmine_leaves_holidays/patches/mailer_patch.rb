@@ -17,6 +17,7 @@ module RedmineLeavesHolidays
          references leave
     		@leave = leave
         @user = arg[:user]
+        @recp = recipients.collect { |r| r.login }
 
         @deadline = @leave.deadline
         if (@deadline < Date.today)

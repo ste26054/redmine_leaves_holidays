@@ -23,12 +23,12 @@ class LeaveRequestsController < ApplicationController
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
     @leave_requests = {} 
-    @leave_requests['requests'] ||= LeaveRequest.for_user(@user.id).reorder(sort_clause)
+    @leave_requests['requests'] ||= LeaveRequest.for_user(@user.id)#.reorder(sort_clause)
 
     if LeavesHolidaysLogic.has_view_all_rights(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.accepted.reorder(sort_clause)
+      @leave_requests['approvals'] ||= LeaveRequest.accepted#.reorder(sort_clause)
     elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user).reorder(sort_clause)
+      @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user)#.reorder(sort_clause)
     else
     end
 
