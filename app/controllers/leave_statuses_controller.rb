@@ -5,10 +5,6 @@ class LeaveStatusesController < ApplicationController
   
   before_action :authenticate
 
-  # before_action :set_vote_list_left, :set_manage_list
-
-
-
   def new
     if @status != nil
       redirect_to edit_leave_request_leave_statuses_path
@@ -71,14 +67,6 @@ class LeaveStatusesController < ApplicationController
   def set_leave_vote
       @votes ||= LeaveVote.for_request(@leave.id)
   end
-
-  # def set_vote_list_left
-  #   @vote_list ||= @leave.vote_list_left
-  # end
-
-  # def set_manage_list
-  #   @manage_list ||= @leave.manage_list
-  # end
 
   def authenticate
     unless (@status != nil && params[:action].to_sym == :new)
