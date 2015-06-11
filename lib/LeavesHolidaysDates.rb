@@ -105,6 +105,35 @@ module LeavesHolidaysDates
 		return res
 	end
 
+	def self.get_days(arg, user)
+    res = {}
+
+    contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+    renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
+    
+    period = self.get_contract_period_v2(contract_start, renewal_date)
+
+    case arg
+    when :remaining
+      res[:start] = period[:start]
+      res[:end] = period[:end]
+      res[:result] = self.total_leave_days_remaining_v2(user, res[:start], res[:end])
+      return res
+    when :accumulated
+      res[:start] = period[:start]
+      res[:end] = Date.today
+      res[:result] = self.total_leave_days_accumulated(user, res[:start], res[:end])
+      return res
+    when :taken
+      res[:start] = period[:start]
+      res[:end] = period[:end]
+      res[:result] = self.total_leave_days_taken(user, res[:start], res[:end])
+      return res
+    else
+      return res
+    end
+  end
+
 
 
 end

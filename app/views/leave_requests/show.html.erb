@@ -1,23 +1,10 @@
 
-<%= render partial: 'details_leave', locals: {leave: @leave} %>
-
 <% if @user.id != @leave.user.id && (LeavesHolidaysLogic.has_rights(@user, @leave.user, [LeaveVote], [:read, :create, :update], @leave, :or) || LeavesHolidaysLogic.has_rights(@user, @leave.user, [LeaveStatus], [:create, :update], @leave, :or))   %>
-	<hr />
-	<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
-	<p>
-		<strong>Days remaining from <%= format_date(@leave.get_days(:remaining)[:start]) %> to <%= format_date(@leave.get_days(:remaining)[:end]) %>:</strong>
-		<%= @leave.get_days(:remaining)[:result] %>
-	</p>
-	<p>
-		<strong>Days accumulated from <%= format_date(@leave.get_days(:accumulated)[:start]) %> to <%= format_date(@leave.get_days(:accumulated)[:end]) %>:</strong>
-		<%= @leave.get_days(:accumulated)[:result] %>
-	</p>
-	<p>
-		<strong>Days taken from <%= format_date(@leave.get_days(:taken)[:start]) %> to <%= format_date(@leave.get_days(:taken)[:end]) %>:</strong>
-		<%= @leave.get_days(:taken)[:result] %>
-	</p>
+
+	<%= render partial: 'details_metrics', locals: {user: @leave.user} %>
 <% end %>
-<hr />
+
+<%= render partial: 'details_leave', locals: {leave: @leave} %>
 
 <% if @leave.request_status == "processed" %>
 	<%= render partial: '/leave_statuses/status', locals: {status: @status} %>

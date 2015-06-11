@@ -90,32 +90,7 @@ class LeaveRequest < ActiveRecord::Base
 
 
   def get_days(arg)
-    res = {}
-
-    contract_start = LeavesHolidaysLogic.user_params(self.user, :contract_start_date).to_date
-    renewal_date = LeavesHolidaysLogic.user_params(self.user, :leave_renewal_date).to_date
-    
-    period = LeavesHolidaysDates.get_contract_period_v2(contract_start, renewal_date)
-
-    case arg
-    when :remaining
-      res[:start] = period[:start]
-      res[:end] = period[:end]
-      res[:result] = LeavesHolidaysDates.total_leave_days_remaining_v2(self.user, res[:start], res[:end])
-      return res
-    when :accumulated
-      res[:start] = period[:start]
-      res[:end] = Date.today
-      res[:result] = LeavesHolidaysDates.total_leave_days_accumulated(self.user, res[:start], res[:end])
-      return res
-    when :taken
-      res[:start] = period[:start]
-      res[:end] = period[:end]
-      res[:result] = LeavesHolidaysDates.total_leave_days_taken(self.user, res[:start], res[:end])
-      return res
-    else
-      return res
-    end
+    LeavesHolidaysDates.get_days(arg, self.user)
   end
 
   def updated_on

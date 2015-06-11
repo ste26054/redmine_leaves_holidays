@@ -1,3 +1,4 @@
+
 <h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
 
 <% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
@@ -11,32 +12,28 @@
 
 <%= form_for [leave, status], :url => leave_request_leave_statuses_path do |f| %>
 	
-		<% if status.errors.any? %>
-			<div class="flash">
-				<ul>
-			  		<% status.errors.full_messages.each do |msg| %>
-			    		<li><%= msg %></li>
-			  		<% end %>
-				</ul>
-			</div>
-		<% end %>
+	<% if status.errors.any? %>
+		<div class="flash">
+			<ul>
+		  		<% status.errors.full_messages.each do |msg| %>
+		    		<li><%= msg %></li>
+		  		<% end %>
+			</ul>
+		</div>
+	<% end %>
 
 	<div>
-		
-			<p>
-				<%= f.radio_button :acceptance_status, 'accepted' %>
-				<%= f.label :acceptance_status, 'Approve Leave Request', :value => 'accepted' %>
-				<%= f.radio_button :acceptance_status, 'rejected' %>
-				<%= f.label :acceptance_status, 'Reject Leave Request', :value => 'rejected' %>
-			</p>
+		<p>
+			<%= f.radio_button :acceptance_status, 'accepted' %>
+			<%= f.label :acceptance_status, 'Approve Leave Request', :value => 'accepted' %>
+			<%= f.radio_button :acceptance_status, 'rejected' %>
+			<%= f.label :acceptance_status, 'Reject Leave Request', :value => 'rejected' %>
+		</p>
 
-			<p>
-				<label>Comments:</label>
-				<%= f.text_field :comments, {:size => 75 } %>
-			</p>
-
-
-		
+		<p>
+			<label>Comments:</label>
+			<%= f.text_field :comments, {:size => 75 } %>
+		</p>
 	</div>
 	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %> |
 <% end %>

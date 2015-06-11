@@ -1,5 +1,9 @@
-<h3>"Leave/Holidays/Work" Preferences for <%= @user_pref.name %>:</h3>
+<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
+	<%= render partial: '/leave_requests/details_metrics', locals: {user: @user_pref} %>
+<% end %>
 
+<h3>"Leave/Holidays/Work" Preferences for <%= @user_pref.name %>:</h3>
+<div class="list">
 <p>
 	<strong>Weekly Working Hours:</strong>
 	<%= @preference.weekly_working_hours %>
@@ -20,6 +24,7 @@
 		<strong>Comments:</strong>
 		<%= @preference.annual_max_comments %>
 	<% end %>
+</p>
 <p>
 	<strong>Contract Start Date:</strong>
 	<%= format_date(@preference.contract_start_date) %>
@@ -33,3 +38,4 @@
 <% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
 	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %>	
 <% end %>
+</div>

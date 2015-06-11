@@ -1,3 +1,5 @@
+<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
+
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 
 <%= form_for [user, preference], :url => user_leave_preferences_path do |f| %>
@@ -13,54 +15,46 @@
 			</div>
 		<% end %>
 
+	<div class="box">
+		<p>
+			<label>Weekly Working Hours:</label>
+			<%= f.text_field :weekly_working_hours %>
+		</p>
 
-	<div>
+		<p>
+			<label>Annual Leave Days Max:</label>
+			<%= f.text_field :annual_leave_days_max %>
+		</p>
 
-		<fieldset>
-			<p>
-				<label>Weekly Working Hours:</label>
-				<%= f.text_field :weekly_working_hours %>
-			</p>
-
-			<p>
-				<label>Annual Leave Days Max:</label>
-				<%= f.text_field :annual_leave_days_max %>
-			</p>
-
-			<p>
-				<label>Holidays Region:</label>
-				<%- options = @regions -%>
-				<%= f.select :region, options %>
-			</p>
+		<p>
+			<label>Holidays Region:</label>
+			<%- options = @regions -%>
+			<%= f.select :region, options %>
+		</p>
 
 
 
-			<p>
-				<label>Extra Leave Days:</label>
-				<%= f.text_field :extra_leave_days %>
-				<label>Comments:</label>
-				<%= f.text_field :annual_max_comments %>
-			</p>
+		<p>
+			<label>Extra Leave Days:</label>
+			<%= f.text_field :extra_leave_days %>
+			<label>Comments:</label>
+			<%= f.text_field :annual_max_comments %>
+		</p>
 
-			<p>
-				<label>Contract Start Date:</label>
-				<%= f.text_field :contract_start_date, readonly: true %><%= calendar_for('leave_preference_contract_start_date') %>
-			</p>
+		<p>
+			<label>Contract Start Date:</label>
+			<%= f.text_field :contract_start_date, readonly: true %><%= calendar_for('leave_preference_contract_start_date') %>
+		</p>
 
-			<p>
-				<label>Leave Renewal Date (Year is ignored):</label>
-				<%= f.text_field :leave_renewal_date, readonly: true %><%= calendar_for('leave_preference_leave_renewal_date') %>
-			</p>
+		<p>
+			<label>Leave Renewal Date (Year is ignored):</label>
+			<%= f.text_field :leave_renewal_date, readonly: true %><%= calendar_for('leave_preference_leave_renewal_date') %>
+		</p>
 
-			<p>
-				<label>User is a Contractor (Disables the approval system):</label>
-				<%= f.check_box :is_contractor %>
-			</p>
-
-
-
-		</fieldset>
-	</div>
+		<p>
+			<label>User is a Contractor (Disables the approval system):</label>
+			<%= f.check_box :is_contractor %>
+		</p>
 
 	<% if LeavesHolidaysLogic.has_rights(user, user_pref, preference, [:create, :update], nil, :or) %>
 		<%= f.submit 'Save' %>
@@ -68,6 +62,7 @@
 		<p>Save Function is disabled as you do not have sufficient rights</p>
 	<% end %>
 
+	
 
 
 <% end %>
@@ -77,3 +72,5 @@
 <% if @exists && LeavesHolidaysLogic.has_right(user, user_pref, preference, :delete) %>
 <%= link_to 'Revert to Defaults', user_leave_preferences_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>
+
+</div>

@@ -1,0 +1,18 @@
+<div class="splitcontentright">
+<div class="box">
+<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
+
+	<p>
+		Days remaining from <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:end]) %>:
+		<strong><%= LeavesHolidaysDates.get_days(:remaining, user)[:result] %></strong>
+	</p>
+	<p>
+		Days accumulated from <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:end]) %>:
+		<strong><%= LeavesHolidaysDates.get_days(:accumulated, user)[:result] %></strong>
+	</p>
+	<p>
+		Days taken from <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:end]) %>:
+		<strong><%= LeavesHolidaysDates.get_days(:taken, user)[:result] %></strong>
+	</p>
+	</div>
+</div>
