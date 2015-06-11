@@ -48,7 +48,7 @@ module LeavesHolidaysLogic
 
 	def self.users_rights_list(rights)
 		allowed = []
-		User.find_each(status: 1) do |user|
+		User.where(status: 1).find_each do |user|
 			if self.user_has_rights(user,rights)
 				allowed  << user
 			end

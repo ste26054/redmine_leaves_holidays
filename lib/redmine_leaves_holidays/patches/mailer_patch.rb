@@ -40,6 +40,7 @@ module RedmineLeavesHolidays
         @leave = leave
         @user = arg[:user]
         @action = arg[:action]
+        @recp = recipients.collect { |r| r.login }
 
         cc = []
         subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] #{@action.capitalize} by #{@user.name}"
@@ -58,6 +59,7 @@ module RedmineLeavesHolidays
         @leave = leave
         @user = arg[:user]
         @vote = arg[:vote]
+        @recp = recipients.collect { |r| r.login }
 
         cc = []
         subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Consulted by #{@user.name}"

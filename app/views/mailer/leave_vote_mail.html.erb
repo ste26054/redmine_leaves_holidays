@@ -14,6 +14,10 @@
 	</p>
 <% end %>
 
+<% if Rails.env.development? %>
+	<p>Sent to: <%= @recp %></p>
+<% end %>
+
 <hr />
 
 <h2>For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %></h2>

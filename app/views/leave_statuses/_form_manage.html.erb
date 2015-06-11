@@ -67,10 +67,10 @@
 <br />
 
 <fieldset>
-	<% if !leave.vote_list.empty? %>
+	<% if !leave.vote_list_left.empty? %>
 		<h3>Not Consulted:</h3>
 
-		<% for entry in leave.vote_list -%>
+		<% for entry in leave.vote_list_left -%>
 
 			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
 

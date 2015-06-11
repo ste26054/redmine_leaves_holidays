@@ -80,8 +80,13 @@ class LeaveStatus < ActiveRecord::Base
         if changes.has_key?("acceptance_status")
           user_list = []
           unless self.leave_request.is_quiet_leave
-            user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}
+            user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}.uniq
+            if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.leave_request.user, 3)
+              user_list += LeavesHolidaysLogic.plugin_admins_users
+            end
           end
+
+          
           
           case changes["acceptance_status"][1]
           when "accepted"
