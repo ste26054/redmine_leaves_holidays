@@ -145,6 +145,35 @@ module LeavesHolidaysLogic
 		return allowed
 	end
 
+	def self.users_allowed_common_project_level(user_request, mode)
+		# users_common = user_request.memberships.uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
+		projects = user_request.memberships.uniq.map(&:project)
+
+		roles = []
+		projects.each do |project|
+			array_roles_user_req = user_request.roles_for_project(project).sort.uniq
+			is_found = false
+			project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
+
+			project_roles.each do |role|
+				if (role[:position] < array_roles_user_req.first[:position])
+					if !is_found
+						roles << role
+						is_found = true
+					else
+						if role[:position] == roles.last[:position]
+							roles << role
+						end
+					end
+
+				end
+			end
+
+		end
+
+		return roles
+	end
+
 	def self.should_notify_plugin_admin(user_request, mode)
 		projects_common = user_request.memberships.uniq.collect {|m| m.project}
 
