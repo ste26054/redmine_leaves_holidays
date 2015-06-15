@@ -57,7 +57,7 @@ class LeaveRequestsController < ApplicationController
       render_403
       return
     else
-      if (LeavesHolidaysLogic.user_params(@leave.user, :is_contractor) || @leave.is_quiet_leave || LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id))
+      if (LeavesHolidaysLogic.user_params(@leave.user, :is_contractor) || @leave.is_non_approval_leave || LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id))
         @leave.manage({acceptance_status: "accepted", comments: "AUTO_APPROVED"})
       else
         @leave.update_attribute(:request_status, "submitted")
@@ -116,7 +116,7 @@ class LeaveRequestsController < ApplicationController
       flash[:notice] = "As you are an administrator, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
     elsif LeavesHolidaysLogic.user_params(@leave.user, :is_contractor)
       flash[:notice] = "As you are a Contractor, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
-    elsif @leave.is_quiet_leave
+    elsif @leave.is_non_approval_leave
       flash[:notice] = "As leave reason selected is special (#{@leave.issue.subject}), the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
     else
       flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button. You will then be able to edit it until it is processed"

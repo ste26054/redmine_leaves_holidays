@@ -160,20 +160,31 @@ class LeaveRequest < ActiveRecord::Base
     return working_days
   end
 
-  def is_quiet_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
+  # Triggers approval system
+  def is_non_approval_leave
+    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues))
   end
 
+  # Triggers remaining days deducting
+  def is_non_deduce_leave
+    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues))
+  end
+
+  # Triggers reduced notifications to only view_all roles
+  def is_quiet_leave
+    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
+  end 
+
   def vote_list_left
-    @vote_list_left = LeavesHolidaysLogic.vote_list_left(self)
+    @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
   end
 
   def vote_list
-    @vote_list = LeavesHolidaysLogic.vote_list(self)
+    @vote_list ||= LeavesHolidaysLogic.vote_list(self)
   end
 
   def manage_list
-    @manage_list = LeavesHolidaysLogic.manage_list(self)
+    @manage_list ||= LeavesHolidaysLogic.manage_list(self)
   end
 
   def manage(args = {})
@@ -262,7 +273,6 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def set_user_preferences
-    # user = User.find(user_id)
     user_region = LeavesHolidaysLogic.user_params(self.user, :region)
     self.region = user_region.to_sym
     self.weekly_working_hours = LeavesHolidaysLogic.user_params(self.user, :weekly_working_hours)
@@ -270,7 +280,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def set_informational
-    if self.is_quiet_leave
+    if self.is_non_deduce_leave
       self.is_informational = 1
     else
       self.is_informational = 0
@@ -306,7 +316,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_quiet
-    if self.is_quiet_leave && self.comments == ""
+    if self.is_non_approval_leave && self.comments == ""
       errors.add(:comments, "Are mandatory for this leave reason")
     end
   end
@@ -327,7 +337,6 @@ class LeaveRequest < ActiveRecord::Base
         if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
           user_list = []
           user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
-          Rails.logger.info "SELF_MANAGE: RECPTS: #{manage_list}"
           if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
             user_list = user_list + LeavesHolidaysLogic.plugin_admins_users
           end
@@ -336,7 +345,6 @@ class LeaveRequest < ActiveRecord::Base
 
           case changes["request_status"][1]
           when "submitted"
-            Rails.logger.info "MAIL_ADD: RECPTS: #{user_list}"
             Mailer.leave_request_add(user_list, self, {user: self.user}).deliver
           #when "created"
           #  Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver
