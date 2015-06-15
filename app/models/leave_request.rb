@@ -165,15 +165,15 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def vote_list_left
-    @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
+    @vote_list_left = LeavesHolidaysLogic.vote_list_left(self)
   end
 
   def vote_list
-    @vote_list ||= LeavesHolidaysLogic.vote_list(self)
+    @vote_list = LeavesHolidaysLogic.vote_list(self)
   end
 
   def manage_list
-    @manage_list ||= LeavesHolidaysLogic.manage_list(self)
+    @manage_list = LeavesHolidaysLogic.manage_list(self)
   end
 
   def manage(args = {})
@@ -312,7 +312,6 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def same_or_previous_working_day(date, region)
-    # Holidays.load_all
       d = date
       while (d).holiday?(region.to_sym) || non_working_week_days.include?((d).cwday)
         d -= 1.day
@@ -328,7 +327,7 @@ class LeaveRequest < ActiveRecord::Base
         if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
           user_list = []
           user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
-
+          Rails.logger.info "SELF_MANAGE: RECPTS: #{manage_list}"
           if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
             user_list = user_list + LeavesHolidaysLogic.plugin_admins_users
           end
@@ -337,6 +336,7 @@ class LeaveRequest < ActiveRecord::Base
 
           case changes["request_status"][1]
           when "submitted"
+            Rails.logger.info "MAIL_ADD: RECPTS: #{user_list}"
             Mailer.leave_request_add(user_list, self, {user: self.user}).deliver
           #when "created"
           #  Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver

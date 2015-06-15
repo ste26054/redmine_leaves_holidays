@@ -130,6 +130,38 @@ module LeavesHolidaysLogic
 		return roles
 	end
 
+	def self.allowed_common_project_level(user, user_request, mode)
+		#Modes: 1, 2, 3
+		#1 - role has Manage OR Vote
+		#2 - role has Vote AND not Manage
+		#3 - role has Manage
+		roles = []
+		role = {}
+
+		common_projects = user.memberships.uniq.map(&:project) & user_request.memberships.uniq.map(&:project)
+		if !common_projects.empty?
+			common_projects.each do |project|
+				array_roles_user = self.allowed_roles_for_user_for_project_mode(user, project, mode).uniq.sort_by {|hsh| hsh[:position]}.reverse
+				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
+				is_found = false
+				array_roles_user.each do |role|
+					if (role[:position] < array_roles_user_req.first[:position])
+						# roles << role
+						if !is_found
+							roles << role
+							is_found = true
+						else
+							if role[:position] == roles.last[:position]
+								roles << role
+							end
+						end
+					end
+				end
+			end
+		end
+		return roles
+	end
+
 	def self.users_allowed_common_project(user_request, mode)
 		# Grabs a list of users who have common projects with user_request, removes user_request from the list
 		users_common = user_request.memberships.uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
@@ -146,7 +178,6 @@ module LeavesHolidaysLogic
 	end
 
 	def self.users_allowed_common_project_level(user_request, mode)
-		# users_common = user_request.memberships.uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
 		projects = user_request.memberships.uniq.map(&:project)
 
 		roles = []
@@ -156,7 +187,7 @@ module LeavesHolidaysLogic
 			project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
 
 			project_roles.each do |role|
-				if (role[:position] < array_roles_user_req.first[:position])
+				if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
 					if !is_found
 						roles << role
 						is_found = true
@@ -165,13 +196,26 @@ module LeavesHolidaysLogic
 							roles << role
 						end
 					end
-
 				end
 			end
-
 		end
-
-		return roles
+		
+		out = []
+		out_inner = []
+		unless roles.empty?
+			sorted_users = roles.sort_by { |hsh| hsh[:user_id] }
+			ref_uid = sorted_users.first[:user_id]
+			sorted_users.each do |u|
+				unless ref_uid == u[:user_id]
+					ref_uid = u[:user_id]
+					out << out_inner unless out_inner.empty?
+					out_inner = []
+				end
+				out_inner << u
+			end
+			out << out_inner unless out_inner.empty?
+		end
+		return out
 	end
 
 	def self.should_notify_plugin_admin(user_request, mode)
@@ -345,7 +389,7 @@ module LeavesHolidaysLogic
 	end	
 
 	def self.manage_list(leave_request)
-		return LeavesHolidaysLogic.users_allowed_common_project(leave_request.user, 3)
+		return LeavesHolidaysLogic.users_allowed_common_project_level(leave_request.user, 3)
 	end
 
 	def self.retrieve_leave_preferences(user)
