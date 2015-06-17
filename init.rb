@@ -33,7 +33,5 @@ Rails.configuration.to_prepare do
     Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
   end
 
-  unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::MailerPatch)
-    Mailer.send(:include,RedmineLeavesHolidays::Patches::MailerPatch)
-  end
+
 end

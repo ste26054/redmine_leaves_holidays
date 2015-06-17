@@ -5,8 +5,10 @@
 			<tr>
 				<%= sort_header_tag('id', caption: "Id") %>
 				<th>Creator</th>
+				<th>Contractor</th>
 				<%= sort_header_tag('created_at', caption: "Creation Date") %>
-				<th>Length</th>
+				<th>Length (days)</th>
+				<th>Length (hours)</th>
 				<%= sort_header_tag('from_date', caption: "Leave From") %>
 				<%= sort_header_tag('to_date', caption: "Leave To") %>
 				<th>Reason</th>
@@ -23,8 +25,10 @@
 					<tr class="<%= cycle("odd", "even") %>">
 					<td class="id"><%= req.id %></td>
 					<td><%= link_to req.user.name, user_path(req.user) %></td>
+					<td><%= checked_image LeavesHolidaysLogic.user_params(req.user, :is_contractor) %></td>
 					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
-					<td><%= req.actual_leave_days %>d (<%= (req.actual_leave_days * LeavesHolidaysLogic.user_params(req.user, :daily_working_hours)).round(1) %>h)
+					<td><%= req.actual_leave_days %></td>
+					<td><%= (req.actual_leave_days * LeavesHolidaysLogic.user_params(req.user, :daily_working_hours)).round(1) %>
 					</td>
 					<td><%= format_date(req.from_date) %></td>
 					<td><%= format_date(req.to_date) %></td>

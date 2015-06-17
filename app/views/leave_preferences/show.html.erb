@@ -1,4 +1,4 @@
-<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
+<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :read, :update, :delete], nil, :or) %>
 	<%= render partial: '/leave_requests/details_metrics', locals: {user: @user_pref} %>
 <% end %>
 
