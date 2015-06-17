@@ -1,8 +1,9 @@
+<div id="leave_user_prefs">
 <%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
-
+</div>
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 
-<%= form_for [user, preference], :url => user_leave_preferences_path do |f| %>
+<%= form_for [user, preference], :url => user_leave_preferences_path, :remote => !preference.new_record?, :authenticity_token => true do |f| %>
 
 
 		<% if preference.errors.any? %>

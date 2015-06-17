@@ -35,12 +35,19 @@ class LeavePreferencesController < ApplicationController
 
   def update
     @preference.user_id = @user_pref.id
-  	if @preference.update(leave_preference_params)
-  	   flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
-    else
-    	flash[:error] = "Invalid preferences"
+  	success = @preference.update(leave_preference_params)
+      
+    respond_to do |format|
+      format.html { 
+        if !success 
+          flash[:error] = "Invalid preferences"
+        else
+          flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
+          redirect_to edit_user_leave_preferences_path
+        end
+      }
+      format.js
     end
-    redirect_to edit_user_leave_preferences_path
   end
 
   def destroy

@@ -12,6 +12,7 @@ class LeaveRequestsController < ApplicationController
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
 
+
   helper :sort
   include SortHelper
 
@@ -36,6 +37,8 @@ class LeaveRequestsController < ApplicationController
     renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
     @period ||= LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
     @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
+
+    
   end
 
   def new
