@@ -22,7 +22,7 @@ while day <= @calendar.enddt %>
 
   <% unless leave_list.empty? %>
     <% for leave in leave_list %>
-      <% if !leave.get_status.in?(["created","cancelled","rejected"]) %>
+      <% if !leave.get_status.in?(["cancelled","rejected"]) %>
         <% if leave.get_status == "accepted" %>
           <div class="leave" style="background: #<%= Digest::MD5.hexdigest(leave.user.login)[0..5] %>">
         <% else %>
