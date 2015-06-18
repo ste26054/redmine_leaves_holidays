@@ -406,16 +406,24 @@ module LeavesHolidaysLogic
       return p
   end
 
-  def self.leave_on_for_project(day, project)
+  def self.leave_on_for_project(day, projects)
   	list = []
-  	project.members.find_each do |member|
-		user = member.user
-		leave = LeaveRequest.for_user(user.id).accepted.overlaps(day,day).first
-		if leave != nil
-			list << leave
+
+  	members = []
+  	if !projects.is_a?(Array)
+		projects = [projects]
+	end
+
+	members = projects.map(&:members).flatten.uniq
+	users = members.map(&:user).flatten.uniq
+
+  	users.each do |user|
+		# user = member.user
+		leave = LeaveRequest.for_user(user.id).overlaps(day,day).find_each do |l|
+			list << l unless l.get_status.in?(["created","cancelled","rejected"])
 		end
 	end
-	return list.sort_by {|l| l.user.name}
+	return list.sort_by {|l| l.from_date}
   end
 
 

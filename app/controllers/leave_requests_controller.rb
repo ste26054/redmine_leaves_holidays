@@ -37,8 +37,20 @@ class LeaveRequestsController < ApplicationController
     renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
     @period ||= LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
     @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
+    @taken ||= LeavesHolidaysDates.total_leave_days_taken(@user, @period[:start], @period[:end])
 
-    
+
+    if params[:year] and params[:year].to_i > 1900
+      @year = params[:year].to_i
+      if params[:month] and params[:month].to_i > 0 and params[:month].to_i < 13
+        @month = params[:month].to_i
+      end
+    end
+
+    @year ||= Date.today.year
+    @month ||= Date.today.month
+
+    @calendar = Redmine::Helpers::Calendar.new(Date.civil(@year, @month, 1), current_language, :month)
   end
 
   def new

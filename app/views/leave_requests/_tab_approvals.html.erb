@@ -6,6 +6,7 @@
 				<%= sort_header_tag('id', caption: "Id") %>
 				<th>Creator</th>
 				<th>Contractor</th>
+				<th>Region</th>
 				<%= sort_header_tag('created_at', caption: "Creation Date") %>
 				<th>Length (days)</th>
 				<th>Length (hours)</th>
@@ -26,6 +27,7 @@
 					<td class="id"><%= req.id %></td>
 					<td><%= link_to req.user.name, user_path(req.user) %></td>
 					<td><%= checked_image LeavesHolidaysLogic.user_params(req.user, :is_contractor) %></td>
+					<td><%= LeavesHolidaysLogic.user_params(req.user, :region) %></td>
 					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
 					<td><%= req.actual_leave_days %></td>
 					<td><%= (req.actual_leave_days * LeavesHolidaysLogic.user_params(req.user, :daily_working_hours)).round(1) %>

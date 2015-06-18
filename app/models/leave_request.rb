@@ -87,6 +87,11 @@ class LeaveRequest < ActiveRecord::Base
     where(id: processed_ids)
   }
 
+  def get_status
+    return self.request_status unless self.request_status == "processed"
+    return self.leave_status.acceptance_status
+  end
+
 
 
   def get_days(arg)

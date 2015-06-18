@@ -7,6 +7,7 @@ module LeaveRequestsHelper
 		if LeavesHolidaysLogic::user_has_any_manage_right(@user)
 			tabs.insert 1, {:name => 'approvals', :partial => 'leave_requests/tab_approvals', :label => :tab_leaves_approval}
 		end
+		tabs << {:name => 'calendar', :partial => 'leave_requests/tab_calendar', :label => :tab_leaves_calendar}
 		tabs
 	end
 end

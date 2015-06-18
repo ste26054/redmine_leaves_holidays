@@ -1,5 +1,10 @@
 
-<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %> (Indicative)</h3>
+<% unless LeavesHolidaysLogic.user_params(User.current, :is_contractor) %>
+	<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %> (Indicative)</h3>
+<% else %>
+	<h3>Total leave days taken from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @taken %> (Indicative)</h3>
+<% end %>
+
 
 <% if !@leave_requests['requests'].empty? %>
 

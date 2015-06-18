@@ -1,0 +1,58 @@
+<%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+
+<table class="cal">
+<thead>
+<tr><th scope="col" title="<%= l(:label_week) %>" class="week-number"></th><% 7.times do |i| %><th scope="col"><%= day_name( (@calendar.first_wday+i)%7 ) %></th><% end %></tr>
+</thead>
+<tbody>
+<tr>
+<% day = @calendar.startdt
+while day <= @calendar.enddt %>
+<%= ("<td class='week-number' title='#{ l(:label_week) }'>#{(day+(11-day.cwday)%7).cweek}</td>".html_safe) if day.cwday == @calendar.first_wday %>
+<td class="<%= day.month==@calendar.month ? 'even' : 'odd' %><%= ' today' if Date.today == day %>">
+<p class="day-num"><%= day.day %></p>
+
+
+  <% l = []
+     l = @leave_requests['requests'].overlaps(day, day) if @leave_requests.has_key?('requests') && !@leave_requests['requests'].empty?
+     a = []
+     a = @leave_requests['approvals'].overlaps(day, day) if @leave_requests.has_key?('approvals') && !@leave_requests['approvals'].empty?
+     leave_list = (a + l).flatten.uniq %>
+
+
+  <% unless leave_list.empty? %>
+    <% for leave in leave_list %>
+      <% if !leave.get_status.in?(["created","cancelled","rejected"]) %>
+        <% if leave.get_status == "accepted" %>
+          <div class="leave" style="background: #<%= Digest::MD5.hexdigest(leave.user.login)[0..5] %>">
+        <% else %>
+          <div class="strip">
+
+        <% end %>
+          <strong><p>Leave #<%= leave.id %>- <%= leave.issue.subject %></p></strong>
+          <table class="leave-table">
+          <th>
+          <%= avatar(leave.user, :size => "30") %>
+          </th>
+          <th>
+          <p>User: <%= leave.user.name %></p>
+          <% if leave.get_status != "accepted" %>
+            <p>Status: <%= leave.get_status %></p>
+          <% end  %>
+          <% if leave.half_day? %><p><strong><%= leave.request_type.upcase %> Leave</strong></p><% end %></th>
+          </table>
+          </div>
+        </div>
+    <% end %>
+    <% end %>
+  <% end %>
+
+
+
+</td>
+<%= '</tr><tr>'.html_safe if day.cwday==@calendar.last_wday and day!=@calendar.enddt %>
+<% day = day + 1
+end %>
+</tr>
+</tbody>
+</table>
