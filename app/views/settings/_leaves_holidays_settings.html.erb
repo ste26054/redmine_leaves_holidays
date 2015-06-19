@@ -58,19 +58,19 @@
 	<p>
 		<label>Disable approval system for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues)) -%>
-		<%= select_tag "settings[default_non_approval_issues]", options, :multiple => true, :width => 80, :size => 10, :include_blank => true %>
+		<%= select_tag "settings[default_non_approval_issues]", options, :multiple => true, :include_blank => true %>
 	</p>
 
 	<p>
 		<label>Disable calculation of remaining leave days for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues)) -%>
-		<%= select_tag "settings[default_non_deduce_issues]", options, :multiple => true, :width => 80, :size => 10, :include_blank => true %>
+		<%= select_tag "settings[default_non_deduce_issues]", options, :multiple => true, :include_blank => true %>
 	</p>
 
 	<p>
 		<label>Notify only roles with "View all leave requests" for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) -%>
-		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :width => 80, :size => 10, :include_blank => true %>
+		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true %>
 	</p>
 
 	<p>

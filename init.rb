@@ -3,6 +3,7 @@ require 'LeavesHolidaysExtensions'
 require 'LeavesHolidaysLogic'
 require 'LeavesHolidaysDates'
 require 'LeavesHolidaysTriggers'
+include CalendarsHelper
 
 
 Redmine::Plugin.register :redmine_leaves_holidays do

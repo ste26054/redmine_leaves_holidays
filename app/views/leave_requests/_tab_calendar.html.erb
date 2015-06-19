@@ -1,5 +1,13 @@
 <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 
+<p class="buttons">
+<strong> Calendar view for <%= month_name(@month) %> <%= @year %></strong>
+</p>
+
+<p style="float:right;">
+  <%= link_to_previous_month(@year, @month, :accesskey => accesskey(:previous)) %> | <%= link_to_next_month(@year, @month, :accesskey => accesskey(:next)) %>
+</p>
+
 <table class="cal">
 <thead>
 <tr><th scope="col" title="<%= l(:label_week) %>" class="week-number"></th><% 7.times do |i| %><th scope="col"><%= day_name( (@calendar.first_wday+i)%7 ) %></th><% end %></tr>
@@ -29,7 +37,9 @@ while day <= @calendar.enddt %>
           <div class="strip">
 
         <% end %>
-          <strong><p>Leave #<%= leave.id %>- <%= leave.issue.subject %></p></strong>
+        
+
+          <strong><p><%= link_to "Leave \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style=>'color:#FFFFFF;'} %></p></strong>
           <table class="leave-table">
           <th>
           <%= avatar(leave.user, :size => "30") %>
