@@ -3,7 +3,6 @@ require 'LeavesHolidaysExtensions'
 require 'LeavesHolidaysLogic'
 require 'LeavesHolidaysDates'
 require 'LeavesHolidaysTriggers'
-include CalendarsHelper
 
 
 Redmine::Plugin.register :redmine_leaves_holidays do
@@ -19,6 +18,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   permission :manage_leave_requests, { :leaves_requests => :manage }
   permission :consult_leave_requests, { :leaves_requests => :vote }
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
+  permission :create_leave_requests, { :leaves_requests => :create }
 
   menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays'
 end

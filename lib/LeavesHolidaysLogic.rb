@@ -28,6 +28,10 @@ module LeavesHolidaysLogic
 		user.allowed_to?(:consult_leave_requests, nil, :global => true)
 	end
 
+	def self.has_create_rights(user)
+		user.allowed_to?(:create_leave_requests, nil, :global => true)
+	end
+
 	def self.has_view_all_rights(user)
 		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end
@@ -237,7 +241,7 @@ module LeavesHolidaysLogic
 	 	if !action.in?(action_list)
 	 		action = :create if action == :new
 	 		action = :read if action == :show
-	 		action = :read if action == :index
+	 		# action = :read if action == :index
 	 		action = :update if action == :edit 
 	 		action = :delete if action == :destroy
 	 	end
@@ -272,9 +276,16 @@ module LeavesHolidaysLogic
 			else
 				leave = leave_request
 			end
-			return true if action == :create
+			if action == :created
+				return self.has_create_rights(user_accessor)
+			end
+			# return true if action == :create
 			# return false if leave.request_status == "cancelled"
+			if action == :index
+				return true if self.has_create_rights(user_accessor)
+			end
 			if action == :read
+				return false unless self.has_create_rights(user_accessor)
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
@@ -315,7 +326,7 @@ module LeavesHolidaysLogic
 				end
 			end
 			if leave.request_status.in?(["processing", "processed"])
-				if action == :read
+				if action.in?([:read,:index])
 					if self.plugin_admins.include?(user_accessor.id)
 						return true
 					end
@@ -346,7 +357,7 @@ module LeavesHolidaysLogic
 				end
 			end
 			if leave.request_status == "processed"
-				if action.in?([:read, :update])
+				if action.in?([:read, :update, :index])
 					return true if self.plugin_admins.include?(user_accessor.id)
 					return true if !self.allowed_common_project(user_accessor, user_owner, 3).empty?
 				end

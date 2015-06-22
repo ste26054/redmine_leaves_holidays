@@ -1,0 +1,9 @@
+<h2>Leave / Holidays</h2>
+
+<p>
+		Days remaining from <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:end]) %>:
+		<strong><%= LeavesHolidaysDates.get_days(:remaining, user)[:result] %></strong>
+</p>
+
+<%= link_to "Create a New Leave Request", new_leave_request_path,:class => 'icon icon-add' %> | 
+<%= link_to 'Go to Leave Dashboard', leave_requests_path, :class => 'icon icon-test' %>

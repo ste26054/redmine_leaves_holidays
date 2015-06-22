@@ -6,7 +6,7 @@ class LeaveRequestsController < ApplicationController
   before_action :set_user
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_filter :authenticate, except: [:index, :new, :create]
+  before_filter :authenticate#, except: [:index, :new, :create]
 
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
@@ -168,7 +168,12 @@ class LeaveRequestsController < ApplicationController
   end
 
   def authenticate
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
+    if params[:action].to_sym.in?([:index, :new, :create])
+      render_403 unless LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
+    else
+      render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
+    end
+    
   end
 
   def set_user
