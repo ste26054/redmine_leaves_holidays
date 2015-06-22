@@ -29,7 +29,7 @@ module LeavesHolidaysLogic
 	end
 
 	def self.has_create_rights(user)
-		user.allowed_to?(:create_leave_requests, nil, :global => true)
+		return user.logged? && user.allowed_to?(:create_leave_requests, nil, :global => true)
 	end
 
 	def self.has_view_all_rights(user)
@@ -37,7 +37,12 @@ module LeavesHolidaysLogic
 	end
 
 	def self.disabled_project_list
-		return RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects).map(&:to_i)
+		projs = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)
+		if projs != nil
+			return projs.map(&:to_i)
+		else
+			return []
+		end
 	end
 
 	def self.user_has_rights(user, rights)
