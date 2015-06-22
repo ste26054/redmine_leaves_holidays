@@ -27,7 +27,7 @@ module LeavesHolidaysExtensions
 		      #return true if admin?
 
 		      # authorize if user has at least one role that has this permission
-		      roles = memberships.collect {|m| m.roles}.flatten.uniq
+		      roles = memberships.where.not(project_id: LeavesHolidaysLogic.disabled_project_list).collect {|m| m.roles}.flatten.uniq
 		      roles << (self.logged? ? Role.non_member : Role.anonymous)
 		      roles.any? {|role|
 		        role.allowed_to?(action) &&

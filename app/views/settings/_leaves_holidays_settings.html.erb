@@ -58,25 +58,31 @@
 	<p>
 		<label>Disable approval system for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues)) -%>
-		<%= select_tag "settings[default_non_approval_issues]", options, :multiple => true, :include_blank => true %>
+		<%= select_tag "settings[default_non_approval_issues]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
 	<p>
 		<label>Disable calculation of remaining leave days for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues)) -%>
-		<%= select_tag "settings[default_non_deduce_issues]", options, :multiple => true, :include_blank => true %>
+		<%= select_tag "settings[default_non_deduce_issues]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
 	<p>
 		<label>Notify only roles with "View all leave requests" for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues)) -%>
-		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true %>
+		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
 	<p>
 		<label>Default leave renewal date for auto increment / report of available leave days (year is ignored):</label>
 
 		<%= date_field_tag "settings[leave_renewal_date]", RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date) %>
+	</p>
+
+	<p>
+		<label>Disable the plugin for projects:</label>
+		<%- options = options_for_select(projects.sort_by {|l| l[0]}, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)) -%>
+		<%= select_tag "settings[default_quiet_projects]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
 </fieldset>

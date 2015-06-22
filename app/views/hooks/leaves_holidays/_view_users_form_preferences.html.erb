@@ -1,1 +1,3 @@
-<%= link_to 'Show Leave Preferences', user_leave_preferences_path(params[:id]) %>
+<% if params[:id] %>
+	<%= link_to 'Show Leave Preferences', user_leave_preferences_path(params[:id]) %>
+<% end %>

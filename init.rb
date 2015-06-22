@@ -3,12 +3,12 @@ require 'LeavesHolidaysExtensions'
 require 'LeavesHolidaysLogic'
 require 'LeavesHolidaysDates'
 require 'LeavesHolidaysTriggers'
-
+include CalendarsHelper
 
 Redmine::Plugin.register :redmine_leaves_holidays do
   name 'Redmine Leave Holidays plugin'
   author 'Stephane EVRARD'
-  description 'This is a plugin for Redmine'
+  description 'A Leave Management System for redmine (Calendar, Mail notifications, Role based, Cross Project)'
   version '0.0.1'
 
   settings :default => {:default_tracker_id => "1", :default_project_id => "1", :default_working_hours_week => "37",
@@ -20,7 +20,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
   permission :create_leave_requests, { :leaves_requests => :create }
 
-  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays'
+  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current)}
 end
 
 require_dependency 'redmine_leaves_holidays/hooks'

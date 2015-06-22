@@ -36,6 +36,10 @@ module LeavesHolidaysLogic
 		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end
 
+	def self.disabled_project_list
+		return RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects).map(&:to_i)
+	end
+
 	def self.user_has_rights(user, rights)
 		if !rights.is_a?(Array)
 			rights = [rights]
@@ -61,7 +65,7 @@ module LeavesHolidaysLogic
 	end
 
 	def self.project_list_for_user(user)
-		user.memberships.uniq.collect{|t| t.project_id}
+		user.memberships.where.not(project_id: LeavesHolidaysLogic.disabled_project_list).uniq.collect{|t| t.project_id}
 	end
 
 	def self.allowed_roles_for_user_for_project(user, project)
@@ -122,11 +126,13 @@ module LeavesHolidaysLogic
 		common_projects = user.memberships.uniq.map(&:project) & user_request.memberships.uniq.map(&:project)
 		if !common_projects.empty?
 			common_projects.each do |project|
-				array_roles_user = (self.allowed_roles_for_user_for_project_mode(user, project, mode))
-				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-				array_roles_user.each do |role|
-					if (role[:position] < array_roles_user_req.first[:position])
-						roles << role
+				unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
+					array_roles_user = (self.allowed_roles_for_user_for_project_mode(user, project, mode))
+					array_roles_user_req = user_request.roles_for_project(project).sort.uniq
+					array_roles_user.each do |role|
+						if (role[:position] < array_roles_user_req.first[:position])
+							roles << role
+						end
 					end
 				end
 			end
@@ -145,18 +151,20 @@ module LeavesHolidaysLogic
 		common_projects = user.memberships.uniq.map(&:project) & user_request.memberships.uniq.map(&:project)
 		if !common_projects.empty?
 			common_projects.each do |project|
-				array_roles_user = self.allowed_roles_for_user_for_project_mode(user, project, mode).uniq.sort_by {|hsh| hsh[:position]}.reverse
-				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-				is_found = false
-				array_roles_user.each do |role|
-					if (role[:position] < array_roles_user_req.first[:position])
-						# roles << role
-						if !is_found
-							roles << role
-							is_found = true
-						else
-							if role[:position] == roles.last[:position]
+				unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
+					array_roles_user = self.allowed_roles_for_user_for_project_mode(user, project, mode).uniq.sort_by {|hsh| hsh[:position]}.reverse
+					array_roles_user_req = user_request.roles_for_project(project).sort.uniq
+					is_found = false
+					array_roles_user.each do |role|
+						if (role[:position] < array_roles_user_req.first[:position])
+							# roles << role
+							if !is_found
 								roles << role
+								is_found = true
+							else
+								if role[:position] == roles.last[:position]
+									roles << role
+								end
 							end
 						end
 					end
@@ -168,7 +176,7 @@ module LeavesHolidaysLogic
 
 	def self.users_allowed_common_project(user_request, mode)
 		# Grabs a list of users who have common projects with user_request, removes user_request from the list
-		users_common = user_request.memberships.uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
+		users_common = user_request.memberships.where.not(project_id: LeavesHolidaysLogic.disabled_project_list).uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
 		
 		allowed = []
 		users_common.each do |user|
@@ -186,18 +194,20 @@ module LeavesHolidaysLogic
 
 		roles = []
 		projects.each do |project|
-			array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-			is_found = false
-			project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
+			unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
+				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
+				is_found = false
+				project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
 
-			project_roles.each do |role|
-				if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
-					if !is_found
-						roles << role
-						is_found = true
-					else
-						if role[:position] == roles.last[:position]
+				project_roles.each do |role|
+					if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
+						if !is_found
 							roles << role
+							is_found = true
+						else
+							if role[:position] == roles.last[:position]
+								roles << role
+							end
 						end
 					end
 				end
@@ -226,8 +236,10 @@ module LeavesHolidaysLogic
 		projects_common = user_request.memberships.uniq.collect {|m| m.project}
 
 		projects_common.each do |project|
-			allowed_roles = self.allowed_roles_for_project_mode(project, mode)
-			return true if !allowed_roles.empty? && allowed_roles.flatten.first[:user_id] == user_request.id
+			unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
+				allowed_roles = self.allowed_roles_for_project_mode(project, mode)
+				return true if !allowed_roles.empty? && allowed_roles.flatten.first[:user_id] == user_request.id
+			end
 		end
 		return false
 	end
