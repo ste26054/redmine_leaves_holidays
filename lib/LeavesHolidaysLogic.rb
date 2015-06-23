@@ -102,7 +102,7 @@ module LeavesHolidaysLogic
 		roles = []
 		project.members.find_each do |member|
 			user = member.user
-			user.roles_for_project(project).sort.uniq
+			#user.roles_for_project(project).sort.uniq
 			allowed = self.allowed_roles_for_user_for_project_mode(user, project, mode)
 			roles << allowed unless allowed.empty?
 		end
@@ -134,9 +134,11 @@ module LeavesHolidaysLogic
 				unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
 					array_roles_user = (self.allowed_roles_for_user_for_project_mode(user, project, mode))
 					array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-					array_roles_user.each do |role|
-						if (role[:position] < array_roles_user_req.first[:position])
-							roles << role
+					unless array_roles_user_req.empty?
+						array_roles_user.each do |role|
+							if (role[:position] < array_roles_user_req.first[:position])
+								roles << role
+							end
 						end
 					end
 				end
@@ -157,18 +159,20 @@ module LeavesHolidaysLogic
 		if !common_projects.empty?
 			common_projects.each do |project|
 				unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
-					array_roles_user = self.allowed_roles_for_user_for_project_mode(user, project, mode).uniq.sort_by {|hsh| hsh[:position]}.reverse
 					array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-					is_found = false
-					array_roles_user.each do |role|
-						if (role[:position] < array_roles_user_req.first[:position])
-							# roles << role
-							if !is_found
-								roles << role
-								is_found = true
-							else
-								if role[:position] == roles.last[:position]
+					unless array_roles_user_req.empty?
+						array_roles_user = self.allowed_roles_for_user_for_project_mode(user, project, mode).uniq.sort_by {|hsh| hsh[:position]}.reverse
+						is_found = false
+						array_roles_user.each do |role|
+							if (role[:position] < array_roles_user_req.first[:position])
+								# roles << role
+								if !is_found
 									roles << role
+									is_found = true
+								else
+									if role[:position] == roles.last[:position]
+										roles << role
+									end
 								end
 							end
 						end
@@ -201,17 +205,19 @@ module LeavesHolidaysLogic
 		projects.each do |project|
 			unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
 				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
-				is_found = false
-				project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
+				unless array_roles_user_req.empty?
+					is_found = false
+					project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
 
-				project_roles.each do |role|
-					if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
-						if !is_found
-							roles << role
-							is_found = true
-						else
-							if role[:position] == roles.last[:position]
+					project_roles.each do |role|
+						if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
+							if !is_found
 								roles << role
+								is_found = true
+							else
+								if role[:position] == roles.last[:position]
+									roles << role
+								end
 							end
 						end
 					end

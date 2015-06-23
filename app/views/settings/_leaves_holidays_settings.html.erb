@@ -7,7 +7,7 @@
 		<%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
 	</p>
 
-	<%- projects = Project.all.collect{|t| [t.name, t.id]} -%>
+	<%- projects = Project.active.collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label>Project for Logging Time of Leave Requests:</label>
 		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)) -%>
