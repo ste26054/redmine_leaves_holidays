@@ -45,7 +45,7 @@ while day <= @calendar.enddt %>
           <%= avatar(leave.user, :size => "30") %>
           </th>
           <th>
-          <p>User: <%= leave.user.name %></p>
+          <p>User: <%= link_to "#{leave.user.name}", user_path(leave.user), {:style=>'color:#FFFFFF;'} %></p>
           <% if leave.get_status != "accepted" %>
             <p>Status: <%= leave.get_status %></p>
           <% end  %>

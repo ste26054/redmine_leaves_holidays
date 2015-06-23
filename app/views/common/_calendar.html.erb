@@ -23,13 +23,13 @@ while day <= calendar.enddt %>
         <div class="strip">
 
       <% end %>
-        <strong><p>Leave #<%= leave.id %>- <%= leave.issue.subject %></p></strong>
+        <strong><p><%= link_to "Leave \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style=>'color:#FFFFFF;'} %></p></strong>
         <table class="leave-table">
         <th>
         <%= avatar(leave.user, :size => "30") %>
         </th>
         <th>
-        <p>User: <%= leave.user.name %></p>
+        <p>User: <%= link_to "#{leave.user.name}", user_path(leave.user), {:style=>'color:#FFFFFF;'} %></p>
         <% if leave.get_status != "accepted" %>
           <p>Status: <%= leave.get_status %></p>
         <% end  %>
