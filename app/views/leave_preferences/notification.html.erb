@@ -32,7 +32,7 @@
 	<h3>Nobody can consult Leave Requests from <%= @user_pref.name %></h3>
 <% end %>
 
-<h3>Notification of plugin admins: <%= LeavesHolidaysLogic.should_notify_plugin_admin(@user_pref, 3) ? 'Yes' : 'No' %></h3>
+<h3>Notification of plugin admins: <%= (@vote_list.empty? && @manage_list.empty?) || LeavesHolidaysLogic.should_notify_plugin_admin(@user_pref, 3) ? 'Yes' : 'No' %></h3>
 
 
 <%= link_to 'Back', user_leave_preferences_path(@user_pref) %>

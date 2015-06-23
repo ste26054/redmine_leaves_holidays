@@ -8,6 +8,7 @@
 .strip {
     
     background: repeating-linear-gradient(45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 30px);
+    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#606dbc', endColorstr='#460000');
     padding:6px; 
     color: white;
     margin-bottom:6px;
