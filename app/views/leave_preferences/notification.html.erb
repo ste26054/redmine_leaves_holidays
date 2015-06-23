@@ -1,0 +1,38 @@
+<% if !@manage_list.empty? %>
+		<h3>Users able to manage Leave Requests from <%= @user_pref.name %>:</h3>
+
+		<% for entry in @manage_list -%>
+
+			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
+
+			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+
+			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+
+			</p>
+		<% end %>
+<% else %>
+	<h3>Nobody can manage Leave Requests from <%= @user_pref.name %></h3>
+<% end %>
+
+<% if !@vote_list.empty? %>
+		<h3>Users able to Consult:</h3>
+
+		<% for entry in @vote_list -%>
+
+			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
+
+			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+
+			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+
+			</p>
+		<% end %>
+<% else %>
+	<h3>Nobody can consult Leave Requests from <%= @user_pref.name %></h3>
+<% end %>
+
+<h3>Notification of plugin admins: <%= LeavesHolidaysLogic.should_notify_plugin_admin(@user_pref, 3) ? 'Yes' : 'No' %></h3>
+
+
+<%= link_to 'Back', user_leave_preferences_path(@user_pref) %>

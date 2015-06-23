@@ -14,6 +14,8 @@ RedmineApp::Application.routes.draw do
 	end
 
 	resources :users do
-		resource :leave_preferences
+		resource :leave_preferences do
+			get 'notification'
+		end
 	end
 end

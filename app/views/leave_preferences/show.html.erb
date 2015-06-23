@@ -1,4 +1,4 @@
-<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :read, :update, :delete], nil, :or) %>
+<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
 	<%= render partial: '/leave_requests/details_metrics', locals: {user: @user_pref} %>
 <% end %>
 
@@ -36,6 +36,6 @@
 
 <%= link_to 'Back', edit_user_path(@user_pref) %>
 <% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
-	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %>	
+	| <%= link_to 'Manage', new_user_leave_preferences_path(@user_pref) %> | <%= link_to 'Check Manage/Consult list', notification_user_leave_preferences_path(@user_pref) %>
 <% end %>
 </div>

@@ -293,7 +293,7 @@ module LeavesHolidaysLogic
 			else
 				leave = leave_request
 			end
-			if action == :created
+			if action == :create
 				return self.has_create_rights(user_accessor)
 			end
 			# return true if action == :create
@@ -412,12 +412,12 @@ module LeavesHolidaysLogic
 		return list
 	end
 
-	def self.vote_list(leave_request)
-		return LeavesHolidaysLogic.users_allowed_common_project(leave_request.user, 2)
+	def self.vote_list(user)
+		return LeavesHolidaysLogic.users_allowed_common_project(user, 2)
 	end	
 
-	def self.manage_list(leave_request)
-		return LeavesHolidaysLogic.users_allowed_common_project_level(leave_request.user, 3)
+	def self.manage_list(user)
+		return LeavesHolidaysLogic.users_allowed_common_project_level(user, 3)
 	end
 
 	def self.retrieve_leave_preferences(user)

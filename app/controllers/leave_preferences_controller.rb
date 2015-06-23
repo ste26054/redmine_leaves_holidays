@@ -3,7 +3,7 @@ class LeavePreferencesController < ApplicationController
   include LeavesHolidaysLogic
   
   before_action :set_user, :set_leave_preference
-  before_filter :authenticate, except: [:show]
+  before_filter :authenticate, except: [:show, :notification]
   before_action :set_holidays, only: [:new, :create, :edit, :update]
 
   def new
@@ -53,6 +53,11 @@ class LeavePreferencesController < ApplicationController
   def destroy
   	@preference.destroy
   	redirect_to edit_user_leave_preferences_path
+  end
+
+  def notification
+    @vote_list = LeavesHolidaysLogic.vote_list(@user_pref)
+    @manage_list = LeavesHolidaysLogic.manage_list(@user_pref)
   end
 
 

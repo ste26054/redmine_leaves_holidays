@@ -185,11 +185,11 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def vote_list
-    @vote_list ||= LeavesHolidaysLogic.vote_list(self)
+    @vote_list ||= LeavesHolidaysLogic.vote_list(self.user)
   end
 
   def manage_list
-    @manage_list ||= LeavesHolidaysLogic.manage_list(self)
+    @manage_list ||= LeavesHolidaysLogic.manage_list(self.user)
   end
 
   def manage(args = {})
