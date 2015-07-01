@@ -10,4 +10,8 @@ module LeaveRequestsHelper
 		tabs << {:name => 'calendar', :partial => 'leave_requests/tab_calendar', :label => :tab_leaves_calendar}
 		tabs
 	end
+
+	def link_to_month(link_name, year, month, options={})
+    	link_to_content_update(h(link_name), params.merge(:year => year, :month => month, :tab => "calendar"), options)
+  	end
 end

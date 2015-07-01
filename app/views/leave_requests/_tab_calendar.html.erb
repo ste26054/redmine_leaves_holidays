@@ -5,7 +5,7 @@
 </p>
 
 <p style="float:right;">
-  <%= link_to_previous_month(@year, @month, :accesskey => accesskey(:previous)) %> | <%= link_to_next_month(@year, @month, :accesskey => accesskey(:next)) %>
+  <%= link_to_previous_month(@year, @month, {:accesskey => accesskey(:previous)}) %> | <%= link_to_next_month(@year, @month, :accesskey => accesskey(:next)) %>
 </p>
 
 <table class="cal">

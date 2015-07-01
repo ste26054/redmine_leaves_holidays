@@ -3,7 +3,7 @@
 </div>
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 
-<%= form_for [user, preference], :url => user_leave_preferences_path, :remote => !preference.new_record?, :authenticity_token => true do |f| %>
+<%= form_for [user, preference], :url => user_leave_preferences_path, :remote => false do |f| %>
 
 
 		<% if preference.errors.any? %>
