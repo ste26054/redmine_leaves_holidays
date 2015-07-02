@@ -18,6 +18,8 @@ class LeavePreferencesController < ApplicationController
   	@preference = LeavePreference.new(leave_preference_params) unless @exists
     @preference.user_id = @user_pref.id
   	if @preference.save
+      event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+      event.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
   		redirect_to edit_user_leave_preferences_path
   	else
@@ -42,6 +44,8 @@ class LeavePreferencesController < ApplicationController
         if !success 
           flash[:error] = "Invalid preferences"
         else
+          event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+          event.save
           flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
           redirect_to edit_user_leave_preferences_path
         end
@@ -51,6 +55,8 @@ class LeavePreferencesController < ApplicationController
   end
 
   def destroy
+    event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_deleted", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+    event.save
   	@preference.destroy
   	redirect_to edit_user_leave_preferences_path
   end
