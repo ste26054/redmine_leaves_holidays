@@ -1,6 +1,10 @@
 
 <h2>Leave Request:</h2>
 <fieldset>
+	<p><strong>Notice:</strong> Bank Holidays for your region (<%= LeavesHolidaysLogic.user_params(@user, :region) %>) and week ends are automatically ignored.</p>
+</fieldset>
+<br />
+<fieldset>
 <%= form_for(@leave) do |f| %>
 	
 	<% if @leave.errors.any? %>

@@ -340,6 +340,8 @@ class LeaveRequest < ActiveRecord::Base
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
       if changes.has_key?("request_status")
         if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
+          unless changes["request_status"][0].in?(["created"]) && changes["request_status"][1].in?(["cancelled"])
+
           user_list = []
           user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
           if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
@@ -359,6 +361,8 @@ class LeaveRequest < ActiveRecord::Base
             end
           else
           end
+
+        end
 
         end
       end

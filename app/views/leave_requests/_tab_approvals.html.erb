@@ -23,7 +23,7 @@
 					<tr class="<%= cycle("odd", "even") %>">
 					<td class="id"><%= req.id %></td>
 					<td><%= link_to req.user.name, user_path(req.user) %></td>
-					<td><%= LeavesHolidaysLogic.user_params(req.user, :region) %></td>
+					<td><%= req.region %></td>
 					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
 					<td><%= req.actual_leave_days %></td>
 					</td>
