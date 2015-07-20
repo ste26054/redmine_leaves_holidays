@@ -50,7 +50,7 @@ class LeaveStatus < ActiveRecord::Base
     end
 
     request.real_leave_days.ceil.times do |i|
-      unless (request.from_date + i).holiday?(request.region.to_sym) || non_working_week_days.include?((request.from_date + i).cwday)
+      unless (request.from_date + i).holiday?(request.region.to_sym, :observed) || non_working_week_days.include?((request.from_date + i).cwday)
         begin
           time_entry = TimeEntry.where(:issue_id => request.issue_id, 
                                                 :spent_on => request.from_date + i, 

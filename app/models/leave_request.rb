@@ -129,7 +129,7 @@ class LeaveRequest < ActiveRecord::Base
     working_days = (to_date + 1 - from_date).to_i
 
     real_leave_days.times do |i|
-      if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
+      if (from_date + i).holiday?(region.to_sym, :observed) || non_working_week_days.include?((from_date + i).cwday)
         working_days -= 1
       end          
     end
@@ -152,7 +152,7 @@ class LeaveRequest < ActiveRecord::Base
     real_leave_days.times do |i|
       end_bound = from_date + i
       # If Not working day
-      if (end_bound).holiday?(region.to_sym) || non_working_week_days.include?((end_bound).cwday)
+      if (end_bound).holiday?(region.to_sym, :observed) || non_working_week_days.include?((end_bound).cwday)
         # Decrement working days count
         working_days -= 1
       else # If working day
@@ -238,7 +238,7 @@ class LeaveRequest < ActiveRecord::Base
       count = 0
 
       real_leave_days.ceil.times do |i|
-        if (from_date + i).holiday?(region.to_sym) || non_working_week_days.include?((from_date + i).cwday)
+        if (from_date + i).holiday?(region.to_sym, :observed) || non_working_week_days.include?((from_date + i).cwday)
           count += 1
         end          
       end
@@ -328,7 +328,7 @@ class LeaveRequest < ActiveRecord::Base
 
   def same_or_previous_working_day(date, region)
       d = date
-      while (d).holiday?(region.to_sym) || non_working_week_days.include?((d).cwday)
+      while (d).holiday?(region.to_sym, :observed) || non_working_week_days.include?((d).cwday)
         d -= 1.day
       end
       return d
