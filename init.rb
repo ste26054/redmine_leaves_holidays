@@ -37,4 +37,8 @@ Rails.configuration.to_prepare do
   unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::MailerPatch)
     Mailer.send(:include,RedmineLeavesHolidays::Patches::MailerPatch)
   end
+  
+  unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::UserPatch)
+    User.send(:include,RedmineLeavesHolidays::Patches::UserPatch)
+  end
 end
