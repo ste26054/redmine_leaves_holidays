@@ -1,9 +1,9 @@
 <div class="tabs">
   <ul>
   <% tabs.each do |tab| -%>
-    <li><%= link_to l(tab[:label]), {:controller => tab[:controller], :action => tab[:action], :tab => tab[:name] },
-                                    :id => "tab-#{tab[:name]}",
-                                    :class => (tab[:name] != selected_tab ? nil : 'selected')
+    <li><%= link_to l(tab[:label]), {:controller => tab[:controller], :action => tab[:action] },
+                                    :id => "tab-#{tab[:controller]}",
+                                    :class => (tab[:controller] != controller_name  ? nil : 'selected')
                                      %></li>
   <% end -%>
   </ul>
