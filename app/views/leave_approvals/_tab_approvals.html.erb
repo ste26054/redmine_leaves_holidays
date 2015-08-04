@@ -1,4 +1,4 @@
-<% if !@leave_requests['approvals'].empty? %>
+<% if !leave_approvals.empty? %>
 	<div class="autoscroll">
 		<table class="list">
 			<thead>
@@ -19,7 +19,7 @@
 				<th></th>
 			</tr></thead>
 			<tbody>
-				<% for req in @leave_requests['approvals'] -%>
+				<% for req in leave_approvals -%>
 					<tr class="<%= cycle("odd", "even") %>">
 					<td class="id"><%= req.id %></td>
 					<td><%= link_to req.user.name, user_path(req.user) %></td>

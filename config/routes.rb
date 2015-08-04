@@ -18,4 +18,8 @@ RedmineApp::Application.routes.draw do
 			get 'notification'
 		end
 	end
+
+	get '/leave_approvals', :to => 'leave_approvals#index'
+	get '/leave_calendars', :to => 'leave_calendars#show'
+
 end

@@ -6,7 +6,7 @@ class LeaveRequestsController < ApplicationController
   before_action :set_user
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_filter :authenticate#, except: [:index, :new, :create]
+  before_filter :authenticate
 
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
@@ -23,15 +23,7 @@ class LeaveRequestsController < ApplicationController
                 'created_at' => "#{LeaveRequest.table_name}.created_at",
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
-    @leave_requests = {} 
-    @leave_requests['requests'] ||= LeaveRequest.for_user(@user.id).reorder(sort_clause)
-
-    if LeavesHolidaysLogic.has_view_all_rights(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.accepted.reorder(sort_clause)
-    elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user).reorder(sort_clause)
-    else
-    end
+    @leave_requests ||= LeaveRequest.for_user(@user.id).reorder(sort_clause)
 
     contract_date = LeavesHolidaysLogic.user_params(@user, :contract_start_date).to_date
     renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
@@ -39,18 +31,6 @@ class LeaveRequestsController < ApplicationController
     @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
     @taken ||= LeavesHolidaysDates.total_leave_days_taken(@user, @period[:start], @period[:end])
 
-
-    if params[:year] and params[:year].to_i > 1900
-      @year = params[:year].to_i
-      if params[:month] and params[:month].to_i > 0 and params[:month].to_i < 13
-        @month = params[:month].to_i
-      end
-    end
-
-    @year ||= Date.today.year
-    @month ||= Date.today.month
-
-    @calendar = Redmine::Helpers::Calendar.new(Date.civil(@year, @month, 1), current_language, :month)
   end
 
   def new

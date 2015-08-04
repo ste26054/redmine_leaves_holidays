@@ -46,7 +46,7 @@
 	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %> |
 <% end %>
 
-<%= link_to 'Back', leave_request_path(leave) %>
+<a href="javascript:history.back()"><%= l(:button_back) %></a>
 </fieldset>
 
 <% if User.current.id != leave.user.id %>

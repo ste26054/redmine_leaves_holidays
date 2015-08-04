@@ -10,7 +10,7 @@
 	<%= render partial: '/leave_statuses/status', locals: {status: @status} %>
 <% end %>
 
-<%= link_to 'Back', leave_requests_path %>
+<a href="javascript:history.back()"><%= l(:button_back) %></a>
 
 <% if @leave.request_status == "created" && @user == @leave.user %>
 	| <%= link_to 'Edit', edit_leave_request_path(@leave), :class => 'icon icon-edit' %>

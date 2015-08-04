@@ -6,7 +6,7 @@
 <% end %>
 
 
-<% if !@leave_requests['requests'].empty? %>
+<% if !leave_requests.empty? %>
 
 
 
@@ -27,7 +27,7 @@
 			<th></th>
  			</tr></thead>
 			<tbody>
-				<% for req in @leave_requests['requests'] -%>
+				<% for req in leave_requests -%>
 					<tr class="<%= cycle("odd", "even") %>">
 					<td class="id"><%= req.id %></td>
 					<td class="number_days"><%= req.actual_leave_days %></td>
