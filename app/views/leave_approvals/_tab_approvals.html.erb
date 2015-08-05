@@ -20,7 +20,7 @@
 			</tr></thead>
 			<tbody>
 				<% for req in leave_approvals -%>
-					<tr class="<%= cycle("odd", "even") %>">
+					<tr class="<%= cycle("odd", "even") %> <%= req.css_classes(true) %>">
 					<td class="id"><%= req.id %></td>
 					<td><%= link_to req.user.name, user_path(req.user) %></td>
 					<td><%= req.region %></td>
@@ -66,6 +66,7 @@
 			</tbody>
 		</table>
 	</div>
+	<p class="pagination"><%= pagination_links_full leave_pages, leave_count %></p>
 <% else %>
 	<h3>You do not have any leave to manage at the moment</h3>
 <% end %>

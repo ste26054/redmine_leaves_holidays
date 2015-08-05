@@ -17,13 +17,12 @@ class LeaveRequestsController < ApplicationController
   include SortHelper
 
   def index
-    sort_init 'from_date', 'asc'
+    sort_init 'id', 'asc'
 
     sort_update 'id' => "#{LeaveRequest.table_name}.id",
                 'created_at' => "#{LeaveRequest.table_name}.created_at",
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
-    @leave_requests ||= LeaveRequest.for_user(@user.id).reorder(sort_clause)
 
     contract_date = LeavesHolidaysLogic.user_params(@user, :contract_start_date).to_date
     renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
@@ -31,6 +30,13 @@ class LeaveRequestsController < ApplicationController
     @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
     @taken ||= LeavesHolidaysDates.total_leave_days_taken(@user, @period[:start], @period[:end])
 
+    scope ||= LeaveRequest.for_user(@user.id)
+    @limit = per_page_option
+
+    @leave_count = scope.count
+    @leave_pages = Paginator.new @leave_count, @limit, params['page']
+    @offset ||= @leave_pages.offset
+    @leave_requests =  scope.order(sort_clause).limit(@limit).offset(@offset).to_a
   end
 
   def new

@@ -26,3 +26,6 @@ table.cal tbody th {
   height: 100%;
   font-weight: normal;
 }
+
+tr.leave-request.in-past {color: #aaa;}
+tr.leave-request.manageable-by-me.needs-attention {color: #f00; font-weight: bold;}

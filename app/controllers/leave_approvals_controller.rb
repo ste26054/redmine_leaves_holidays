@@ -21,13 +21,23 @@ class LeaveApprovalsController < ApplicationController
                 'created_at' => "#{LeaveRequest.table_name}.created_at",
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
-
+    
+    manage = true
+    @limit = per_page_option
 
     if LeavesHolidaysLogic.has_view_all_rights(@user)
-      @leave_approvals ||= LeaveRequest.accepted.reorder(sort_clause)
+      scope ||= LeaveRequest.accepted
     elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
-      @leave_approvals ||= LeaveRequest.processable_by(@user).reorder(sort_clause)
+      scope ||= LeaveRequest.processable_by(@user)
     else
+      manage = false
+    end
+
+    if manage
+      @leave_count = scope.count
+      @leave_pages = Paginator.new @leave_count, @limit, params['page']
+      @offset ||= @leave_pages.offset
+      @leave_approvals =  scope.order(sort_clause).limit(@limit).offset(@offset).to_a
     end
 
   end

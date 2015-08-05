@@ -215,6 +215,18 @@ class LeaveRequest < ActiveRecord::Base
     deadline = same_or_previous_working_day(from - length.day, reg)
     return deadline
   end
+
+  def css_classes(manageable=false)
+    s = "leave-request reason-#{self.issue_id} type-#{self.request_type}"
+    s << ' in-past' if self.to_date < Date.today
+    s << ' in-present' if self.to_date >= Date.today && self.from_date <= Date.today
+    s << ' in-future' if self.from_date > Date.today
+    s << " status-#{self.get_status}"
+    s << ' manageable-by-me' if manageable
+    s << ' created-by-me' if self.user_id == User.current.id
+    s << ' needs-attention' if manageable && self.from_date <= Date.today && self.get_status.in?(["submitted", "processing"])
+    return s
+  end
     
 	private
 
