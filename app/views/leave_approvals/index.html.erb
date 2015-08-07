@@ -6,4 +6,28 @@
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
+<%= form_tag(leave_approvals_path, :method => :get) do %>
+<fieldset><legend><%= l(:label_filter_plural) %></legend>
+	<label for='status'><%= l(:field_status) %>:</label>
+	<%= select_tag 'status', leaves_status_options_for_select(@status_count, @status), :class => "small", :multiple => true  %>
+
+	<label for='when'>When:</label>
+	<%= select_tag 'when', leaves_dates_options_for_select(@when), :class => "small", :multiple => true  %>
+
+	<label for='reason'>Reason:</label>
+	<%= select_tag 'reason', leaves_reason_options_for_select(@reason), :class => "small", :multiple => true  %>
+
+	<label for='region'>Region:</label>
+	<%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
+
+
+	<label for='show_rejected'>Include Rejected:</label>
+	<%= check_box_tag 'show_rejected', true, @show_rejected == "true" %>
+
+	<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+	<%= link_to l(:button_clear), leave_approvals_path, :class => 'icon icon-reload' %>
+</fieldset>
+<% end %>
+&nbsp;
+
 <%= render 'tab_approvals', leave_approvals: @leave_approvals, leave_pages: @leave_pages, leave_count: @leave_count %>

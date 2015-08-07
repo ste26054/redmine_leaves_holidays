@@ -72,20 +72,44 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :accepted, -> { processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "1" }) }
 
+  scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
+                            where.not(id: rejected_ids) }
+
   scope :processable_by, ->(user) {
-    submitted_ids = Array.wrap(submitted + processing + processed).map { |a| a.id }
-    submitted_ids.delete_if { |id| leave = LeaveRequest.find(id)
-      !(LeavesHolidaysLogic.has_rights(user, leave.user, [LeaveStatus, LeaveVote], [:read, :create, :update], leave, :or))}
-    where(id: submitted_ids)
+    ids = []
+    where.not(request_status: 0).find_each do |leave|
+      ids << leave.id if LeavesHolidaysLogic.has_rights(user, leave.user, [LeaveStatus, LeaveVote], [:read, :create, :update], leave, :or)
+    end
+
+    where(id: ids)
   }
 
   scope :viewable_by, ->(uid) {
     user = User.find(uid)
-    processed_ids = Array.wrap(processed).map { |a| a.id }
+    processed_ids = processed.pluck(:id)
     processed_ids.delete_if { |id| leave = LeaveRequest.find(id) 
                                 return !(LeavesHolidaysLogic.has_right(user, leave.user, LeaveRequest, :read, leave))}
     where(id: processed_ids)
   }
+
+  scope :status, lambda {|arg| where(arg.blank? ? nil : {:request_status => arg}) }
+  
+  scope :reason, lambda {|arg| where(arg.blank? ? nil : {:issue_id => arg}) }
+
+  scope :when, lambda {|arg| 
+    return nil if arg.blank?
+    arg = [*arg] or Array(arg)
+    args = arg.to_a & ['ongoing', 'coming', 'finished']
+    return nil if args.count == 3
+    ids = []
+    args.each do |a|
+      ids << LeaveRequest.send(a).pluck(:id)
+    end
+
+    ids = ids.flatten.uniq
+
+    where(id: ids)
+   }
 
   def get_status
     return self.request_status unless self.request_status == "processed"
@@ -263,7 +287,7 @@ class LeaveRequest < ActiveRecord::Base
 	end
 
 	def validate_issue
-		if issue_id != nil && !((LeavesHolidaysLogic.issues_list.collect {|t| t.id }).include?( issue_id))
+		if issue_id != nil && !((LeavesHolidaysLogic.issues_list.pluck(:id)).include?(issue_id))
 			errors.add(:issue, "is invalid")
 		end
 	end

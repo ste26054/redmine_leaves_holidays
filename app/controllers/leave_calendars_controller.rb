@@ -25,12 +25,12 @@ class LeaveCalendarsController < ApplicationController
 
     @leave_requests = {}
 
-    @leave_requests['requests'] ||= LeaveRequest.for_user(@user.id).overlaps(@calendar.startdt, @calendar.enddt)
+    @leave_requests['requests'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).for_user(@user.id)
 
     if LeavesHolidaysLogic.has_view_all_rights(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.accepted.overlaps(@calendar.startdt, @calendar.enddt)
+      @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).accepted
     elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.processable_by(@user).overlaps(@calendar.startdt, @calendar.enddt)
+      @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).processable_by(@user)
     else
     end
 

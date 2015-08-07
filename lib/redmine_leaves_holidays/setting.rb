@@ -1,5 +1,6 @@
 module RedmineLeavesHolidays
 	class Setting
+		unloadable
 		extend Redmine::Utils::DateCalculation
 		
 

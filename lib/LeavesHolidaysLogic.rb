@@ -59,6 +59,39 @@ module LeavesHolidaysLogic
 		return self.has_manage_rights(user) || self.has_vote_rights(user) || self.has_view_all_rights(user) || self.plugin_admins.include?(user.id)
 	end
 
+	def self.users_with_any_manage_right_list
+		user_ids = []
+		user_ids.concat(self.plugin_admins)
+
+		# Get roles allowed to manage
+		role_ids = Role.where("permissions LIKE ? OR permissions LIKE ? OR permissions LIKE ?", "%:manage_leave_requests%", "%:consult_leave_requests%", "%:view_all_leave_requests%").pluck(:id)
+		
+		# Get disabled project list
+		disabled_project_list = Project.where(id: self.disabled_project_list).pluck(:id)
+		
+		# Get member role ids of roles allowed to manage
+		member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
+
+		# Get the uniq user ids of corresponding members
+		user_ids.concat(Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where.not(project_id: disabled_project_list).select(:user_id).distinct.pluck(:user_id))
+
+		return User.where(id: user_ids.uniq)
+	end
+
+	def self.members_with_any_manage_right_list
+		# Get roles allowed to manage
+		role_ids = Role.where("permissions LIKE ? OR permissions LIKE ? OR permissions LIKE ?", "%:manage_leave_requests%", "%:consult_leave_requests%", "%:view_all_leave_requests%").pluck(:id)
+		
+		# Get disabled project list
+		disabled_project_list = Project.where(id: self.disabled_project_list).pluck(:id)
+		
+		# Get member role ids of roles allowed to manage
+		member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
+
+		# Get the uniq user ids of corresponding members
+		return Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where.not(project_id: disabled_project_list)
+	end
+
 	def self.users_rights_list(rights)
 		allowed = []
 		User.where(status: 1).find_each do |user|
@@ -184,25 +217,29 @@ module LeavesHolidaysLogic
 	end
 
 	def self.users_allowed_common_project(user_request, mode)
-		# Grabs a list of users who have common projects with user_request, removes user_request from the list
-		users_common = user_request.memberships.where.not(project_id: LeavesHolidaysLogic.disabled_project_list).uniq.collect {|m| m.project.members.uniq.collect {|u| u.user}}.flatten.uniq - [user_request]
+
+		p_ids = user_request.projects.pluck(:id)
+
+		users_common_ids = self.members_with_any_manage_right_list.includes(:user).where(project_id: p_ids).select(:user_id).distinct.where.not(user_id: 30).pluck(:user_id) - [user_request.id]
 		
 		allowed = []
-		users_common.each do |user|
+
+		User.where(id: users_common_ids).find_each do |user|
 			res = []
 			res = self.allowed_common_project(user, user_request, mode)
-			unless res.empty?
+		 	unless res.empty?
 				allowed  << res
 			end
 		end
+
 		return allowed
 	end
 
 	def self.users_allowed_common_project_level(user_request, mode)
-		projects = user_request.memberships.uniq.map(&:project)
+		#projects = user_request.memberships.uniq.map(&:project)
 
 		roles = []
-		projects.each do |project|
+		user_request.projects.each do |project|
 			unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
 				array_roles_user_req = user_request.roles_for_project(project).sort.uniq
 				unless array_roles_user_req.empty?
