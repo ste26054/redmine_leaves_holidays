@@ -26,25 +26,30 @@ module LeaveRequestsHelper
 	end
 
 	def leaves_status_options_for_select(status_count, selected)
-		options_for_select([["submitted (#{status_count[1].to_i})", '1'],
-	                        ["processing (#{status_count[4].to_i})", '4'],
-	                        ["processed (#{status_count[2].to_i})", '2']], selected)
+		options_for_select([["submitted (#{status_count[1].to_i})".html_safe, '1'],
+	                        ["processing (#{status_count[4].to_i})".html_safe, '4'],
+	                        ["processed (#{status_count[2].to_i})".html_safe, '2']], selected)
  	end
 
  	def leaves_regions_options_for_select(selected)
- 		options = LeaveRequest.group('region').count.to_hash.keys.collect {|k| [k, k]}
+ 		options = @scope_initial.group('region').count.to_hash.collect {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
 	    options_for_select(options, selected)
  	end
 
  	def leaves_dates_options_for_select(selected)
-	    options_for_select([["finished", 'finished'],
-	                        ["ongoing", 'ongoing'],
-	                        ["coming", 'coming']], selected)
+	    options_for_select([['Past', 'finished'],
+	                        ['Present', 'ongoing'],
+	                        ['Future', 'coming']], selected)
  	end
 
  	def leaves_reason_options_for_select(selected)
- 		options = LeavesHolidaysLogic.issues_list.pluck(:subject, :id)
+ 		options = @scope_initial.group('issue').count.to_hash.collect {|k, v| ["#{k.subject} (#{v})".html_safe, k.id]}.sort
 	    options_for_select(options, selected)
+ 	end
+
+ 	def leaves_users_options_for_select(selected)
+ 		options = @scope_initial.group('user').count.to_hash.collect {|k, v| ["#{k.name} (#{v})".html_safe, k.id]}.sort
+ 		options_for_select(options, selected)
  	end
 
 end

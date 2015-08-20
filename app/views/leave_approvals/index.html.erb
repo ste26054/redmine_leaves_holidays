@@ -20,6 +20,8 @@
 	<label for='region'>Region:</label>
 	<%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
 
+	<label for='users'>User:</label>
+	<%= select_tag 'users', leaves_users_options_for_select(@users), :class => "small", :multiple => true  %>
 
 	<label for='show_rejected'>Include Rejected:</label>
 	<%= check_box_tag 'show_rejected', true, @show_rejected == "true" %>

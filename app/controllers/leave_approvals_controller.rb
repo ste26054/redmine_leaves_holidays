@@ -26,22 +26,25 @@ class LeaveApprovalsController < ApplicationController
     manage = true
     @limit = per_page_option
 
-    scope ||= LeaveRequest.processable_by(@user)
+    @scope_initial ||= LeaveRequest.processable_by(@user)
 
-    @status_count = scope.group('request_status').count.to_hash
-    scope = scope.status(@status)
+    @status_count = @scope_initial.group('request_status').count.to_hash
+    scope = @scope_initial.status(@status)
 
     @when = params[:when] || ['ongoing', 'coming']
     scope = scope.when(@when)
 
-    @reason = params[:reason] || LeavesHolidaysLogic.issues_list.pluck(:id)
+    @reason = params[:reason] || @scope_initial.pluck(:issue_id).uniq
     scope = scope.reason(@reason)
 
     @show_rejected = params[:show_rejected] || "false"
 
 
-    @region = params[:region] || LeaveRequest.group('region').count.to_hash.keys
+    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
     scope = scope.where(region: @region)
+
+    @users = params[:users] || @scope_initial.pluck(:user_id).uniq
+    scope = scope.where(user: @users)
 
     if @show_rejected == "false"
       scope = scope.not_rejected
