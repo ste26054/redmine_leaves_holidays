@@ -20,7 +20,7 @@ module LeavesHolidaysTriggers
 		last_renewal = LeaveEvent.for_user(user.id).contract_renewal.last
 		last_renewal_date = last_renewal.created_at.to_date if last_renewal != nil
 
-		period = LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
+		period = LeavesHolidaysDates.get_contract_period(contract_date, renewal_date)
 
 		# If the date is the same as the starting period and the contract was not yet renewed, return true
 		return period[:start] == date && period[:start] != last_renewal_date
@@ -39,17 +39,11 @@ module LeavesHolidaysTriggers
 			last_renewal_date = contract_date
 		end
 
-		period = LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date, last_renewal_date)
+		period = LeavesHolidaysDates.get_contract_period(contract_date, renewal_date, last_renewal_date)
 
-	    remaining = LeavesHolidaysDates.total_leave_days_remaining_v2(user, period[:start], period[:end])
+	    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
 
-	    preference = LeavePreference.find_by(user_id: user.id)
-
-	    if preference == nil
-	    	preference = LeavesHolidaysLogic.retrieve_leave_preferences(user)
-	    end
-
-	    preference.update(extra_leave_days: remaining, annual_max_comments: "System reported #{remaining} on #{Date.today}")
+	    user.leave_preferences.update(extra_leave_days: remaining, annual_max_comments: "System reported #{remaining} on #{Date.today}")
 
 	    event = LeaveEvent.new(user_id: user.id, event_type: "contract_renewal", comments: "extra: #{remaining}")
 	    event.save

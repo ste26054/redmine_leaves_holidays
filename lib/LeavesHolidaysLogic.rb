@@ -1,5 +1,5 @@
 module LeavesHolidaysLogic
-	using LeavesHolidaysExtensions
+	using LeavesHolidaysExtensions #local patch of user methods 
 
 	def self.issues_list
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
@@ -40,6 +40,10 @@ module LeavesHolidaysLogic
 		user.allowed_to?(:manage_user_leave_preferences, nil, :global => true) || self.plugin_admins.include?(user.id)
 	end
 
+	def self.leave_memberships(user)
+		user.memberships
+	end
+
 	def self.disabled_project_list
 		projs = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)
 		if projs != nil
@@ -63,23 +67,23 @@ module LeavesHolidaysLogic
 		return self.has_manage_rights(user) || self.has_vote_rights(user) || self.has_view_all_rights(user) || self.plugin_admins.include?(user.id)
 	end
 
-	def self.users_with_any_manage_right_list
+	def self.users_with_create_leave_request
 		user_ids = []
 		user_ids.concat(self.plugin_admins)
 
-		# Get roles allowed to manage
-		role_ids = Role.where("permissions LIKE ? OR permissions LIKE ? OR permissions LIKE ?", "%:manage_leave_requests%", "%:consult_leave_requests%", "%:view_all_leave_requests%").pluck(:id)
+		# Get roles allowed to
+		role_ids = Role.where("permissions LIKE ?", "%:create_leave_requests%").pluck(:id)
 		
 		# Get disabled project list
 		disabled_project_list = Project.where(id: self.disabled_project_list).pluck(:id)
 		
-		# Get member role ids of roles allowed to manage
+		# Get member role ids of roles allowed
 		member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
 
 		# Get the uniq user ids of corresponding members
 		user_ids.concat(Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where.not(project_id: disabled_project_list).select(:user_id).distinct.pluck(:user_id))
 
-		return User.where(id: user_ids.uniq)
+		return User.where(id: user_ids.uniq).order(:login)
 	end
 
 	def self.members_with_any_manage_right_list
@@ -107,7 +111,7 @@ module LeavesHolidaysLogic
 	end
 
 	def self.project_list_for_user(user)
-		user.memberships.where.not(project_id: LeavesHolidaysLogic.disabled_project_list).uniq.collect{|t| t.project_id}
+		user.memberships.uniq.collect{|t| t.project_id}
 	end
 
 	def self.allowed_roles_for_user_for_project(user, project)
@@ -147,7 +151,7 @@ module LeavesHolidaysLogic
 	end
 
 	def self.get_region_list
-		return Holidays.regions.sort
+		return RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)
 	end
 
 	def self.user_params(user, arg)

@@ -57,4 +57,15 @@ module LeaveRequestsHelper
  		options_for_select(options, selected)
  	end
 
+ 	def user_projects(user)
+ 		user.leave_memberships.collect{ |e| e.project.name }.uniq.join('<br/>').html_safe
+ 	end
+
+ 	def contract_period(user)
+ 		period = user.contract_period
+ 		output = "".html_safe
+ 		output << "From: #{format_date(period[:start])}<br/>".html_safe
+ 		output << "To: #{format_date(period[:end])}<br/>".html_safe
+ 	end
+
 end

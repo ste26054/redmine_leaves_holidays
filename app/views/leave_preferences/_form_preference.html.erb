@@ -1,8 +1,9 @@
 <div id="leave_user_prefs">
-<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
+	<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
 </div>
-<h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 
+<h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
+<div class="box">
 <%= form_for [user, preference], :url => user_leave_preferences_path, :remote => false do |f| %>
 
 
@@ -16,7 +17,7 @@
 			</div>
 		<% end %>
 
-	<div class="box">
+
 		<p>
 			<label>Weekly Working Hours:</label>
 			<%= f.text_field :weekly_working_hours %>

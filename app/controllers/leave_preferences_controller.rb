@@ -11,14 +11,12 @@ class LeavePreferencesController < ApplicationController
   before_action :set_holidays, only: [:new, :create, :edit, :update]
 
   def index
-    
+    @users = LeavesHolidaysLogic.users_with_create_leave_request
   end
 
   def new
   	if @exists
       redirect_to edit_user_leave_preferences_path
-    else
-  		@preference = LeavesHolidaysLogic.retrieve_leave_preferences(@user)
   	end
   end
 
@@ -26,13 +24,13 @@ class LeavePreferencesController < ApplicationController
   	@preference = LeavePreference.new(leave_preference_params) unless @exists
     @preference.user_id = @user_pref.id
   	if @preference.save
-      event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+      event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_create", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
       event.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
   		redirect_to edit_user_leave_preferences_path
   	else
   		flash[:error] = "Invalid preferences"
-  		redirect_to new_user_leave_preferences_path
+  		render :new
   	end
   end
 
@@ -51,6 +49,7 @@ class LeavePreferencesController < ApplicationController
       format.html { 
         if !success 
           flash[:error] = "Invalid preferences"
+          render :edit
         else
           event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
           event.save
@@ -66,7 +65,7 @@ class LeavePreferencesController < ApplicationController
     event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_deleted", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
     event.save
   	@preference.destroy
-  	redirect_to edit_user_leave_preferences_path
+  	redirect_to new_user_leave_preferences_path
   end
 
   def notification
@@ -87,16 +86,12 @@ private
   end
 
   def set_holidays
-	@regions = LeavesHolidaysLogic.get_region_list
+	  @regions = LeavesHolidaysLogic.get_region_list
   end
 
   def set_leave_preference
-    @preference = nil
-    @preference = LeavePreference.where(user_id: @user_pref.id).first
-    @exists = (@preference != nil)
-    if @preference == nil
-      @preference = LeavesHolidaysLogic.retrieve_leave_preferences(@user)
-    end
+    @preference = @user_pref.leave_preferences
+    @exists = (@preference.id != nil)
   end
 
   def authenticate
@@ -106,7 +101,7 @@ private
         return
       end
     else
-      render_403 unless LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
+      render_403 unless LeavesHolidaysLogic.has_manage_user_leave_preferences(@user)
     end
   end
 end

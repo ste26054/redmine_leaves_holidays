@@ -34,8 +34,8 @@ class LeavePreference < ActiveRecord::Base
   end
 
   def validate_region
-  	regions = LeavesHolidaysLogic.get_region_list
-  	unless regions.include?(self.region.to_sym)
+  	regions = RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)
+  	unless regions.include?(self.region)
   		errors.add(:region, "is invalid")
   	end 
   end

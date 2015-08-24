@@ -314,10 +314,11 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def set_user_preferences
-    user_region = LeavesHolidaysLogic.user_params(self.user, :region)
-    self.region = user_region.to_sym
-    self.weekly_working_hours = LeavesHolidaysLogic.user_params(self.user, :weekly_working_hours)
-    self.annual_leave_days_max = LeavesHolidaysLogic.user_params(self.user, :annual_leave_days_max)
+    preferences = self.user.leave_preferences
+    
+    self.region = preferences.region.to_sym
+    self.weekly_working_hours = preferences.weekly_working_hours
+    self.annual_leave_days_max = preferences.annual_leave_days_max
   end
 
   def set_informational

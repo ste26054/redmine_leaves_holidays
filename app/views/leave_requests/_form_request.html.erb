@@ -8,7 +8,7 @@
 <%= form_for(@leave) do |f| %>
 	
 	<% if @leave.errors.any? %>
-	<div class="flash">
+	<div class="flash error">
 		<ul>
 	  		<% @leave.errors.full_messages.each do |msg| %>
 	    		<li><%= msg %></li>

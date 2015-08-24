@@ -3,7 +3,9 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
+
   before_action :set_user
+  before_action :set_leave_preferences
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
   before_filter :authenticate
@@ -24,11 +26,9 @@ class LeaveRequestsController < ApplicationController
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
 
-    contract_date = LeavesHolidaysLogic.user_params(@user, :contract_start_date).to_date
-    renewal_date = LeavesHolidaysLogic.user_params(@user, :leave_renewal_date).to_date
-    @period ||= LeavesHolidaysDates.get_contract_period_v2(contract_date, renewal_date)
-    @remaining ||= LeavesHolidaysDates.total_leave_days_remaining_v2(@user, @period[:start], @period[:end])
-    @taken ||= LeavesHolidaysDates.total_leave_days_taken(@user, @period[:start], @period[:end])
+    @period ||= @user.contract_period
+    @remaining ||= @user.days_remaining
+    @taken ||= @user.days_taken
 
     scope ||= LeaveRequest.for_user(@user.id)
     @limit = per_page_option
@@ -164,6 +164,10 @@ class LeaveRequestsController < ApplicationController
 
   def set_user
     @user ||= User.current
+  end
+
+  def set_leave_preferences
+    @leave_preferences ||= @user.leave_preferences
   end
 
 end

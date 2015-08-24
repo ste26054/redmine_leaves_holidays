@@ -46,6 +46,12 @@
 	</p>
 
 	<p>
+		<label>Regions available to select:</label>
+		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)) -%>
+		<%= select_tag "settings[available_regions]", options, :multiple => true, :size => 10 %>
+	</p>
+
+	<p>
 		<label>Default Contract Start date:</label>
 		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date) %>
 	</p>
