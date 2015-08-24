@@ -36,6 +36,10 @@ module LeavesHolidaysLogic
 		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end
 
+	def self.has_manage_user_leave_preferences(user)
+		user.allowed_to?(:manage_user_leave_preferences, nil, :global => true) || self.plugin_admins.include?(user.id)
+	end
+
 	def self.disabled_project_list
 		projs = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)
 		if projs != nil

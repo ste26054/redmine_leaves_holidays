@@ -1,0 +1,10 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
+<h1>Leave Dashboard</h1>
+
+
+<div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
+
+<%= render 'tab_preferences', :preferences => @preferences %>

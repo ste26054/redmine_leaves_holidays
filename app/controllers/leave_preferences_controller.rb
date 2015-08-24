@@ -1,10 +1,18 @@
 class LeavePreferencesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
+
+  helper :leave_requests
+  include LeaveRequestsHelper
   
-  before_action :set_user, :set_leave_preference
-  before_filter :authenticate, except: [:show, :notification]
+  before_action :set_user
+  before_action :set_leave_preference, except: [:index]
+  before_action :authenticate, except: [:show, :notification]
   before_action :set_holidays, only: [:new, :create, :edit, :update]
+
+  def index
+    
+  end
 
   def new
   	if @exists
@@ -75,7 +83,7 @@ private
 
   def set_user
       @user = User.current
-      @user_pref = User.find(params[:user_id])
+      @user_pref = User.find(params[:user_id]) unless action_name == "index"
   end
 
   def set_holidays
@@ -92,9 +100,13 @@ private
   end
 
   def authenticate
-    unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
-      redirect_to user_leave_preferences_path
-      return
+    if action_name != "index"
+      unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
+        redirect_to user_leave_preferences_path
+        return
+      end
+    else
+      render_403 unless LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
     end
   end
 end
