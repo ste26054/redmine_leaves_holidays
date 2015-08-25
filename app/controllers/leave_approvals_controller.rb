@@ -61,7 +61,7 @@ class LeaveApprovalsController < ApplicationController
   private
 
   def authenticate
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
+    render_403 unless LeavesHolidaysLogic.user_has_any_manage_right(@user)
   end
 
   def set_user

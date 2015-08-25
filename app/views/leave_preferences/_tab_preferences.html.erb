@@ -1,3 +1,5 @@
+<%= form_tag(bulk_edit_leave_preferences_path) do %>
+<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
 <div class="autoscroll">
 	<table class="list">
 		<thead>
@@ -8,8 +10,9 @@
 				<th colspan="5"></th>
 			</tr>
 			<tr>
+				<th class="checkbox hide-when-print"></th>
 				<th>User</th>
-				<th>Projects</th>
+				<th>Main projects</th>
 				<th>Region</th>
 				<th>Contract period</th>
 				<th>Remaining</th>
@@ -28,7 +31,8 @@
 		<tbody>
 			<% for u in users %>
 				<% lp = u.leave_preferences %>
-				<tr class="<%= cycle("odd", "even") %>">
+				<tr class="hascontextmenu <%= cycle("odd", "even") %>">
+				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %></td>
 				<td><%= u.login %></td>
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
@@ -43,10 +47,11 @@
 				<td><%= format_date(lp.contract_start_date) %></td>
 				<td><%= format_date(lp.leave_renewal_date) %></td>
 				<td><%= checked_image lp.is_contractor %></td>
-				<td><%= link_to 'Manage', new_user_leave_preferences_path(u), :class => 'icon icon-edit' %></td>
+				<td><%= link_to 'Manage', new_user_leave_preference_path(u), :class => 'icon icon-edit' %></td>
 				</tr>
 			<% end %>
 		
 		</tbody>
 	</table>
 </div>
+<% end -%>

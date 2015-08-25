@@ -23,6 +23,11 @@ class LeavePreference < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
+  def css_classes
+    s = "leave-preference user-#{self.user_id}"
+    return s
+  end
+
   private
 
   def default_days_leaves_months

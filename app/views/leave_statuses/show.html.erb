@@ -1,5 +1,5 @@
 <%= render partial: 'status', locals: {status: @status} %>
 
 <% if LeavesHolidaysLogic.has_right(User.current, leave_request.user, @status, :update, leave_request) %>
-	<td><%= link_to 'Manage', edit_leave_request_leave_statuses_path %></td>
+	<td><%= link_to 'Manage', edit_leave_request_leave_status_path %></td>
 <% end %>

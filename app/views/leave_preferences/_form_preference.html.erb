@@ -4,7 +4,7 @@
 
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 <div class="box">
-<%= form_for [user, preference], :url => user_leave_preferences_path, :remote => false do |f| %>
+<%= form_for [user, preference], :url => user_leave_preference_path, :remote => false do |f| %>
 
 
 		<% if preference.errors.any? %>
@@ -72,7 +72,7 @@
 | <a href="javascript:history.back()"><%= l(:button_back) %></a> |
 
 <% if @exists && LeavesHolidaysLogic.has_right(user, user_pref, preference, :delete) %>
-<%= link_to 'Revert to Defaults', user_leave_preferences_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
+<%= link_to 'Revert to Defaults', user_leave_preference_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>
 
 </div>

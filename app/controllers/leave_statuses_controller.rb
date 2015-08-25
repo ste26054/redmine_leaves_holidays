@@ -7,7 +7,7 @@ class LeaveStatusesController < ApplicationController
 
   def new
     if @status != nil
-      redirect_to edit_leave_request_leave_statuses_path
+      redirect_to edit_leave_request_leave_status_path
     else
       @status = LeaveStatus.new
     end
@@ -24,7 +24,7 @@ class LeaveStatusesController < ApplicationController
 
        redirect_to @leave
     else
-       redirect_to new_leave_request_leave_statuses_path
+       redirect_to new_leave_request_leave_status_path
     end
   end
 

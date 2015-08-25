@@ -58,7 +58,19 @@ module LeaveRequestsHelper
  	end
 
  	def user_projects(user)
- 		user.leave_memberships.collect{ |e| e.project.name }.uniq.join('<br/>').html_safe
+ 		projects = user.leave_memberships.collect{ |e| e.project }.uniq
+
+	 	s = ''.html_safe
+
+	    project_tree(projects) do |project, level|
+	      if level == 0
+		      name_prefix = ''.html_safe
+		      tag_options = {:value => project.id}
+
+		      s << content_tag('option', name_prefix + h(project), tag_options)
+		  end
+	    end
+	    s.html_safe
  	end
 
  	def contract_period(user)

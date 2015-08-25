@@ -17,7 +17,7 @@
 <% end %>
 
 <% if LeavesHolidaysLogic.has_rights(@user, @leave.user, LeaveStatus, [:create, :update], @leave, :or) %>
-	| <%= link_to 'Manage', new_leave_request_leave_statuses_path(@leave) %>
+	| <%= link_to 'Manage', new_leave_request_leave_status_path(@leave) %>
 <% end %>
 
 <% if LeavesHolidaysLogic.has_rights(@user, @leave.user, LeaveVote, [:create, :update], @leave, :or) %>
