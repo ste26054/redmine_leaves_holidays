@@ -31,6 +31,12 @@ class LeaveRequestsController < ApplicationController
     @taken ||= @user.days_taken
 
     scope ||= LeaveRequest.for_user(@user.id)
+
+    @include_past_leave = params[:include_past_leave] || "false"
+
+    if @include_past_leave == "false"
+      scope = scope.when(['ongoing', 'coming'])
+    end
     @limit = per_page_option
 
     @leave_count = scope.count

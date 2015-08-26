@@ -1,18 +1,5 @@
-
-<% unless LeavesHolidaysLogic.user_params(User.current, :is_contractor) %>
-	<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %> (Indicative)</h3>
-<% else %>
-	<h3>Total leave days taken from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @taken %> (Indicative)</h3>
-<% end %>
-
-
 <% if !leave_requests.empty? %>
-
-
-
-<!-- %w(id, number_days, from_date, to_date, reason) -->
-
-		<div class="autoscroll">
+	<div class="autoscroll">
 		<table class="list">
 			<thead>
 			<tr>
@@ -50,11 +37,11 @@
 				<% end -%>
 			</tbody>
 		</table>
-
 	</div>
 	<p class="pagination"><%= pagination_links_full leave_pages, leave_count %></p>
 <% else %>
-	<h3>You do not have any leave request</h3>
+	<h4>There are no leave requests to show</h4>
+	<br/>
 <% end %>
 
 <%= link_to "Create a New Leave Request", new_leave_request_path,:class => 'icon icon-add' %>

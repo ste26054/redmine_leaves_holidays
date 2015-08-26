@@ -6,4 +6,21 @@
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
+<% unless LeavesHolidaysLogic.user_params(User.current, :is_contractor) %>
+	<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %> (Indicative)</h3>
+<% else %>
+	<h3>Total leave days taken from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @taken %> (Indicative)</h3>
+<% end %>
+
+<fieldset><legend><%= l(:label_filter_plural) %></legend>
+	<%= form_tag leave_requests_path, :method => :get do %>
+
+		<label for='include_past_leave'>Include leave requests in the past:</label>
+		<%= check_box_tag 'include_past_leave', true, @include_past_leave == "true" %>
+
+		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+	<% end %>
+</fieldset>
+<br/>
+
 <%= render 'tab_requests', leave_requests: @leave_requests, leave_pages: @leave_pages, leave_count: @leave_count %>
