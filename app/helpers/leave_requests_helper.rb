@@ -23,6 +23,8 @@ module LeaveRequestsHelper
 
 		tabs << {:label => :tab_leaves_calendar, :controller => 'leave_calendars', :action => 'show'}
 
+		tabs << {:label => :tab_leaves_gantt, :controller => 'leave_gantts', :action => 'show'}
+
 		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
 		end

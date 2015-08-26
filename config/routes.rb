@@ -26,5 +26,6 @@ RedmineApp::Application.routes.draw do
 
 	get '/leave_approvals', :to => 'leave_approvals#index'
 	get '/leave_calendars', :to => 'leave_calendars#show'
+	get '/leave_gantts', :to => 'leave_gantts#show'
 
 end
