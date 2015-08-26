@@ -1,53 +1,52 @@
 <h3>Bulk Edit Leave Preferences for <%= @users_preferences.map{|p| p.user.login}.join(', ') %></h3>
-
+<div class="box">
 <%= form_for :preferences, :url => bulk_update_leave_preferences_path, :method => :put do |f| %>
 	<% for user_preference in @users_preferences %>
 		<%= hidden_field_tag "user_ids[]", user_preference.user_id %>
 	<% end %>
 
-		<% nc = "(No Change)" %>
 		<p>
 			<label>Weekly Working Hours:</label>
-			<%= f.text_field :weekly_working_hours, :placeholder => nc %>
+			<%= f.text_field :weekly_working_hours, :placeholder => l(:label_no_change_option) %>
 		</p>
 
 		<p>
 			<label>Annual Leave Days Max:</label>
-			<%= f.text_field :annual_leave_days_max, :placeholder => nc %>
+			<%= f.text_field :annual_leave_days_max, :placeholder => l(:label_no_change_option) %>
 		</p>
 
 		<p>
 			<label>Holidays Region:</label>
 			<%- options = @regions -%>
-			<%= f.select :region, options, :include_blank => nc %>
+			<%= f.select :region, options, :include_blank => l(:label_no_change_option) %>
 		</p>
 
 		<p>
 			<label>Extra Leave Days:</label>
-			<%= f.text_field :extra_leave_days, :placeholder => nc %>
+			<%= f.text_field :extra_leave_days, :placeholder => l(:label_no_change_option) %>
 			<label>Comments:</label>
-			<%= f.text_field :annual_max_comments, :placeholder => nc %>
+			<%= f.text_field :annual_max_comments, :placeholder => l(:label_no_change_option) %>
 		</p>
 
 		<p>
 			<label>Contract Start Date:</label>
-			<%= f.text_field :contract_start_date, readonly: true, :placeholder => nc %>
+			<%= f.text_field :contract_start_date, readonly: true, :placeholder => l(:label_no_change_option) %>
 			<%= calendar_for('preferences_contract_start_date') %>
 		</p>
 
 		<p>
 			<label>Leave Renewal Date (Year is ignored):</label>
-			<%= f.text_field :leave_renewal_date, readonly: true, :placeholder => nc %>
+			<%= f.text_field :leave_renewal_date, readonly: true, :placeholder => l(:label_no_change_option) %>
 			<%= calendar_for('preferences_leave_renewal_date') %>
 		</p>
 
 		<p>
 			<label>User is a Contractor (Disables the approval system):</label>
 			<%- options = [['No', 0],['Yes',1]] -%>
-			<%= f.select :is_contractor, options, :include_blank => nc  %>
+			<%= f.select :is_contractor, options, :include_blank => l(:label_no_change_option)  %>
 		</p>
-
 
 		<p><%= f.submit "Submit" %> | <a href="javascript:history.back()"><%= l(:button_back) %></a> </p>
 
 <% end %>
+</div>

@@ -44,6 +44,10 @@ module LeavesHolidaysLogic
 		user.memberships
 	end
 
+	def self.leave_projects
+		Project.active.where.not(id: self.disabled_project_list)
+	end
+
 	def self.disabled_project_list
 		projs = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)
 		if projs != nil
@@ -67,7 +71,7 @@ module LeavesHolidaysLogic
 		return self.has_manage_rights(user) || self.has_vote_rights(user) || self.has_view_all_rights(user) || self.plugin_admins.include?(user.id)
 	end
 
-	def self.users_with_create_leave_request
+	def self.users_with_create_leave_request(project_list = [])
 		user_ids = []
 		user_ids.concat(self.plugin_admins)
 
@@ -81,7 +85,10 @@ module LeavesHolidaysLogic
 		member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
 
 		# Get the uniq user ids of corresponding members
-		user_ids.concat(Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where.not(project_id: disabled_project_list).select(:user_id).distinct.pluck(:user_id))
+		members = Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where.not(project_id: disabled_project_list)
+		members = members.where(project_id: project_list) unless project_list.empty?
+
+		user_ids.concat(members.select(:user_id).distinct.pluck(:user_id))
 
 		return User.where(id: user_ids.uniq).order(:login)
 	end

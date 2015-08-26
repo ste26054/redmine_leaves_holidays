@@ -20,6 +20,7 @@ RedmineApp::Application.routes.draw do
 		collection do
 			match '/bulk_edit', :to => 'leave_preferences#bulk_edit', :via => [:get, :post]
 			put '/bulk_update', :to => 'leave_preferences#bulk_update'
+			get '/clear_filters', :to => 'leave_preferences#clear_filters'
 		end
 	end
 

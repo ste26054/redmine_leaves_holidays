@@ -43,7 +43,7 @@ module LeavesHolidaysTriggers
 
 	    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
 
-	    user.leave_preferences.update(extra_leave_days: remaining, annual_max_comments: "System reported #{remaining} on #{Date.today}")
+	    user.leave_preferences.update(extra_leave_days: remaining, annual_max_comments: "System reported #{remaining} days remaining on #{Date.today} for new leave period")
 
 	    event = LeaveEvent.new(user_id: user.id, event_type: "contract_renewal", comments: "extra: #{remaining}")
 	    event.save

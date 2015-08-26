@@ -73,6 +73,11 @@ module LeaveRequestsHelper
 	    s.html_safe
  	end
 
+ 	def leave_projects_options_for_select(selected)
+ 		projects = LeavesHolidaysLogic.leave_projects
+ 		project_tree_options_for_select(projects, :selected => selected)
+ 	end
+
  	def contract_period(user)
  		period = user.contract_period
  		output = "".html_safe

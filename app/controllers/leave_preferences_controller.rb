@@ -6,12 +6,28 @@ class LeavePreferencesController < ApplicationController
   include LeaveRequestsHelper
   
   before_action :set_user
-  before_action :set_user_preferences, except: [:index, :bulk_edit, :bulk_update]
+  before_action :set_user_preferences, except: [:index, :bulk_edit, :bulk_update, :clear_filters]
   before_action :authenticate, except: [:show, :notification]
   before_action :set_holidays, only: [:new, :create, :edit, :bulk_edit, :update, :bulk_update]
 
+  def clear_filters
+    if session[:leave_preference_filters]
+      session.delete(:leave_preference_filters)
+    end
+    redirect_to leave_preferences_path
+  end
+
   def index
-    @users = LeavesHolidaysLogic.users_with_create_leave_request
+    #render :text => "#{params.to_json}", :status => 200, :content_type => 'text/html'
+    @projects = LeavesHolidaysLogic.leave_projects
+    if params[:projects].present?
+      @projects = @projects.where(id: params[:projects])
+      session[:leave_preference_filters] = params[:projects]
+    else
+      @projects = @projects.where(id: session[:leave_preference_filters]) if session[:leave_preference_filters].present?
+    end
+
+    @users = LeavesHolidaysLogic.users_with_create_leave_request(@projects.pluck(:id))
   end
 
   def new
@@ -27,7 +43,7 @@ class LeavePreferencesController < ApplicationController
       event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_create", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
       event.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
-  		redirect_to edit_user_leave_preference_path
+  		redirect_to leave_preferences_path
   	else
   		flash[:error] = "Invalid preferences"
   		render :new
@@ -43,9 +59,14 @@ class LeavePreferencesController < ApplicationController
 
   def bulk_edit
     if params.has_key?(:user_ids)
-      users = User.find(params[:user_ids])
-      @users_preferences = users.map{|u| u.leave_preferences}
+      if params[:user_ids].count == 1
+        redirect_to new_user_leave_preference_path(User.find(params[:user_ids])) and return
+      else
+        users = User.find(params[:user_ids])
+        @users_preferences = users.map{|u| u.leave_preferences}
+      end
     else
+      flash[:warning] = "Please select at least one item from the list"
       redirect_to leave_preferences_path
     end
   end
@@ -79,7 +100,7 @@ class LeavePreferencesController < ApplicationController
           event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
           event.save
           flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
-          redirect_to edit_user_leave_preference_path
+          redirect_to leave_preferences_path
         end
       }
       format.js
@@ -90,7 +111,7 @@ class LeavePreferencesController < ApplicationController
     event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_deleted", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
     event.save
   	@preference.destroy
-  	redirect_to new_user_leave_preference_path
+  	redirect_to leave_preferences_path
   end
 
   def notification
@@ -120,13 +141,13 @@ private
   end
 
   def authenticate
-    unless action_name.in?(["index", "bulk_edit", "bulk_update"])
-      unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
-        redirect_to user_leave_preference_path
-        return
-      end
-    else
+    # unless action_name.in?(["index", "bulk_edit", "bulk_update", "clear_filters"])
+    #   unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
+    #     redirect_to user_leave_preference_path
+    #     return
+    #   end
+    # else
       render_403 unless LeavesHolidaysLogic.has_manage_user_leave_preferences(@user)
-    end
+    #end
   end
 end
