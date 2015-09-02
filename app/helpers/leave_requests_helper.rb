@@ -87,4 +87,15 @@ module LeaveRequestsHelper
  		output << "To: #{format_date(period[:end])}<br/>".html_safe
  	end
 
+ 	def months_options_for_select(selected)
+ 		options = Date::MONTHNAMES[1..-1].map.with_index(1).to_a
+ 		options_for_select(options, selected)
+ 	end
+
+ 	def years_options_for_select(selected)
+ 		year = Date.today.year
+ 		options = [*(year-5)..(year+5)].map{|k| [k.to_s.html_safe,k]}
+ 		options_for_select(options, selected)
+ 	end
+
 end

@@ -5,3 +5,41 @@
 <h1>Leave Dashboard</h1>
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
+<p>
+<%= form_tag leave_gantt_path, :method => :get do %>
+	Show: 
+	<%= text_field_tag 'lenght', @lenght, :size => 2 %> months from
+	<%= select_tag 'from_month', months_options_for_select(@month), :class => "small"  %>
+	<%= select_tag 'from_year', years_options_for_select(@year), :class => "small"  %>
+	<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+	<%= link_to l(:button_clear), leave_gantt_path, :class => 'icon icon-reload' %>
+<% end %>
+</p>
+
+<% unless @leave_list.empty? %>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	    
+	<script type="text/javascript">
+	  google.load("visualization", "1", {packages:["timeline"]});
+	  google.setOnLoadCallback(drawChart);
+
+	  function drawChart() {
+	    var container = document.getElementById('timeline');
+	    var chart = new google.visualization.Timeline(container);
+
+	    var dataTable = new google.visualization.DataTable('<%= @data.to_s.html_safe %>');
+
+		  var options = {
+			tooltip: {isHtml: true},
+			legend: 'none'
+		  };
+
+	    chart.draw(dataTable, options);
+	  }
+	</script>
+
+	<div id="timeline" style="height: 1000px;"></div>
+<% else %>
+<p>There is nothing to display</p>
+<% end %>
+
