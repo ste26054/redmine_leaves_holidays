@@ -25,14 +25,18 @@ class LeaveCalendarsController < ApplicationController
 
     @leave_requests = {}
 
-    @leave_requests['requests'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).for_user(@user.id)
+    # @leave_requests['requests'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).for_user(@user.id)
 
-    if LeavesHolidaysLogic.has_view_all_rights(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).accepted
-    elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
-      @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).processable_by(@user)
-    else
-    end
+    # if LeavesHolidaysLogic.has_view_all_rights(@user)
+    #   @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).accepted
+    # elsif LeavesHolidaysLogic.user_has_any_manage_right(@user)
+    #   @leave_requests['approvals'] ||= LeaveRequest.overlaps(@calendar.startdt, @calendar.enddt).processable_by(@user)
+    # else
+    # end
+
+    user_projects = @user.leave_memberships.pluck(:project_id)
+    projects_members = Member.includes(:project, :user).where(users: {status: 1}, project_id: user_projects).pluck(:user_id).uniq
+    @leave_requests['requests'] ||= LeaveRequest.where(user_id: projects_members).overlaps(@calendar.startdt, @calendar.enddt)
 
   end
 

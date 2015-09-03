@@ -251,6 +251,18 @@ class LeaveRequest < ActiveRecord::Base
     s << ' needs-attention' if manageable && self.from_date <= Date.today && self.get_status.in?(["submitted", "processing"])
     return s
   end
+
+  def css_style
+    hex = Digest::MD5.hexdigest(self.user.login)[0..5]
+    rgb = hex.match(/(..)(..)(..)/).to_a.drop(1).map(&:hex)
+
+    #http://www.w3.org/TR/AERT#color-contrast
+    treshold = ((rgb[0] * 299) + (rgb[1] * 587) + (rgb[2] * 114)) / 1000
+
+    font_color = treshold > 125 ? "black" : "white"
+
+    return "background: \##{hex}; color: #{font_color};"
+  end
     
 	private
 
