@@ -11,6 +11,8 @@
 
 		<label for='projects'>Project:</label>
 		<%= select_tag 'projects', leave_projects_options_for_select(@projects), :class => "small", :multiple => true  %>
+		<label for='Roles'>Roles:</label>
+		<%= select_tag 'roles', roles_options_for_select(@role_ids), :class => "small", :multiple => true  %>
 
 		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
 		<%= link_to l(:button_clear), clear_filters_leave_preferences_path, :class => 'icon icon-reload' %>

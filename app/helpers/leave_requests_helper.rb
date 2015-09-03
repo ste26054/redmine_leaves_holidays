@@ -86,4 +86,9 @@ module LeaveRequestsHelper
  		output << "To: #{format_date(period[:end])}<br/>".html_safe
  	end
 
+ 	def roles_options_for_select(selected)
+ 		options = Role.all.givable.map{|k| [k.name, k.id]}
+ 		options_for_select(options, selected)
+ 	end
+
 end
