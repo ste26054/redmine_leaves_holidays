@@ -74,7 +74,8 @@ module LeaveRequestsHelper
  	end
 
  	def leave_projects_options_for_select(selected)
- 		projects = LeavesHolidaysLogic.leave_projects
+ 		# projects = LeavesHolidaysLogic.leave_projects
+ 		projects = Project.all.active
  		project_tree_options_for_select(projects, :selected => selected)
  	end
 
