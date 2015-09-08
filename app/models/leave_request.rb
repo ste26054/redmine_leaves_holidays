@@ -256,17 +256,6 @@ class LeaveRequest < ActiveRecord::Base
     return s
   end
 
-
-  def to_datatable_format
-    hsh =  {"c"=>[
-            {"v"=>"#{self.user.name}"}, 
-            {"v"=>"Date(#{self.from_date.year}, #{self.from_date.month - 1}, #{self.from_date.day})"}, 
-            {"v"=>"Date(#{self.to_date.year}, #{self.to_date.month - 1}, #{self.to_date.day})"},
-            {"v"=>"TEST"}
-            ]}
-    return hsh
-  end
-
   def css_style
     hex = Digest::MD5.hexdigest(self.user.login)[0..5]
     rgb = hex.match(/(..)(..)(..)/).to_a.drop(1).map(&:hex)

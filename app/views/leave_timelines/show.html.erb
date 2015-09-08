@@ -1,0 +1,25 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
+<h1>Leave Dashboard</h1>
+
+<div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
+<p>
+<%= form_tag leave_timeline_path, :method => :get do %>
+	Show: 
+	<%= text_field_tag 'lenght', @lenght, :size => 2 %> months from
+	<%= select_tag 'from_month', months_options_for_select(@month), :class => "small"  %>
+	<%= select_tag 'from_year', years_options_for_select(@year), :class => "small"  %>
+	<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+	<%= link_to l(:button_clear), leave_timeline_path, :class => 'icon icon-reload' %>
+<% end %>
+</p>
+
+<% unless @leave_list.empty? %>
+
+
+<% else %>
+<p>There is nothing to display</p>
+<% end %>
+

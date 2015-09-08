@@ -1,22 +1,6 @@
 module LeavesHolidaysLogic
 	using LeavesHolidaysExtensions #local patch of user methods 
 
-	def self.leave_to_datatable_format(leave_list)
-		hsh = { "cols"=>[
-                        {"type"=>"string", "id"=>"Leave User"}, 
-                        {"type"=>"date", "id"=>"Start"}, 
-                        {"type"=>"date", "id"=>"End"},
-                        {"type"=>"string","role"=>"tooltip"}
-                      ], 
-              "rows"=>[]
-            }
-        leave_list.each do |l|
-        	hsh["rows"] << l.to_datatable_format
-        end
-        return hsh
-
-	end
-
 	def self.issues_list
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
 		issues_project = RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)

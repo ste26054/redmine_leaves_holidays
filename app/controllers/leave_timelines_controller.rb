@@ -1,4 +1,4 @@
-class LeaveGanttsController < ApplicationController
+class LeaveTimelinesController < ApplicationController
   unloadable
 
   helper :leave_requests
@@ -14,7 +14,7 @@ class LeaveGanttsController < ApplicationController
     from = Date.new(@year.to_i,@month.to_i,1)
     to = from + @lenght.to_i.months
     @leave_list = LeaveRequest.all.overlaps(from, to).not_rejected
-    @data = @leave_list.to_datatable.to_json
+
   end
 
   private
