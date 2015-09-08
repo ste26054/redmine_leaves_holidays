@@ -504,8 +504,7 @@ module LeavesHolidaysLogic
 	users = members.map(&:user).flatten.uniq
 
   	users.each do |user|
-		# user = member.user
-		leave = LeaveRequest.for_user(user.id).overlaps(day,day).find_each do |l|
+		leave = LeaveRequest.for_user(user.id).overlaps(day,day).order(:from_date).find_each do |l|
 			list << l unless l.get_status.in?(["created","cancelled","rejected"])
 		end
 	end
