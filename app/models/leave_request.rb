@@ -256,6 +256,7 @@ class LeaveRequest < ActiveRecord::Base
     return s
   end
 
+
   def to_datatable_format
     hsh =  {"c"=>[
             {"v"=>"#{self.user.name}"}, 
@@ -264,6 +265,18 @@ class LeaveRequest < ActiveRecord::Base
             {"v"=>"TEST"}
             ]}
     return hsh
+  end
+
+  def css_style
+    hex = Digest::MD5.hexdigest(self.user.login)[0..5]
+    rgb = hex.match(/(..)(..)(..)/).to_a.drop(1).map(&:hex)
+
+    #http://www.w3.org/TR/AERT#color-contrast
+    treshold = ((rgb[0] * 299) + (rgb[1] * 587) + (rgb[2] * 114)) / 1000
+
+    font_color = treshold > 125 ? "black" : "white"
+
+    return "background: \##{hex}; color: #{font_color};"
   end
     
 	private
@@ -345,19 +358,36 @@ class LeaveRequest < ActiveRecord::Base
 
   def validate_overlaps
     overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
-    
-    overlaps.created.find_each do |p|
-      errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
-    end
 
-    overlaps.submitted.find_each do |p|
-      errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
-    end
+    if half_day?
+      if overlaps.count > 1
+        overlaps.find_each do |p|
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+        end
+      elsif overlaps.count == 1
+        o = overlaps.first
+        if !o.half_day? || (o.has_am? && self.has_am?) || (o.has_pm? && self.has_pm?)
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{o.id} From: #{o.from_date}, To: #{o.to_date}")
+        end
+      else
 
-    overlaps.processed.find_each do |p|
-      LeaveStatus.for_request(p.id).accepted.find_each do |a|
-        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
       end
+    else
+    
+      overlaps.created.find_each do |p|
+        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+      end
+
+      overlaps.submitted.find_each do |p|
+        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+      end
+
+      overlaps.processed.find_each do |p|
+        LeaveStatus.for_request(p.id).accepted.find_each do |a|
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
+        end
+      end
+
     end
   end
 

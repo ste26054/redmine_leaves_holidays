@@ -18,8 +18,7 @@ class LeavePreferencesController < ApplicationController
   end
 
   def index
-    #render :text => "#{params.to_json}", :status => 200, :content_type => 'text/html'
-    @projects = LeavesHolidaysLogic.leave_projects
+    @projects = Project.all.active
     if params[:projects].present?
       @projects = @projects.where(id: params[:projects])
       session[:leave_preference_filters] = params[:projects]
@@ -27,7 +26,19 @@ class LeavePreferencesController < ApplicationController
       @projects = @projects.where(id: session[:leave_preference_filters]) if session[:leave_preference_filters].present?
     end
 
-    @users = LeavesHolidaysLogic.users_with_create_leave_request(@projects.pluck(:id))
+    roles = Role.all.givable
+    if params[:roles].present?
+      roles = roles.where(id: params[:roles])
+      session[:leave_preference_filters_roles] = params[:roles]
+    else
+      roles = roles.where(id: session[:leave_preference_filters_roles]) if session[:leave_preference_filters_roles].present?
+    end
+
+    @role_ids = roles.pluck(:id)
+
+    member_role_ids = MemberRole.where(role_id: @role_ids).pluck(:id)
+    
+    @users = User.find(Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq)
   end
 
   def new

@@ -47,6 +47,8 @@ class LeaveRequestsController < ApplicationController
 
   def new
   	@leave = LeaveRequest.new
+    @leave.leave_time_am = true
+    @leave.leave_time_pm = true
   end
 
   def create
