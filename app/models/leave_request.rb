@@ -343,19 +343,36 @@ class LeaveRequest < ActiveRecord::Base
 
   def validate_overlaps
     overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
-    
-    overlaps.created.find_each do |p|
-      errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
-    end
 
-    overlaps.submitted.find_each do |p|
-      errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
-    end
+    if half_day?
+      if overlaps.count > 1
+        overlaps.find_each do |p|
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+        end
+      elsif overlaps.count == 1
+        o = overlaps.first
+        if !o.half_day? || (o.has_am? && self.has_am?) || (o.has_pm? && self.has_pm?)
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{o.id} From: #{o.from_date}, To: #{o.to_date}")
+        end
+      else
 
-    overlaps.processed.find_each do |p|
-      LeaveStatus.for_request(p.id).accepted.find_each do |a|
-        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
       end
+    else
+    
+      overlaps.created.find_each do |p|
+        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+      end
+
+      overlaps.submitted.find_each do |p|
+        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+      end
+
+      overlaps.processed.find_each do |p|
+        LeaveStatus.for_request(p.id).accepted.find_each do |a|
+          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
+        end
+      end
+
     end
   end
 
