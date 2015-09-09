@@ -22,10 +22,11 @@ while day <= calendar.enddt %>
 
 
   <% l = []
-     l = leave_requests['requests'].overlaps(day, day).order(:from_date) if leave_requests.has_key?('requests') && !leave_requests['requests'].empty?
+     l = leave_requests['requests'].overlaps(day, day) if leave_requests.has_key?('requests') && !leave_requests['requests'].empty?
      a = []
-     a = leave_requests['approvals'].overlaps(day, day).order(:from_date) if leave_requests.has_key?('approvals') && !leave_requests['approvals'].empty?
-     leave_list = (a + l).flatten.uniq %>
+     a = leave_requests['approvals'].overlaps(day, day) if leave_requests.has_key?('approvals') && !leave_requests['approvals'].empty?
+     week_period = LeavesHolidaysLogic.week_period_from_date(day)
+     leave_list = (a + l).flatten.uniq.sort{|a,b| a.leave_days_within(week_period[:start_date], week_period[:end_date]) <=> b.leave_days_within(week_period[:start_date], week_period[:end_date])}.reverse %>
 
 
   <% unless leave_list.empty? %>

@@ -161,6 +161,23 @@ class LeaveRequest < ActiveRecord::Base
     return working_days
   end
 
+  def leave_days_within(from, to)
+    if half_day?
+      if (from_date <= to && from <= to_date)
+        return 0.5
+      else
+        return 0.0
+      end
+    end
+
+    leave_interval = from_date..to_date
+    range_interval = from..to
+
+    inters = leave_interval.to_a & range_interval.to_a
+
+    return (inters.max + 1 - inters.min).to_i
+  end
+
   # Restricts the actual leave days to a given period
   def actual_leave_days_within(from, to)
     if half_day?
