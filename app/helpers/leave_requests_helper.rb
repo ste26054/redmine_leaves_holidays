@@ -76,7 +76,6 @@ module LeaveRequestsHelper
  	end
 
  	def leave_projects_options_for_select(selected)
- 		# projects = LeavesHolidaysLogic.leave_projects
  		projects = Project.all.active
  		project_tree_options_for_select(projects, :selected => selected)
  	end
@@ -96,6 +95,7 @@ module LeaveRequestsHelper
  	def years_options_for_select(selected)
  		year = Date.today.year
  		options = [*(year-5)..(year+5)].map{|k| [k.to_s.html_safe,k]}
+ 		options_for_select(options, selected)
  	end
 
  	def roles_options_for_select(selected)
