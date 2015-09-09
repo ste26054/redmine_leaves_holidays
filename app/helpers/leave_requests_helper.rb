@@ -58,7 +58,7 @@ module LeaveRequestsHelper
  	end
 
  	def user_projects(user)
- 		projects = user.leave_memberships.collect{ |e| e.project }.uniq
+ 		projects = user.memberships.collect{ |e| e.project }.uniq
 
 	 	s = ''.html_safe
 
