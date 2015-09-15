@@ -91,4 +91,9 @@
 		<%= select_tag "settings[default_quiet_projects]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
+	<p>
+	<label>Display only leave request in project calendar (ignores filters applied):</label>
+		<%= check_box_tag "settings[display_only_leave]",1, RedmineLeavesHolidays::Setting.defaults_settings(:display_only_leave).to_i == 1 %>
+	</p>
+
 </fieldset>

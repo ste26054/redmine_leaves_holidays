@@ -504,11 +504,19 @@ module LeavesHolidaysLogic
 	users = members.map(&:user).flatten.uniq
 
   	users.each do |user|
-		leave = LeaveRequest.for_user(user.id).overlaps(day,day).order(:from_date).find_each do |l|
+		leave = LeaveRequest.for_user(user.id).overlaps(day,day).find_each do |l|
 			list << l unless l.get_status.in?(["created","cancelled","rejected"])
 		end
 	end
-	return list.sort_by {|l| l.from_date}
+	return list
+  end
+
+  def self.week_period_from_date(date)
+  	hsh = {}
+  	day_count = date.cwday
+  	hsh[:start_date] = date - (day_count - 1)
+  	hsh[:end_date] = hsh[:start_date] + 6
+  	return hsh
   end
 
 

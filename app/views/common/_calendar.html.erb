@@ -12,7 +12,10 @@ while day <= calendar.enddt %>
 <p class="day-num"><%= day.day %></p>
 
 <% if @project %>
-  <% leave_list = LeavesHolidaysLogic.leave_on_for_project(day, @project) %>
+  <% 
+      week_period = LeavesHolidaysLogic.week_period_from_date(day)
+      leave_list = LeavesHolidaysLogic.leave_on_for_project(day, @project).flatten.uniq.sort{|a,b| a.leave_days_within(week_period[:start_date], week_period[:end_date]) <=> b.leave_days_within(week_period[:start_date], week_period[:end_date])}.reverse
+  %>
 
 
   <% unless leave_list.empty? %>
@@ -44,20 +47,23 @@ while day <= calendar.enddt %>
 
 <% end %>
 
-<% calendar.events_on(day).each do |i| %>
-  <% if i.is_a? Issue %>
-  <div class="<%= i.css_classes %> <%= 'starting' if day == i.start_date %> <%= 'ending' if day == i.due_date %> tooltip">
-  <%= h("#{i.project} -") unless @project && @project == i.project %>
-  <%= link_to_issue i, :truncate => 30 %>
-  <span class="tip"><%= render_issue_tooltip i %></span>
-  </div>
-  <% else %>
-  <span class="icon icon-package">
+<% unless RedmineLeavesHolidays::Setting.defaults_settings(:display_only_leave) %>
+  <% calendar.events_on(day).each do |i| %>
+    <% if i.is_a? Issue %>
+    <div class="<%= i.css_classes %> <%= 'starting' if day == i.start_date %> <%= 'ending' if day == i.due_date %> tooltip">
     <%= h("#{i.project} -") unless @project && @project == i.project %>
-    <%= link_to_version i%>
-  </span>
+    <%= link_to_issue i, :truncate => 30 %>
+    <span class="tip"><%= render_issue_tooltip i %></span>
+    </div>
+    <% else %>
+    <span class="icon icon-package">
+      <%= h("#{i.project} -") unless @project && @project == i.project %>
+      <%= link_to_version i%>
+    </span>
+    <% end %>
   <% end %>
 <% end %>
+
 </td>
 <%= '</tr><tr>'.html_safe if day.cwday==calendar.last_wday and day!=calendar.enddt %>
 <% day = day + 1

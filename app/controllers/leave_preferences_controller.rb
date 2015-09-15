@@ -38,7 +38,8 @@ class LeavePreferencesController < ApplicationController
 
     member_role_ids = MemberRole.where(role_id: @role_ids).pluck(:id)
     
-    @users = User.find(Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq)
+    user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
+    @users = User.where(id: user_ids).order(:login)
   end
 
   def new
