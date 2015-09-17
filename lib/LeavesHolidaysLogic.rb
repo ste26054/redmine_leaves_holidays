@@ -492,23 +492,19 @@ module LeavesHolidaysLogic
       return p
   end
 
-  def self.leave_on_for_project(day, projects)
+  def self.leave_on_for_project(day, project)
   	list = []
 
   	members = []
-  	if !projects.is_a?(Array)
-		projects = [projects]
-	end
 
-	members = projects.map(&:members).flatten.uniq
-	users = members.map(&:user).flatten.uniq
+		users = project.members.includes(:user).map(&:user)
 
   	users.each do |user|
-		leave = LeaveRequest.for_user(user.id).overlaps(day,day).find_each do |l|
-			list << l unless l.get_status.in?(["created","cancelled","rejected"])
+			leave = LeaveRequest.for_user(user.id).overlaps(day,day).find_each do |l|
+				list << l unless l.get_status.in?(["created","cancelled","rejected"])
+			end
 		end
-	end
-	return list
+		return list
   end
 
   def self.week_period_from_date(date)
@@ -519,6 +515,57 @@ module LeavesHolidaysLogic
   	return hsh
   end
 
+  # returns only users from user_list that user_accessor can see in leave approval list
+  def self.users_leave_approval_list(user_accessor, users_list)
+  	out_list = []
 
+  	# get uniq users from list
+  	users_list = users_list.uniq
+  	return users_list if self.plugin_admins.include?(user_accessor.id) || self.has_view_all_rights(user_accessor)
+
+  	# Remove user accessor if it was in the list as user_accessor is not admin or can't view all requests
+  	users_list -= [user_accessor]
+
+  	# user_accessor cannot manage anything if he has'nt a manage right
+  	return [] unless self.user_has_any_manage_right(user_accessor)
+
+  	# Parse all leave projects from the user_list provided
+  	users_list_projects = self.leave_projects.joins(:memberships).where(:members => { user_id: users_list.map(&:id) }).uniq
+  	
+
+  	user_accessor_projects_req = LeavesHolidaysLogic.members_with_any_manage_right_list.where(user_id: user_accessor.id)
+
+  	# Get user_accessor projects where he has a manage right
+  	user_accessor_projects = user_accessor_projects_req.map(&:project)
+
+  	# Get common project between both lists
+  	common_projects = users_list_projects & user_accessor_projects
+
+  	# Return empty list if no projects are in common
+  	return [] if common_projects.empty?
+  	#users_list.delete_if { |user_owner| self.allowed_common_project(user_accessor, user_owner, 3).empty? }
+
+  	# Parse each common project
+  	common_projects.each do |project|
+
+  		# Get member associated to user_accessor for the given project
+  		member_accessor = user_accessor_projects_req.find_by(project_id: project.id)
+  		roles_accessor = member_accessor.roles.order(:position)
+
+  		# get members from this project associated to users_list
+  		members_list = Member.where(project_id: project.id, user_id: users_list.map(&:id)).includes(:roles, :user).order('roles.position')
+
+  		members_list.each do |member|
+  			roles_accessor.each do |role|
+  				if role.position < member.roles.first.position
+  					out_list << member.user
+  					users_list -= [member.user]
+  				end
+  			end
+  		end
+  	end
+
+  	return out_list
+  end
 
 end
