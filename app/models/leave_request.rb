@@ -269,8 +269,12 @@ class LeaveRequest < ActiveRecord::Base
     return s
   end
 
+  def css_background_color
+    Digest::MD5.hexdigest(self.user.login)[0..5]
+  end
+
   def css_style
-    hex = Digest::MD5.hexdigest(self.user.login)[0..5]
+    hex = css_background_color
     rgb = hex.match(/(..)(..)(..)/).to_a.drop(1).map(&:hex)
 
     #http://www.w3.org/TR/AERT#color-contrast
