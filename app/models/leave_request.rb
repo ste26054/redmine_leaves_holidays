@@ -77,11 +77,12 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :processable_by, ->(user) {
     ids = []
-    where.not(request_status: 0).find_each do |leave|
-      ids << leave.id if LeavesHolidaysLogic.has_rights(user, leave.user, [LeaveStatus, LeaveVote], [:read, :create, :update], leave, :or)
-    end
 
-    where(id: ids)
+    leave_list = LeaveRequest.where.not(request_status: 0).includes(:user)
+
+    user_list = LeavesHolidaysLogic.users_leave_approval_list(user, leave_list.map(&:user).uniq)
+
+    leave_list.where(user_id: user_list.map(&:id))
   }
 
   scope :viewable_by, ->(uid) {
@@ -111,16 +112,11 @@ class LeaveRequest < ActiveRecord::Base
     where(id: ids)
    }
 
-   scope :to_datatable, -> {
-    return LeavesHolidaysLogic.leave_to_datatable_format(all.to_a)#.to_json
-   }
 
   def get_status
     return self.request_status unless self.request_status == "processed"
     return self.leave_status.acceptance_status
   end
-
-
 
   def get_days(arg)
     LeavesHolidaysDates.get_days(arg, self.user)
