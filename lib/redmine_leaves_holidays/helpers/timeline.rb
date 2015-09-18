@@ -7,6 +7,7 @@ module RedmineLeavesHolidays
       include ERB::Util
       include Redmine::I18n
       include Redmine::Utils::DateCalculation
+      include LeaveTimelinesHelper
 
       attr_reader :year_from, :month_from, :date_from, :date_to, :zoom, :months, :truncated, :max_rows
 
@@ -26,7 +27,7 @@ module RedmineLeavesHolidays
           @year_from ||= Date.today.year
         end
         zoom = (options[:zoom] || User.current.pref[:timeline_zoom]).to_i
-        @zoom = (zoom > 0 && zoom < 5) ? zoom : 2
+        @zoom = (zoom > 0 && zoom < 6) ? zoom : 5
         months = (options[:months] || User.current.pref[:timeline_months]).to_i
         @months = (months > 0 && months < 25) ? months : 1
 
@@ -129,7 +130,7 @@ module RedmineLeavesHolidays
 
       def line_for_user(user, options)
         leave_list_for_user(user).each do |leave|
-          label = "LEAVE"
+          label = ''#leave.issue.subject
           line(leave.from_date, leave.to_date, false, label, options, leave)
         end
       end
@@ -175,12 +176,12 @@ module RedmineLeavesHolidays
       def html_subject_content(object)
         user = object
         css_classes = ''
-        css_classes << ' icon icon-issue'
+        css_classes << ' icon'
 
         s = "".html_safe
 
           s << view.avatar(user,
-                           :class => 'gravatar icon-gravatar',
+                           
                            :size => 10,
                            :title => '').to_s.html_safe
 
@@ -215,6 +216,10 @@ module RedmineLeavesHolidays
           style << "width:#{width}px;"
           style << "height:10px;"
           style << object.css_style
+          if object.get_status != "accepted"
+            style << "background: repeating-linear-gradient(45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 30px);"
+            style << "filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#606dbc', endColorstr='#460000');"
+          end
           html_id = "task-todo-issue-#{object.id}"
           content_opt = {:style => style,
                          :class => "#{css} task_todo",
@@ -254,21 +259,21 @@ module RedmineLeavesHolidays
                                      :style => style,
                                      :class => "#{css} label")
         end
-        # Renders the tooltip
-        # if coords[:bar_start] && coords[:bar_end]
-        #   s = view.content_tag(:span,
-        #                        view.render_issue_tooltip(object).html_safe,
-        #                        :class => "tip")
-        #   style = ""
-        #   style << "position: absolute;"
-        #   style << "top:#{params[:top]}px;"
-        #   style << "left:#{coords[:bar_start]}px;"
-        #   style << "width:#{coords[:bar_end] - coords[:bar_start]}px;"
-        #   style << "height:12px;"
-        #   output << view.content_tag(:div, s.html_safe,
-        #                              :style => style,
-        #                              :class => "tooltip")
-        # end
+        #Renders the tooltip
+        if coords[:bar_start] && coords[:bar_end]
+          s = view.content_tag(:span,
+                               view.render_leave_tooltip(object).html_safe,
+                               :class => "ltip")
+          style = ""
+          style << "position: absolute;"
+          style << "top:#{params[:top]}px;"
+          style << "left:#{coords[:bar_start]}px;"
+          style << "width:#{coords[:bar_end] - coords[:bar_start]}px;"
+          style << "height:12px;"
+          output << view.content_tag(:div, s.html_safe,
+                                     :style => style,
+                                     :class => "ltooltip")
+        end
         @lines << output
         output
       end

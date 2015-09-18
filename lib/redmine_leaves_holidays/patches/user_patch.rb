@@ -46,6 +46,22 @@ module RedmineLeavesHolidays
 				period = self.contract_period
 				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], Date.today)
 			end
+
+			def css_background_color
+    		Digest::MD5.hexdigest(self.login)[0..5]
+  		end
+
+		  def css_style
+		    hex = css_background_color
+		    rgb = hex.match(/(..)(..)(..)/).to_a.drop(1).map(&:hex)
+
+		    #http://www.w3.org/TR/AERT#color-contrast
+		    treshold = ((rgb[0] * 299) + (rgb[1] * 587) + (rgb[2] * 114)) / 1000
+
+		    font_color = treshold > 125 ? "black" : "white"
+
+		    return "background: \##{hex}; color: #{font_color};"
+		  end
 		end
 	end
 end
