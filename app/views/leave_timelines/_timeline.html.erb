@@ -1,6 +1,10 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
 <% timeline.view = self %>
 
-<%= form_tag({:controller => 'leave_timelines', :action => 'show',
+<%= form_tag({:controller => 'leave_timelines', :action => action,
              :month => params[:month],
              :year => params[:year], :months => params[:months]},
              :method => :get, :id => 'query_form') do %>
@@ -23,6 +27,8 @@
 
 <%= link_to_function l(:button_apply), '$("#query_form").submit()',
                      :class => 'icon icon-checked' %>
+<%= link_to l(:button_clear), { :set_filter => 1 },
+            :class => 'icon icon-reload' %>
 
 </p>
 <% end %>

@@ -492,11 +492,6 @@ module LeavesHolidaysLogic
     return p
   end
 
-  def self.leave_for_project(project)
-  	user_ids = project.members.pluck(:user_id)
-  	LeaveRequest.where(user_id: user_ids).not.created
-  end
-
   def self.leave_on_for_project(day, project)
   	list = []
 

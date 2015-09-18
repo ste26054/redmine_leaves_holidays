@@ -11,7 +11,9 @@ module RedmineLeavesHolidays
 
       attr_reader :year_from, :month_from, :date_from, :date_to, :zoom, :months, :truncated, :max_rows
 
-      attr_accessor :view, :leave_list
+      attr_accessor :view
+      attr_accessor :leave_list
+      attr_accessor :project
 
       def initialize(options={})
         options = options.dup
@@ -50,7 +52,12 @@ module RedmineLeavesHolidays
       end
 
       def common_params
-        { :controller => 'leave_timelines', :action => 'show' }
+        p = { :controller => 'leave_timelines', :action => 'show' }
+        if @project
+          p.merge({:project_id => @project.id})
+          p[:action] = 'show_project'
+        end
+        return p
       end
 
       def params
