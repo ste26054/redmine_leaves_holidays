@@ -1,9 +1,5 @@
 # English strings go here for Rails i18n
 en:
-  time:
-    formats:
-      short: "arrrround %H'ish"
-  # my_label: "My label"
   label_leaves_page_description: "Create a new Leave Request"
   button_leaves_holidays: "Leave / Holidays"
   label_leave_create_request: "Create new leave request"
@@ -25,4 +21,4 @@ en:
   tab_leaves_approval: "Leave Management"
   tab_leaves_calendar: "Calendar View"
   tab_user_leaves_preferences: "Users Preferences"
-  tab_leaves_timeline: "Timeline View"
+  tab_leaves_timeline: "Leave Timeline"

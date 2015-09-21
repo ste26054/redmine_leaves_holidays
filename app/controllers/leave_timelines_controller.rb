@@ -1,5 +1,7 @@
 class LeaveTimelinesController < ApplicationController
   unloadable
+
+  menu_item :redmine_leaves_holidays
   include LeavesHolidaysLogic
 
   helper :leave_requests

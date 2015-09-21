@@ -187,8 +187,11 @@
     height = g_height + header_height - 1
     wday = timeline.date_from.cwday
   %>
-  <% (timeline.date_to - timeline.date_from + 1).to_i.times do %>
+  <% (timeline.date_to - timeline.date_from + 1).to_i.times do |i| %>
     <%
+      is_holiday_date = timeline.holiday_date(timeline.date_from + i)
+      title = ""
+      title = "#{format_date(timeline.date_from + i)}: Bank Holiday (#{timeline.country_holiday_list(timeline.date_from + i).join(", ")})"
       width =  zoom - 1
       style  = ""
       style += "left: #{left}px;"
@@ -196,10 +199,12 @@
       style += "width: #{width}px;"
       style += "height: #{height}px;"
       style += "font-size:0.7em;"
+      style += "font-weight:bold;" if is_holiday_date
       clss = "gantt_hdr"
       clss << " nwday" if timeline.non_working_week_days.include?(wday)
+      clss << " holiday" if is_holiday_date
     %>
-    <%= content_tag(:div, :style => style, :class => clss) do %>
+    <%= content_tag(:div, :style => style, :class => clss, :title => title) do %>
       <%= day_letter(wday) %>
     <% end %>
     <%
@@ -207,6 +212,7 @@
       wday = wday + 1
       wday = 1 if wday > 7
     %>
+
   <% end %>
 <% end %>
 

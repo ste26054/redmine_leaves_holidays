@@ -153,6 +153,18 @@ module RedmineLeavesHolidays
         html_subject(options, label, object)
       end
 
+      def countries
+        user_ids = @leave_list.distinct.pluck(:user_id)
+        LeavePreference.where(user_id: user_ids).distinct.pluck(:region)
+      end
+
+      def holiday_date(date)
+        countries.map {|c| date.holiday?(c.to_sym, :observed)}.any?
+      end
+
+      def country_holiday_list(date)
+        countries.delete_if {|c| !date.holiday?(c.to_sym, :observed)}
+      end
 
     private
 

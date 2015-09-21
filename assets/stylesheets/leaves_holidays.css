@@ -41,3 +41,5 @@ position:absolute;
 top:12px; left:24px; width:270px;
 font-size: 0.8em;
 }
+
+.gantt_hdr.holiday {background-color:#DADADA;}
