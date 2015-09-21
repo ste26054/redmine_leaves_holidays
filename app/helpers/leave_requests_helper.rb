@@ -23,6 +23,8 @@ module LeaveRequestsHelper
 
 		tabs << {:label => :tab_leaves_calendar, :controller => 'leave_calendars', :action => 'show'}
 
+		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
+
 		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
 		end
@@ -74,7 +76,6 @@ module LeaveRequestsHelper
  	end
 
  	def leave_projects_options_for_select(selected)
- 		# projects = LeavesHolidaysLogic.leave_projects
  		projects = Project.all.active
  		project_tree_options_for_select(projects, :selected => selected)
  	end
@@ -84,6 +85,17 @@ module LeaveRequestsHelper
  		output = "".html_safe
  		output << "From: #{format_date(period[:start])}<br/>".html_safe
  		output << "To: #{format_date(period[:end])}<br/>".html_safe
+ 	end
+
+ 	def months_options_for_select(selected)
+ 		options = Date::MONTHNAMES[1..-1].map.with_index(1).to_a
+ 		options_for_select(options, selected)
+ 	end
+
+ 	def years_options_for_select(selected)
+ 		year = Date.today.year
+ 		options = [*(year-5)..(year+5)].map{|k| [k.to_s.html_safe,k]}
+ 		options_for_select(options, selected)
  	end
 
  	def roles_options_for_select(selected)

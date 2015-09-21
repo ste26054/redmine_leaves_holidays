@@ -479,17 +479,17 @@ module LeavesHolidaysLogic
 	end
 
 	def self.retrieve_leave_preferences(user)
-      p = LeavePreference.new
-      p.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
-      p.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
-      p.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
-      p.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
-      p.extra_leave_days = 0.0
-      p.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
-      p.user_id = user.id
-      p.annual_max_comments = ""
-      p.leave_renewal_date = RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
-      return p
+    p = LeavePreference.new
+    p.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
+    p.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
+    p.region = RedmineLeavesHolidays::Setting.defaults_settings(:region)
+    p.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
+    p.extra_leave_days = 0.0
+    p.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
+    p.user_id = user.id
+    p.annual_max_comments = ""
+    p.leave_renewal_date = RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
+    return p
   end
 
   def self.leave_on_for_project(day, project)
