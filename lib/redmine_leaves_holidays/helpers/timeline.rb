@@ -86,7 +86,7 @@ module RedmineLeavesHolidays
         @lines = '' unless options[:only] == :users
         @number_of_rows = 0
         begin
-          users_list.each do |user|
+          users_list.sort{|a,b| a.login <=> b.login}.each do |user|
             render_user(user, options)
           end
         rescue MaxLinesLimitReached
@@ -103,6 +103,11 @@ module RedmineLeavesHolidays
 
       def users_list
         return @leave_list.includes(:user).map(&:user).uniq
+      end
+
+      def members_list
+        return [] unless @project
+        user_ids = users_list.map(&:id)
       end
 
       def leave_list_for_user(user)
