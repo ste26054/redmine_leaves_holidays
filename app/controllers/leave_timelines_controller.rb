@@ -20,7 +20,14 @@ class LeaveTimelinesController < ApplicationController
     leave_request_ids = LeaveRequest.for_user(@user.id).overlaps(@timeline.date_from, @timeline.date_to).pluck(:id)
     leave_approval_ids = LeaveRequest.where(user_id: projects_members).where.not(request_status: 0).overlaps(@timeline.date_from, @timeline.date_to).pluck(:id)
 
-    @timeline.leave_list = LeaveRequest.where(id: (leave_request_ids + leave_approval_ids).uniq)
+
+    @scope_initial = LeaveRequest.where(id: (leave_request_ids + leave_approval_ids).uniq)
+
+    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
+    
+    scope = @scope_initial.where(region: @region)
+
+    @timeline.leave_list = scope
 
 
     respond_to do |format|
@@ -32,7 +39,14 @@ class LeaveTimelinesController < ApplicationController
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
     user_ids = @project.members.pluck(:user_id)
     @timeline.project = @project
-    @timeline.leave_list = LeaveRequest.where(user_id: user_ids).not_rejected.where.not(request_status: 0).overlaps(@timeline.date_from, @timeline.date_to)
+
+    @scope_initial = LeaveRequest.where(user_id: user_ids).not_rejected.where.not(request_status: 0).overlaps(@timeline.date_from, @timeline.date_to)
+
+    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
+    
+    scope = @scope_initial.where(region: @region)
+
+    @timeline.leave_list = scope
   
     respond_to do |format|
       format.html { render :action => "show_project", :layout => !request.xhr? }

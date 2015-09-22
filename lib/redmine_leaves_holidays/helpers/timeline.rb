@@ -54,7 +54,7 @@ module RedmineLeavesHolidays
       def common_params
         p = { :controller => 'leave_timelines', :action => 'show' }
         if @project
-          p.merge({:project_id => @project.id})
+         # p.merge({:project_id => @project.id})
           p[:action] = 'show_project'
         end
         return p
@@ -108,6 +108,12 @@ module RedmineLeavesHolidays
       def members_list
         return [] unless @project
         user_ids = users_list.map(&:id)
+        return @project.members.where(user_id: user_ids).to_a.uniq
+      end
+
+      def roles_users_list
+        return [] unless @project
+        @project.users_by_role.sort.map {|t| [t[0], t[1].sort{|a,b| a.login <=> b.login}] }
       end
 
       def leave_list_for_user(user)
@@ -150,7 +156,15 @@ module RedmineLeavesHolidays
       def line(start_date, end_date, markers, label, options, object=nil)
         options[:zoom] ||= 1
         options[:g_width] ||= (self.date_to - self.date_from + 1) * options[:zoom]
-        coords = coordinates(start_date, end_date, options[:zoom])
+        if object.half_day?
+          if object.has_am?
+            coords = coordinates(start_date, end_date, options[:zoom], true)
+          else
+            coords = coordinates(start_date, end_date, options[:zoom], false, true)
+          end
+        else
+          coords = coordinates(start_date, end_date, options[:zoom])
+        end
         html_task(options, coords, markers, label, object)
       end
 
@@ -171,21 +185,35 @@ module RedmineLeavesHolidays
         countries.delete_if {|c| !date.holiday?(c.to_sym, :observed)}
       end
 
+      def increment_indent(options, factor=1)
+        options[:indent] += options[:indent_increment] * factor
+        if block_given?
+          yield
+          decrement_indent(options, factor)
+        end
+      end
+
+      def decrement_indent(options, factor=1)
+        increment_indent(options, -factor)
+      end
+
     private
 
-      def coordinates(start_date, end_date, zoom=nil)
+      def coordinates(start_date, end_date, zoom=nil, is_am=false, is_pm=false)
         zoom ||= @zoom
         coords = {}
         if start_date && end_date && start_date < self.date_to && end_date > self.date_from
           if start_date > self.date_from
             coords[:start] = start_date - self.date_from
             coords[:bar_start] = start_date - self.date_from
+            coords[:bar_start] = start_date - self.date_from + 0.5 if is_pm
           else
             coords[:bar_start] = 0
           end
           if end_date < self.date_to
             coords[:end] = end_date - self.date_from
             coords[:bar_end] = end_date - self.date_from + 1
+            coords[:bar_end] = end_date - self.date_from + 0.5 if is_am
           else
             coords[:bar_end] = self.date_to - self.date_from + 1
           end
