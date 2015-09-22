@@ -4,10 +4,14 @@
 
 <% timeline.view = self %>
 
+<fieldset><legend><%= l(:label_filter_plural) %></legend>
 <%= form_tag({:controller => 'leave_timelines', :action => action,
              :month => params[:month],
              :year => params[:year], :months => params[:months]},
              :method => :get, :id => 'query_form') do %>
+
+<label for='region'>Region:</label>
+  <%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
 
 <%= hidden_field_tag 'set_filter', '1' %>
 <%= hidden_field_tag 'gantt', '1' %>
@@ -18,7 +22,7 @@
 </p>
 
 <p class="buttons">
-
+<%= l(:button_show) %>
 <%= text_field_tag 'months', timeline.months, :size => 2 %>
 <%= l(:label_months_from) %>
 <%= select_month(timeline.month_from, :prefix => "month", :discard_type => true) %>
@@ -31,8 +35,9 @@
             :class => 'icon icon-reload' %>
 
 </p>
-<% end %>
 
+<% end %>
+</fieldset>
 <%
   zoom = 1
   timeline.zoom.times { zoom = zoom * 2 }
@@ -47,7 +52,7 @@
   if timeline.zoom > 1
     show_weeks = true
     headers_height = 2 * header_height
-    if timeline.zoom > 2
+    if timeline.zoom > 3
         show_days = true
         headers_height = 3 * header_height
     end
@@ -122,7 +127,7 @@
   %>
   <%= content_tag(:div, :style => style, :class => "gantt_hdr") do %>
     <%= link_to "#{month_f.year}-#{month_f.month}",
-                timeline.params.merge(:year => month_f.year, :month => month_f.month),
+                params.merge(:year => month_f.year, :month => month_f.month),
                 :title => "#{month_name(month_f.month)} #{month_f.year}" %>
   <% end %>
   <%
@@ -191,7 +196,7 @@
     <%
       is_holiday_date = timeline.holiday_date(timeline.date_from + i)
       title = ""
-      title = "#{format_date(timeline.date_from + i)}: Bank Holiday (#{timeline.country_holiday_list(timeline.date_from + i).join(", ")})"
+      title = "#{format_date(timeline.date_from + i)}: Bank Holiday (#{timeline.country_holiday_list(timeline.date_from + i).join(", ")})" if is_holiday_date
       width =  zoom - 1
       style  = ""
       style += "left: #{left}px;"
@@ -205,7 +210,9 @@
       clss << " holiday" if is_holiday_date
     %>
     <%= content_tag(:div, :style => style, :class => clss, :title => title) do %>
-      <%= day_letter(wday) %>
+      <p><%= day_letter(wday) %></p>
+      <p><%= (timeline.date_from + i).day %></p>
+      
     <% end %>
     <%
       left = left + width + 1
@@ -221,7 +228,7 @@
 <% ###### Today red line (excluded from cache) ###### %>
 <% if Date.today >= timeline.date_from and Date.today <= timeline.date_to %>
   <%
-    today_left = (((Date.today - timeline.date_from + 1) * zoom).floor() - 1).to_i
+    today_left = (((Date.today - timeline.date_from + Time.now.hour / 24.0) * zoom).floor() - 1).to_i
     style  = ""
     style += "position: absolute;"
     style += "height: #{g_height}px;"
