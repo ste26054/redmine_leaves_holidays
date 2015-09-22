@@ -232,11 +232,10 @@ module RedmineLeavesHolidays
 
         s = "".html_safe
 
-          s << view.avatar(user,
-                           
-                           :size => 10,
-                           :title => '').to_s.html_safe
-
+        s << view.avatar(user,
+                        :size => 10,
+                        :title => '').to_s.html_safe
+        s << " ".html_safe
         s << view.link_to_user(user).html_safe
         view.content_tag(:span, s, :class => css_classes).html_safe
       end
