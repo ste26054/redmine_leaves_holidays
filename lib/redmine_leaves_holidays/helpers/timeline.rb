@@ -14,6 +14,8 @@ module RedmineLeavesHolidays
       attr_accessor :view
       attr_accessor :leave_list
       attr_accessor :project
+      attr_accessor :projects
+      attr_accessor :user
 
       def initialize(options={})
         options = options.dup
@@ -86,8 +88,14 @@ module RedmineLeavesHolidays
         @lines = '' unless options[:only] == :users
         @number_of_rows = 0
         begin
-          users_list.sort{|a,b| a.login <=> b.login}.each do |user|
-            render_user(user, options)
+          # users_list.sort{|a,b| a.login <=> b.login}.each do |user|
+          #   render_user(user, options)
+          # end
+
+          projects_list_tree.each do |project_tree|
+            project = project_tree[0]
+            options[:indent] = indent + project_tree[1] * 10
+            render_project(project, options)
           end
         rescue MaxLinesLimitReached
           @truncated = true
@@ -105,10 +113,26 @@ module RedmineLeavesHolidays
         return @leave_list.includes(:user).map(&:user).uniq
       end
 
-      def members_list
-        return [] unless @project
+      def projects_list_tree
+        if @project
+          return [@project]
+        elsif @projects
+          # return @user.leave_memberships.map {|m| m.project}
+          #projects_user = @user.memberships.map {|m| m.project}
+          plist = []
+          Project.project_tree(projects) do |p, l|
+            plist << [p, l]
+          end
+          return plist
+        else
+          return []
+        end
+      end
+
+      def members_list(project)
+        return [] unless project
         user_ids = users_list.map(&:id)
-        return @project.members.where(user_id: user_ids).to_a.uniq
+        return project.members.where(user_id: user_ids).to_a.uniq
       end
 
       def roles_users_list
@@ -130,11 +154,31 @@ module RedmineLeavesHolidays
         @lines
       end
 
+      def render_project(project, options={})
+        members = members_list(project)
+          unless members.empty?
+          render_object_row(project, options)
+          increment_indent(options)
 
+          members.each do |member|
+                render_user(member.user, options)
+          end
+          decrement_indent(options)
+        end
+      end
+
+      def render_role(role, options={})
+
+      end
 
       def render_user(user, options={})
-        subject_for_user(user, options) unless options[:only] == :lines
-        line_for_user(user, options) unless options[:only] == :subjects
+        render_object_row(user, options)
+      end
+
+      def render_object_row(object, options)
+        class_name = object.class.name.downcase
+        send("subject_for_#{class_name}", object, options) unless options[:only] == :lines
+        send("line_for_#{class_name}", object, options) unless options[:only] == :subjects
         options[:top] += options[:top_increment]
         @number_of_rows += 1
         if @max_rows && @number_of_rows >= @max_rows
@@ -151,6 +195,13 @@ module RedmineLeavesHolidays
           label = ''#leave.issue.subject
           line(leave.from_date, leave.to_date, false, label, options, leave)
         end
+      end
+
+      def subject_for_project(project, options)
+        subject(project.name, options, project)
+      end
+
+      def line_for_project(project, options)
       end
 
       def line(start_date, end_date, markers, label, options, object=nil)
@@ -177,6 +228,7 @@ module RedmineLeavesHolidays
         LeavePreference.where(user_id: user_ids).distinct.pluck(:region)
       end
 
+      # Optimise for date_from - date_to period
       def holiday_date(date)
         countries.map {|c| date.holiday?(c.to_sym, :observed)}.any?
       end
@@ -241,13 +293,19 @@ module RedmineLeavesHolidays
       end
 
       def html_subject(params, subject, object)
-        style = "position: absolute;top:#{params[:top]}px;"
-        style << "width:#{params[:subject_width]}px;" if params[:subject_width]
+        style = "position: absolute;top:#{params[:top]}px;left:#{params[:indent]}px;"
+        style << "width:#{params[:subject_width] - params[:indent]}px;" if params[:subject_width]
         content = html_subject_content(object) || subject
         tag_options = {:style => style}
+        case object
+        when User
         tag_options[:id] = "issue-#{object.id}"
         tag_options[:class] = "issue-subject"
         tag_options[:title] = object.name
+        when Project
+          tag_options[:class] = "project-name"
+        end 
+
         output = view.content_tag(:div, content, tag_options)
         @users << output
         output

@@ -57,4 +57,9 @@ module LeaveTimelinesHelper
     return s.html_safe
   end
 
+  def leave_projects_options_for_select_user(selected, user)
+    projects =user.memberships.map{ |e| e.project }.uniq
+    project_tree_options_for_select(projects, :selected => selected)
+  end
+
 end

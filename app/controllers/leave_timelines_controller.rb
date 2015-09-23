@@ -10,26 +10,41 @@ class LeaveTimelinesController < ApplicationController
   
   before_action :set_user
   before_action :find_project, only: [:show_project]
+  before_action :check_clear_filters
 
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
 
-    user_projects = @user.leave_memberships.pluck(:project_id)
-    projects_members = Member.includes(:project, :user).where(users: {status: 1}, project_id: user_projects).pluck(:user_id).uniq
+    user_projects = @user.memberships.pluck(:project_id)
+
+    @projects = Project.where(id: user_projects)
+    if params[:projects].present?
+      @projects = Project.where(id: params[:projects])
+      session[:timeline_projects_filters] = params[:projects]
+    else
+      @projects = Project.where(id: session[:timeline_projects_filters]) if session[:timeline_projects_filters].present?
+    end
+
+    projects_members = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
     
-    # leave_request_ids = LeaveRequest.for_user(@user.id).overlaps(@timeline.date_from, @timeline.date_to).pluck(:id)
-    # leave_approval_ids = LeaveRequest.where(user_id: projects_members).where.not(request_status: 0).overlaps(@timeline.date_from, @timeline.date_to).pluck(:id)
-
-
-    # @scope_initial = LeaveRequest.where(id: (leave_request_ids + leave_approval_ids).uniq)
     @scope_initial = leave_requests_initial_users(projects_members)
 
     @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
     
+    @region = @scope_initial.group('region').count.to_hash.keys
+    if params[:region].present?
+      @region = params[:region]
+      session[:timeline_region_filters] = params[:region]
+    else
+      @region = session[:timeline_region_filters] if session[:timeline_region_filters].present?
+    end
+
     scope = @scope_initial.where(region: @region)
+    
 
+    @timeline.user = @user
+    @timeline.projects = @projects.to_a
     @timeline.leave_list = scope
-
 
     respond_to do |format|
       format.html { render :action => "show", :layout => !request.xhr? }
@@ -38,6 +53,7 @@ class LeaveTimelinesController < ApplicationController
 
   def show_project
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
+    @timeline.user = @user
     user_ids = @project.members.pluck(:user_id)
     @timeline.project = @project
 
@@ -72,5 +88,14 @@ class LeaveTimelinesController < ApplicationController
     leave_requests.delete_if{|l| (l.user_id != uid && l.get_status.in?(["created", "rejected"])) || (l.user_id == uid && l.get_status == "rejected") }
     LeaveRequest.where(id: leave_requests.map(&:id))
   end
+
+  def check_clear_filters
+    if params[:clear_filters].present?
+      session.delete(:timeline_projects_filters) if session[:timeline_projects_filters]
+      session.delete(:timeline_region_filters) if session[:timeline_region_filters]
+      params.delete :clear_filters
+    end
+  end
+
 
 end

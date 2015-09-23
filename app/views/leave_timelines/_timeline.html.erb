@@ -13,8 +13,9 @@
 <label for='region'>Region:</label>
   <%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
 
-<%= hidden_field_tag 'set_filter', '1' %>
-<%= hidden_field_tag 'gantt', '1' %>
+<label for='projects'>Project:</label>
+    <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
+
 
 <p class="contextual">
   <%= timeline_zoom_link(timeline, :in) %>
@@ -31,8 +32,7 @@
 
 <%= link_to_function l(:button_apply), '$("#query_form").submit()',
                      :class => 'icon icon-checked' %>
-<%= link_to l(:button_clear), { :set_filter => 1 },
-            :class => 'icon icon-reload' %>
+<%= link_to l(:button_clear), { :clear_filters => 1 }, :class => 'icon icon-reload' %>
 
 </p>
 
@@ -42,7 +42,7 @@
   zoom = 1
   timeline.zoom.times { zoom = zoom * 2 }
 
-  subject_width = 220
+  subject_width = 300
   header_height = 18
 
   headers_height = header_height
@@ -238,7 +238,7 @@
       style += "top: #{headers_height + 1}px;"
       style += "left: #{today_left}px;"
       style += "width:10px;"
-      style += "border-left: 1px dashed red;"
+      style += "border-left: 1px dashed blue;"
     %>
     <%= content_tag(:div, '&nbsp;'.html_safe, :style => style, :id => 'today_line') %>
   <% end %>
@@ -259,13 +259,13 @@
 
 <table style="width:100%">
 <tr>
-  <td style="text-align:left;">
-    <%= link_to_content_update("\xc2\xab " + l(:label_previous),
+<td style="text-align:left;">
+    <%= link_to_content_update("\xc2\xab " + l(:label_previous) + " #{timeline.months} months",
                                params.merge(timeline.params_previous),
                                :accesskey => accesskey(:previous)) %>
   </td>
   <td style="text-align:right;">
-    <%= link_to_content_update(l(:label_next) + " \xc2\xbb",
+    <%= link_to_content_update(l(:label_next) + " #{timeline.months} months" + " \xc2\xbb",
                                params.merge(timeline.params_next),
                                :accesskey => accesskey(:next)) %>
   </td>

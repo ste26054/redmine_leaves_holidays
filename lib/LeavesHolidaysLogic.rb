@@ -363,12 +363,8 @@ module LeavesHolidaysLogic
 				return false unless self.has_create_rights(user_accessor)
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
-					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty? || user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
 						return true
-					else
-						if leave.request_status == "processed"
-							return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
-						end
 					end
 				else
 					return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true) || self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
