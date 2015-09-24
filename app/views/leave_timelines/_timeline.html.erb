@@ -234,7 +234,7 @@
   <% ###### Today red line (excluded from cache) ###### %>
   <% if Date.today >= timeline.date_from and Date.today <= timeline.date_to %>
     <%
-      today_left = (((Date.today - timeline.date_from + Time.now.hour / 24.0) * zoom).floor() - 1).to_i
+      today_left = (((Date.today - timeline.date_from + timeline.user.time_zone.now.hour / 24.0) * zoom).floor() - 1).to_i
       style  = ""
       style += "position: absolute;"
       style += "height: #{g_height}px;"

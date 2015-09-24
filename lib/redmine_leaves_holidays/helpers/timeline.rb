@@ -191,7 +191,7 @@ module RedmineLeavesHolidays
 
       def line_for_user(user, options)
         leave_list_for_user(user).each do |leave|
-          label = "#{leave.from_date}-#{leave.to_date}"
+          label = ''
           line(leave.from_date, leave.to_date, false, label, options, leave)
         end
       end
@@ -253,15 +253,15 @@ module RedmineLeavesHolidays
       def coordinates(start_date, end_date, zoom=nil, is_am=false, is_pm=false)
         zoom ||= @zoom
         coords = {}
-        if start_date && end_date && start_date < self.date_to && end_date > self.date_from
-          if start_date > self.date_from
+        if start_date && end_date && start_date <= self.date_to && end_date >= self.date_from
+          if start_date >= self.date_from
             coords[:start] = start_date - self.date_from
             coords[:bar_start] = start_date - self.date_from
             coords[:bar_start] = start_date - self.date_from + 0.5 if is_pm
           else
             coords[:bar_start] = 0
           end
-          if end_date < self.date_to
+          if end_date <= self.date_to
             coords[:end] = end_date - self.date_from
             coords[:bar_end] = end_date - self.date_from + 1
             coords[:bar_end] = end_date - self.date_from + 0.5 if is_am
