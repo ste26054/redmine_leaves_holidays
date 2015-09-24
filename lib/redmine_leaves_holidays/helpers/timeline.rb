@@ -14,6 +14,9 @@ module RedmineLeavesHolidays
       attr_accessor :view
       attr_accessor :leave_list
       attr_accessor :project
+      attr_accessor :projects
+      attr_accessor :user
+      attr_accessor :role_ids
 
       def initialize(options={})
         options = options.dup
@@ -86,8 +89,15 @@ module RedmineLeavesHolidays
         @lines = '' unless options[:only] == :users
         @number_of_rows = 0
         begin
-          users_list.sort{|a,b| a.login <=> b.login}.each do |user|
-            render_user(user, options)
+          if @project
+            options[:indent] = indent
+            render_project(@project, options)
+          else
+            projects_list_tree.each do |project_tree|
+              project = project_tree[0]
+              options[:indent] = indent + project_tree[1] * 10
+              render_project(project, options)
+            end
           end
         rescue MaxLinesLimitReached
           @truncated = true
@@ -105,15 +115,36 @@ module RedmineLeavesHolidays
         return @leave_list.includes(:user).map(&:user).uniq
       end
 
-      def members_list
-        return [] unless @project
-        user_ids = users_list.map(&:id)
-        return @project.members.where(user_id: user_ids).to_a.uniq
+      def projects_list_tree
+        if @projects
+          # return @user.leave_memberships.map {|m| m.project}
+          #projects_user = @user.memberships.map {|m| m.project}
+          plist = []
+          Project.project_tree(projects) do |p, l|
+            plist << [p, l]
+          end
+          return plist
+        else
+          return []
+        end
       end
 
-      def roles_users_list
-        return [] unless @project
-        @project.users_by_role.sort.map {|t| [t[0], t[1].sort{|a,b| a.login <=> b.login}] }
+      def members_list(project)
+        return [] unless project
+        user_ids = users_list.map(&:id)
+        return project.members.where(user_id: user_ids).includes(:roles).to_a.uniq
+      end
+
+      # Returns [[Role 1,[User 1, User 2...]],...]
+      # if role_ids
+      def roles_users_list(project)
+        return [] unless project
+        roles_users = project.users_by_role.sort.map {|t| [t[0], t[1].sort{|a,b| a.login <=> b.login}] }
+        if @role_ids && !@role_ids.empty?
+          return roles_users.delete_if{|t| !t[0].id.in?(@role_ids)}
+        else
+          return roles_users
+        end
       end
 
       def leave_list_for_user(user)
@@ -130,11 +161,57 @@ module RedmineLeavesHolidays
         @lines
       end
 
+      def render_project(project, options={})
+        # Get project members
+        members = members_list(project)
+          # If there are members to display
+          unless members.empty?
+            # Render project name
+            render_object_row(project, options)
+            # Indent
+            increment_indent(options)
 
+            # Get roles associated with project, and loop for each of them
+            roles_users_list(project).each do |role_users|
+              
+              # Check if leave requests are qssociated to the role
+              leave_count_role = role_users[1].map{|user| @leave_list.where(user_id: user.id).count }
+
+              # If there are leave requests to show
+              if leave_count_role.inject(:+) > 0
+                # Render role name
+                render_object_row(role_users[0], options)
+                # Indent
+                increment_indent(options)
+
+                # Get users associated with the role and loop
+                role_users[1].each_with_index do |user, i|
+                  # If given user has at least a leave request
+                  if leave_count_role[i] > 0
+                    # render his leave
+                    render_user(user, options)
+                  end
+                end
+                decrement_indent(options)
+            end
+          end
+
+          decrement_indent(options)
+        end
+      end
+
+      def render_role(role, options={})
+
+      end
 
       def render_user(user, options={})
-        subject_for_user(user, options) unless options[:only] == :lines
-        line_for_user(user, options) unless options[:only] == :subjects
+        render_object_row(user, options)
+      end
+
+      def render_object_row(object, options)
+        class_name = object.class.name.downcase
+        send("subject_for_#{class_name}", object, options) unless options[:only] == :lines
+        send("line_for_#{class_name}", object, options) unless options[:only] == :subjects
         options[:top] += options[:top_increment]
         @number_of_rows += 1
         if @max_rows && @number_of_rows >= @max_rows
@@ -148,9 +225,23 @@ module RedmineLeavesHolidays
 
       def line_for_user(user, options)
         leave_list_for_user(user).each do |leave|
-          label = ''#leave.issue.subject
+          label = ''
           line(leave.from_date, leave.to_date, false, label, options, leave)
         end
+      end
+
+      def subject_for_project(project, options)
+        subject(project.name, options, project)
+      end
+
+      def line_for_project(project, options)
+      end
+
+      def subject_for_role(role, options)
+        subject(role.name, options, role)
+      end
+
+      def line_for_role(role, options)
       end
 
       def line(start_date, end_date, markers, label, options, object=nil)
@@ -177,6 +268,7 @@ module RedmineLeavesHolidays
         LeavePreference.where(user_id: user_ids).distinct.pluck(:region)
       end
 
+      # Optimise for date_from - date_to period
       def holiday_date(date)
         countries.map {|c| date.holiday?(c.to_sym, :observed)}.any?
       end
@@ -202,15 +294,15 @@ module RedmineLeavesHolidays
       def coordinates(start_date, end_date, zoom=nil, is_am=false, is_pm=false)
         zoom ||= @zoom
         coords = {}
-        if start_date && end_date && start_date < self.date_to && end_date > self.date_from
-          if start_date > self.date_from
+        if start_date && end_date && start_date <= self.date_to && end_date >= self.date_from
+          if start_date >= self.date_from
             coords[:start] = start_date - self.date_from
             coords[:bar_start] = start_date - self.date_from
             coords[:bar_start] = start_date - self.date_from + 0.5 if is_pm
           else
             coords[:bar_start] = 0
           end
-          if end_date < self.date_to
+          if end_date <= self.date_to
             coords[:end] = end_date - self.date_from
             coords[:bar_end] = end_date - self.date_from + 1
             coords[:bar_end] = end_date - self.date_from + 0.5 if is_am
@@ -232,23 +324,30 @@ module RedmineLeavesHolidays
 
         s = "".html_safe
 
-          s << view.avatar(user,
-                           
-                           :size => 10,
-                           :title => '').to_s.html_safe
-
+        s << view.avatar(user,
+                        :size => 10,
+                        :title => '').to_s.html_safe
+        s << " ".html_safe
         s << view.link_to_user(user).html_safe
         view.content_tag(:span, s, :class => css_classes).html_safe
       end
 
       def html_subject(params, subject, object)
-        style = "position: absolute;top:#{params[:top]}px;"
-        style << "width:#{params[:subject_width]}px;" if params[:subject_width]
+        style = "position: absolute;top:#{params[:top]}px;left:#{params[:indent]}px;"
+        style << "width:#{params[:subject_width] - params[:indent]}px;" if params[:subject_width]
         content = html_subject_content(object) || subject
         tag_options = {:style => style}
+        case object
+        when User
         tag_options[:id] = "issue-#{object.id}"
         tag_options[:class] = "issue-subject"
         tag_options[:title] = object.name
+        when Project
+          tag_options[:class] = "project-name"
+        when Role
+          tag_options[:class] = "project-name"
+        end 
+
         output = view.content_tag(:div, content, tag_options)
         @users << output
         output

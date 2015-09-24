@@ -21,7 +21,7 @@ module LeaveRequestsHelper
 			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
 		end
 
-		tabs << {:label => :tab_leaves_calendar, :controller => 'leave_calendars', :action => 'show'}
+		#tabs << {:label => :tab_leaves_calendar, :controller => 'leave_calendars', :action => 'show'}
 
 		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
 
@@ -38,8 +38,12 @@ module LeaveRequestsHelper
 	                        ["processed (#{status_count[2].to_i})".html_safe, '2']], selected)
  	end
 
- 	def leaves_regions_options_for_select(selected)
- 		options = @scope_initial.group('region').count.to_hash.collect {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
+ 	def leaves_regions_options_for_select(selected, show_count=true)
+ 		if show_count
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
+ 		else
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k}".html_safe, k]}.sort
+ 		end
 	    options_for_select(options, selected)
  	end
 

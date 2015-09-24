@@ -363,12 +363,8 @@ module LeavesHolidaysLogic
 				return false unless self.has_create_rights(user_accessor)
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
-					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
+					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty? || user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
 						return true
-					else
-						if leave.request_status == "processed"
-							return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)
-						end
 					end
 				else
 					return true if user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true) || self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty?
@@ -515,6 +511,7 @@ module LeavesHolidaysLogic
   	return hsh
   end
 
+
   # returns only users from user_list that user_accessor can see in leave approval list
   def self.users_leave_approval_list(user_accessor, users_list)
   	out_list = []
@@ -556,8 +553,9 @@ module LeavesHolidaysLogic
   		members_list = Member.where(project_id: project.id, user_id: users_list.map(&:id)).includes(:roles, :user).order('roles.position')
 
   		members_list.each do |member|
+			member_roles = member.roles.dup.to_a.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}
   			roles_accessor.each do |role|
-  				if role.position < member.roles.first.position
+  				if !member_roles.empty? && role.position < member_roles.first.position
   					out_list << member.user
   					users_list -= [member.user]
   				end
@@ -567,5 +565,11 @@ module LeavesHolidaysLogic
 
   	return out_list
   end
+
+  def self.roles_for_project(project)
+  	role_ids = project.members.includes(:roles).map{|m| m.roles.to_a.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}.map(&:id)}.flatten.uniq
+  	return Role.where(id: role_ids)
+  end
+
 
 end
