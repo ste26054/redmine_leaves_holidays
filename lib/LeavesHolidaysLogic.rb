@@ -552,8 +552,9 @@ module LeavesHolidaysLogic
   		members_list = Member.where(project_id: project.id, user_id: users_list.map(&:id)).includes(:roles, :user).order('roles.position')
 
   		members_list.each do |member|
+			member_roles = member.roles.dup.to_a.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}
   			roles_accessor.each do |role|
-  				if role.position < member.roles.first.position
+  				if !member_roles.empty? && role.position < member_roles.first.position
   					out_list << member.user
   					users_list -= [member.user]
   				end

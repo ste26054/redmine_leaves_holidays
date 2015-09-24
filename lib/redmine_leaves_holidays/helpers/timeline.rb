@@ -88,14 +88,15 @@ module RedmineLeavesHolidays
         @lines = '' unless options[:only] == :users
         @number_of_rows = 0
         begin
-          # users_list.sort{|a,b| a.login <=> b.login}.each do |user|
-          #   render_user(user, options)
-          # end
-
-          projects_list_tree.each do |project_tree|
-            project = project_tree[0]
-            options[:indent] = indent + project_tree[1] * 10
-            render_project(project, options)
+          if @project
+            options[:indent] = indent
+            render_project(@project, options)
+          else
+            projects_list_tree.each do |project_tree|
+              project = project_tree[0]
+              options[:indent] = indent + project_tree[1] * 10
+              render_project(project, options)
+            end
           end
         rescue MaxLinesLimitReached
           @truncated = true
@@ -114,9 +115,7 @@ module RedmineLeavesHolidays
       end
 
       def projects_list_tree
-        if @project
-          return [@project]
-        elsif @projects
+        if @projects
           # return @user.leave_memberships.map {|m| m.project}
           #projects_user = @user.memberships.map {|m| m.project}
           plist = []
@@ -192,7 +191,7 @@ module RedmineLeavesHolidays
 
       def line_for_user(user, options)
         leave_list_for_user(user).each do |leave|
-          label = ''#leave.issue.subject
+          label = "#{leave.from_date}-#{leave.to_date}"
           line(leave.from_date, leave.to_date, false, label, options, leave)
         end
       end

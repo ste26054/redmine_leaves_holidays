@@ -1,7 +1,8 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 <% end %>
-
+<%= timeline.date_from %>
+<%= timeline.date_to %>
 <% timeline.view = self %>
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
@@ -13,8 +14,10 @@
 <label for='region'>Region:</label>
   <%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
 
-<label for='projects'>Project:</label>
-    <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
+<% if action_name == "show" %>
+  <label for='projects'>Project:</label>
+      <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
+<% end %>
 
 
 <p class="contextual">

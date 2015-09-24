@@ -29,15 +29,7 @@ class LeaveTimelinesController < ApplicationController
     
     @scope_initial = leave_requests_initial_users(projects_members)
 
-    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
-    
-    @region = @scope_initial.group('region').count.to_hash.keys
-    if params[:region].present?
-      @region = params[:region]
-      session[:timeline_region_filters] = params[:region]
-    else
-      @region = session[:timeline_region_filters] if session[:timeline_region_filters].present?
-    end
+    set_region_filter
 
     scope = @scope_initial.where(region: @region)
     
@@ -57,10 +49,9 @@ class LeaveTimelinesController < ApplicationController
     user_ids = @project.members.pluck(:user_id)
     @timeline.project = @project
 
-    # @scope_initial = LeaveRequest.where(user_id: user_ids).not_rejected.where.not(request_status: 0).overlaps(@timeline.date_from, @timeline.date_to)
     @scope_initial = leave_requests_initial_users(user_ids)
 
-    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
+    set_region_filter
     
     scope = @scope_initial.where(region: @region)
 
@@ -87,6 +78,16 @@ class LeaveTimelinesController < ApplicationController
     leave_requests = LeaveRequest.overlaps(@timeline.date_from, @timeline.date_to).where(user_id: user_ids.uniq).includes(:leave_status).to_a
     leave_requests.delete_if{|l| (l.user_id != uid && l.get_status.in?(["created", "rejected"])) || (l.user_id == uid && l.get_status == "rejected") }
     LeaveRequest.where(id: leave_requests.map(&:id))
+  end
+
+  def set_region_filter
+    @region = @scope_initial.group('region').count.to_hash.keys
+    if params[:region].present?
+      @region = params[:region]
+      session[:timeline_region_filters] = params[:region]
+    else
+      @region = session[:timeline_region_filters] if session[:timeline_region_filters].present?
+    end
   end
 
   def check_clear_filters
