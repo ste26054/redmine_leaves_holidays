@@ -31,8 +31,8 @@ class LeaveTimelinesController < ApplicationController
 
     set_region_filter
 
-
-    @roles = roles_list.to_a.sort
+    roles = Role.all.givable
+    @roles = roles.to_a.sort
     if params[:roles].present?
       roles = roles_list.where(id: params[:roles])
       session[:timeline_role_filters] = params[:roles]
