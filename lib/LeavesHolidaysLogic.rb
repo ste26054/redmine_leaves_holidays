@@ -511,6 +511,7 @@ module LeavesHolidaysLogic
   	return hsh
   end
 
+
   # returns only users from user_list that user_accessor can see in leave approval list
   def self.users_leave_approval_list(user_accessor, users_list)
   	out_list = []
@@ -564,5 +565,11 @@ module LeavesHolidaysLogic
 
   	return out_list
   end
+
+  def self.roles_for_project(project)
+  	role_ids = project.members.includes(:roles).map{|m| m.roles.to_a.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}.map(&:id)}.flatten.uniq
+  	return Role.where(id: role_ids)
+  end
+
 
 end

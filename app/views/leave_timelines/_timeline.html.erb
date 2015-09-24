@@ -1,8 +1,7 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 <% end %>
-<%= timeline.date_from %>
-<%= timeline.date_to %>
+
 <% timeline.view = self %>
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
@@ -12,12 +11,15 @@
              :method => :get, :id => 'query_form') do %>
 
 <label for='region'>Region:</label>
-  <%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
+  <%= select_tag 'region', leaves_regions_options_for_select(@region, true), :class => "small", :multiple => true  %>
 
 <% if action_name == "show" %>
   <label for='projects'>Project:</label>
       <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
 <% end %>
+
+<label for='Roles'>Roles:</label>
+    <%= select_tag 'roles', roles_options_for_select_list(@role_ids, @roles), :class => "small", :multiple => true  %>
 
 
 <p class="contextual">

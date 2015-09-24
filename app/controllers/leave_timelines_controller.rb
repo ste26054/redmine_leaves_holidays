@@ -31,6 +31,19 @@ class LeaveTimelinesController < ApplicationController
 
     set_region_filter
 
+
+    @roles = roles_list.to_a.sort
+    if params[:roles].present?
+      roles = roles_list.where(id: params[:roles])
+      session[:timeline_role_filters] = params[:roles]
+    else
+      roles = roles_list.where(id: session[:timeline_role_filters]) if session[:timeline_role_filters].present?
+    end
+    @role_ids = roles.pluck(:id)
+    @timeline.role_ids = @role_ids
+
+
+
     scope = @scope_initial.where(region: @region)
     
 
@@ -52,10 +65,25 @@ class LeaveTimelinesController < ApplicationController
     @scope_initial = leave_requests_initial_users(user_ids)
 
     set_region_filter
+
+    roles = Role.all.givable#Role.where(id: LeavesHolidaysLogic.roles_for_project(@project).map(&:id))
+    @roles = roles.to_a.sort
+    if params[:roles].present?
+      roles = roles.where(id: params[:roles])
+      session[:timeline_role_project_filters] = params[:roles]
+    else
+      roles = roles.where(id: session[:timeline_role_project_filters]) if session[:timeline_role_project_filters].present?
+    end
+    @role_ids = roles.pluck(:id)
+    @timeline.role_ids = @role_ids
+
+
+    @timeline.role_ids = @role_ids
     
     scope = @scope_initial.where(region: @region)
 
     @timeline.leave_list = scope
+
   
     respond_to do |format|
       format.html { render :action => "show_project", :layout => !request.xhr? }
@@ -97,6 +125,17 @@ class LeaveTimelinesController < ApplicationController
       params.delete :clear_filters
     end
   end
+
+  def roles_list
+    # projects = @projects || [@project]
+    # role_ids = []
+    # projects.each do |project|
+    #   role_ids << LeavesHolidaysLogic.roles_for_project(project).map(&:id)
+    # end
+    role_ids = Role.all.givable.to_a#.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}
+    return Role.where(id: role_ids)
+  end
+
 
 
 end

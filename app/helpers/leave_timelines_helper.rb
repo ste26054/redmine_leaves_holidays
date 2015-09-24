@@ -62,4 +62,9 @@ module LeaveTimelinesHelper
     project_tree_options_for_select(projects, :selected => selected)
   end
 
+  def roles_options_for_select_list(selected, roles)
+    options = roles.map{|k| [k.name, k.id]}
+    options_for_select(options, selected)
+  end
+
 end
