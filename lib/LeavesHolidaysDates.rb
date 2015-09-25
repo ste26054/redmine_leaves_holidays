@@ -41,7 +41,10 @@ module LeavesHolidaysDates
 		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
 		leaves_list.find_each do |l|
 			unless l.from_date < from
-				remaining -= l.actual_leave_days
+				#If a leave overlaps the period, take all of the leave days in the current period
+				#remaining -= l.actual_leave_days
+				#If a leace overlaps the period, take only the part inside the period
+				remaining -= l.actual_leave_days_within(from, to)
 			end
 		end
 		return remaining

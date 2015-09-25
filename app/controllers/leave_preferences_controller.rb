@@ -55,7 +55,7 @@ class LeavePreferencesController < ApplicationController
       event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_create", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
       event.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
-  		redirect_to leave_preferences_path
+  		redirect_to edit_user_leave_preference_path
   	else
   		flash[:error] = "Invalid preferences"
   		render :new
@@ -112,7 +112,7 @@ class LeavePreferencesController < ApplicationController
           event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
           event.save
           flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
-          redirect_to leave_preferences_path
+          redirect_to edit_user_leave_preference_path
         end
       }
       format.js
