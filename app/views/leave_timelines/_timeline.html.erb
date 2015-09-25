@@ -18,7 +18,7 @@
       <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
 <% end %>
 
-<label for='Roles'>Roles:</label>
+<label for='Roles'>Role:</label>
     <%= select_tag 'roles', roles_options_for_select_list(@role_ids, @roles), :class => "small", :multiple => true  %>
 
 

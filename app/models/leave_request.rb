@@ -112,6 +112,12 @@ class LeaveRequest < ActiveRecord::Base
     where(id: ids)
    }
 
+  scope :not_from_contractors, -> {
+    user_list_lp = includes(user: :leave_preference).map(&:user).uniq.keep_if{|u| u.leave_preference }.map(&:id)
+    uid_contractors = LeavePreference.where(user_id: user_list_lp, is_contractor: true).pluck(:user_id)
+    where.not(user_id: uid_contractors)
+  }
+
 
   def get_status
     return self.request_status unless self.request_status == "processed"
