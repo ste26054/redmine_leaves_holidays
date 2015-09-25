@@ -6,7 +6,7 @@
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
-<%= form_tag(leave_approvals_path, :method => :get) do %>
+<%= form_tag(leave_approvals_path, :method => :get, :id => 'query_form') do %>
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
 	<label for='status'><%= l(:field_status) %>:</label>
 	<%= select_tag 'status', leaves_status_options_for_select(@status_count, @status), :class => "small", :multiple => true  %>
@@ -26,8 +26,12 @@
 	<label for='show_rejected'>Include Rejected:</label>
 	<%= check_box_tag 'show_rejected', true, @show_rejected == "true" %>
 
-	<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
-	<%= link_to l(:button_clear), leave_approvals_path, :class => 'icon icon-reload' %>
+	<label for='show_contractor'>Include Contractor:</label>
+	<%= check_box_tag 'show_contractor', true, @show_contractor == "true" %>
+
+	<%= link_to_function l(:button_apply), '$("#query_form").submit()',
+                     :class => 'icon icon-checked' %>
+	<%= link_to l(:button_clear), { :clear_filters => 1 }, :class => 'icon icon-reload' %>
 </fieldset>
 <% end %>
 <br/>

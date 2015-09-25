@@ -20,9 +20,10 @@ class LeaveTimelinesController < ApplicationController
     @projects = Project.where(id: user_projects)
     if params[:projects].present?
       @projects = Project.where(id: params[:projects])
-      session[:timeline_projects_filters] = params[:projects]
+      @user.pref[:timeline_projects_filters] = params[:projects]
+      @user.preference.save
     else
-      @projects = Project.where(id: session[:timeline_projects_filters]) if session[:timeline_projects_filters].present?
+      @projects = Project.where(id: @user.pref[:timeline_projects_filters]) if @user.pref[:timeline_projects_filters].present?
     end
 
     projects_members = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
@@ -35,9 +36,10 @@ class LeaveTimelinesController < ApplicationController
     @roles = roles.to_a.sort
     if params[:roles].present?
       roles = roles_list.where(id: params[:roles])
-      session[:timeline_role_filters] = params[:roles]
+      @user.pref[:timeline_role_filters] = params[:roles]
+      @user.preference.save
     else
-      roles = roles_list.where(id: session[:timeline_role_filters]) if session[:timeline_role_filters].present?
+      roles = roles_list.where(id: @user.pref[:timeline_role_filters]) if @user.pref[:timeline_role_filters].present?
     end
     @role_ids = roles.pluck(:id)
     @timeline.role_ids = @role_ids
@@ -70,9 +72,10 @@ class LeaveTimelinesController < ApplicationController
     @roles = roles.to_a.sort
     if params[:roles].present?
       roles = roles.where(id: params[:roles])
-      session[:timeline_role_project_filters] = params[:roles]
+      @user.pref[:timeline_role_project_filters] = params[:roles]
+      @user.preference.save
     else
-      roles = roles.where(id: session[:timeline_role_project_filters]) if session[:timeline_role_project_filters].present?
+      roles = roles.where(id: @user.pref[:timeline_role_project_filters]) if @user.pref[:timeline_role_project_filters].present?
     end
     @role_ids = roles.pluck(:id)
     @timeline.role_ids = @role_ids
@@ -112,16 +115,20 @@ class LeaveTimelinesController < ApplicationController
     @region = @scope_initial.group('region').count.to_hash.keys
     if params[:region].present?
       @region = params[:region]
-      session[:timeline_region_filters] = params[:region]
+      @user.pref[:timeline_region_filters] = params[:region]
+      @user.preference.save
     else
-      @region = session[:timeline_region_filters] if session[:timeline_region_filters].present?
+      @region = @user.pref[:timeline_region_filters] if @user.pref[:timeline_region_filters].present?
     end
   end
 
   def check_clear_filters
     if params[:clear_filters].present?
-      session.delete(:timeline_projects_filters) if session[:timeline_projects_filters]
-      session.delete(:timeline_region_filters) if session[:timeline_region_filters]
+      @user.pref[:timeline_projects_filters] = nil
+      @user.pref[:timeline_region_filters] = nil
+      @user.pref[:timeline_role_project_filters] = nil
+      @user.pref[:timeline_role_filter] = nil
+      @user.preference.save
       params.delete :clear_filters
     end
   end
