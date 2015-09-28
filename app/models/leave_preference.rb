@@ -23,6 +23,8 @@ class LeavePreference < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
+  before_save :check_event_backup, :on => [:create, :update]
+
   def css_classes
     s = "leave-preference user-#{self.user_id}"
     return s
@@ -43,6 +45,16 @@ class LeavePreference < ActiveRecord::Base
   	unless regions.include?(self.region)
   		errors.add(:region, "is invalid")
   	end 
+  end
+
+  def check_event_backup
+    leave_pref = self.user.leave_preferences
+    event_count = LeaveEvent.where(user_id: self.user_id).count
+    if event_count == 0
+      event = LeaveEvent.new(user_id: self.user_id, event_type: "initial_backup", comments: "Initial backup before first changes")
+      event.event_data = leave_pref.attributes
+      event.save
+    end
   end
 
 end

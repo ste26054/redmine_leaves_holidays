@@ -39,8 +39,13 @@
 		<p>
 			<label>Extra Leave Days:</label>
 			<%= f.text_field :extra_leave_days %>
-			<label>Comments:</label>
-			<%= f.text_field :annual_max_comments %>
+		</p>
+
+		<p>
+			<label>Extra Leave Days Comments:</label>
+		</p>
+		<p>
+			<%= f.text_area  :annual_max_comments, cols: "30", rows: "10" %>
 		</p>
 
 		<p>
@@ -76,3 +81,48 @@
 <% end %>
 
 </div>
+
+<% events = LeaveEvent.unscoped.for_user(user_pref.id).order(created_at: :desc, id: :desc) %>
+
+<% unless events.empty? %>
+<h3>History:</h3>
+<div class="autoscroll">
+		<table class="list">
+			<thead>
+			<tr>
+			<th>Date</th>
+			<th>Event Type</th>
+			<th>Event Comments</th>
+			<th><%= "weekly_working_hours".humanize %></th>
+			<th><%= "annual_leave_days_max".humanize %></th>
+			<th><%= "region".humanize %></th>
+			<th><%= "extra_leave_days".humanize %></th>
+			<th>Extra leave days comments</th>
+			<th><%= "contract_start_date".humanize %></th>
+			<th><%= "leave_renewal_date".humanize %></th>
+			<th><%= "is_contractor".humanize %></th>
+			</tr>
+			</thead>
+			<tbody>
+				<% for event in events -%>
+					<% if event.event_data %>
+					<% preference = LeavePreference.new(event.event_data) %>
+						<tr class="<%= cycle("odd", "even") %>">
+						<td><%= event.created_at %></td>
+						<td><%= event.event_type %></td>
+						<td><%= event.comments %></td>
+						<td><%= preference.weekly_working_hours %>
+						<td><%= preference.annual_leave_days_max %>
+						<td><%= preference.region %>
+						<td><%= preference.extra_leave_days %>
+						<td><%= preference.annual_max_comments %>
+						<td><%= preference.contract_start_date %>
+						<td><%= preference.leave_renewal_date %>
+						<td><%= preference.is_contractor %>
+						</tr>
+					<% end %>
+				<% end -%>
+			</tbody>
+		</table>
+</div>
+<% end %>
