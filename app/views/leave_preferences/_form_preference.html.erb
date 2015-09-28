@@ -105,20 +105,22 @@
 			</thead>
 			<tbody>
 				<% for event in events -%>
+					<% if event.event_data %>
 					<% preference = LeavePreference.new(event.event_data) %>
-					<tr class="<%= cycle("odd", "even") %>">
-					<td><%= event.created_at %></td>
-					<td><%= event.event_type %></td>
-					<td><%= event.comments %></td>
-					<td><%= preference.weekly_working_hours %>
-					<td><%= preference.annual_leave_days_max %>
-					<td><%= preference.region %>
-					<td><%= preference.extra_leave_days %>
-					<td><%= preference.annual_max_comments %>
-					<td><%= preference.contract_start_date %>
-					<td><%= preference.leave_renewal_date %>
-					<td><%= preference.is_contractor %>
-					</tr>
+						<tr class="<%= cycle("odd", "even") %>">
+						<td><%= event.created_at %></td>
+						<td><%= event.event_type %></td>
+						<td><%= event.comments %></td>
+						<td><%= preference.weekly_working_hours %>
+						<td><%= preference.annual_leave_days_max %>
+						<td><%= preference.region %>
+						<td><%= preference.extra_leave_days %>
+						<td><%= preference.annual_max_comments %>
+						<td><%= preference.contract_start_date %>
+						<td><%= preference.leave_renewal_date %>
+						<td><%= preference.is_contractor %>
+						</tr>
+					<% end %>
 				<% end -%>
 			</tbody>
 		</table>
