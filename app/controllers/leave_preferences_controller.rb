@@ -52,7 +52,8 @@ class LeavePreferencesController < ApplicationController
   	@preference = LeavePreference.new(leave_preference_params) unless @exists
     @preference.user_id = @user_pref.id
   	if @preference.save
-      event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_create", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+      event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_create", comments: "changed_by: #{User.current.login}")
+      event.event_data = @preference.attributes
       event.save
       flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
   		redirect_to edit_user_leave_preference_path
@@ -91,7 +92,8 @@ class LeavePreferencesController < ApplicationController
         flash[:error] = "Invalid preferences"
         redirect_to :controller => 'leave_preferences', :action => 'bulk_edit', :user_ids => params[:user_ids] and return
       else
-        event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{user_pref.attributes}}")
+        event = LeaveEvent.new(user_id: user_pref.user_id, event_type: "user_pref_manual_update", comments: "changed_by: #{User.current.login}")
+        event.event_data = user_pref.attributes
         event.save
       end
     end
@@ -109,7 +111,8 @@ class LeavePreferencesController < ApplicationController
           flash[:error] = "Invalid preferences"
           render :edit
         else
-          event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_manual_update", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+          event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_update", comments: "changed_by: #{User.current.login}")
+          event.event_data = @preference.attributes
           event.save
           flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
           redirect_to edit_user_leave_preference_path
@@ -120,10 +123,11 @@ class LeavePreferencesController < ApplicationController
   end
 
   def destroy
-    event = LeaveEvent.new(user_id: @user.id, event_type: "user_pref_deleted", comments: "{changed_by: #{User.current.id}, attributes: #{@preference.attributes}}")
+    event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_deleted", comments: "changed_by: #{User.current.login}")
+    event.event_data = @preference.attributes
     event.save
   	@preference.destroy
-  	redirect_to leave_preferences_path
+  	redirect_to edit_user_leave_preference_path
   end
 
   def notification
