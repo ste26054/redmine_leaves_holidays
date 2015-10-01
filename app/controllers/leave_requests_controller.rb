@@ -163,7 +163,11 @@ class LeaveRequestsController < ApplicationController
 
   def authenticate
     if params[:action].to_sym.in?([:index, :new, :create])
-      render_403 unless LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
+      right = LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
+      if !right && LeavesHolidaysLogic.has_view_all_rights(@user)
+        redirect_to leave_approvals_path and return
+      end
+      render_403 unless right
     else
       render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
     end

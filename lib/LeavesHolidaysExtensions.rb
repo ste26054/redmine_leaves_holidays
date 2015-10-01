@@ -1,5 +1,6 @@
 module LeavesHolidaysExtensions
 	refine User do
+		
 
 		def memberships
 			super.where.not(project_id: LeavesHolidaysLogic.disabled_project_list)
@@ -56,6 +57,4 @@ module LeavesHolidaysExtensions
 		end
 
 	end
-
-	
 end

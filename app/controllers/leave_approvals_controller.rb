@@ -39,7 +39,7 @@ class LeaveApprovalsController < ApplicationController
     @status_count = @scope_initial.group('request_status').count.to_hash
     scope = @scope_initial.status(@status)
 
-    @when = params[:when] || ['ongoing', 'coming']
+    @when = params[:when] || ['ongoing', 'coming', 'finished']
     if params[:when].present?
       @when = params[:when]
       @user.pref[:approval_when_filters] = params[:when]
