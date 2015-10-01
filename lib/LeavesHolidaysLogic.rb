@@ -1,6 +1,6 @@
 module LeavesHolidaysLogic
 	using LeavesHolidaysExtensions #local patch of user methods 
-
+	
 	def self.issues_list
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
 		issues_project = RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)
@@ -295,12 +295,17 @@ module LeavesHolidaysLogic
 		return out
 	end
 
+	# Says if the plugin admin should be notified by the leave request
 	def self.should_notify_plugin_admin(user_request, mode)
+		# Projects of the user who did the request
 		projects_common = user_request.memberships.uniq.collect {|m| m.project}
 
 		projects_common.each do |project|
+			# If the project is not ignored by the plugin
 			unless project.id.in?(LeavesHolidaysLogic.disabled_project_list)
+				# Get roles in project allowed to either manage and / or consult
 				allowed_roles = self.allowed_roles_for_project_mode(project, mode)
+				# return true if for this project, there are roles allowed to do so, and user_request has the highest role in the list
 				return true if !allowed_roles.empty? && allowed_roles.flatten.first[:user_id] == user_request.id
 			end
 		end
@@ -360,7 +365,7 @@ module LeavesHolidaysLogic
 				return true if self.has_create_rights(user_accessor)
 			end
 			if action == :read
-				return false unless self.has_create_rights(user_accessor)
+				#return false unless self.has_create_rights(user_accessor)
 				return true if user_accessor.id == user_owner.id
 				if leave.request_status.in?(["submitted", "processing", "processed"])
 					if self.plugin_admins.include?(user_accessor.id) || !self.allowed_common_project(user_accessor, user_owner, 1).empty? || user_accessor.allowed_to?(:view_all_leave_requests, nil, :global => true)

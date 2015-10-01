@@ -22,7 +22,7 @@ project_module :leave_timeline_view do
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
   permission :create_leave_requests, { :leaves_requests => :create, :leave_timelines => :show_project }
 end
-  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current)}
+  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current) || LeavesHolidaysLogic.has_view_all_rights(User.current) }
 
   menu :project_menu, :redmine_leaves_holidays, { :controller => 'leave_timelines', :action => 'show_project'},
                               :caption => :tab_leaves_timeline,

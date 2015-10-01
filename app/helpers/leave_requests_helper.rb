@@ -15,13 +15,14 @@ module LeaveRequestsHelper
 
 	def leaves_holidays_tabs
 		tabs = []
-		tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 
-		if LeavesHolidaysLogic::user_has_any_manage_right(@user)
-			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
+		if LeavesHolidaysLogic::has_create_rights(@user)
+			tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 		end
 
-		#tabs << {:label => :tab_leaves_calendar, :controller => 'leave_calendars', :action => 'show'}
+		if LeavesHolidaysLogic::user_has_any_manage_right(@user) || LeavesHolidaysLogic::has_view_all_rights(@user)
+			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
+		end
 
 		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
 

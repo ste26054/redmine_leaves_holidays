@@ -90,7 +90,7 @@ class LeaveStatus < ActiveRecord::Base
           
           case changes["acceptance_status"][1]
           when "accepted"
-            user_list += (LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests) + [leave_request.user])
+            user_list += ([leave_request.user] + LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests))
             user_list = user_list.uniq - [self.user]
             Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "accepted"}).deliver
           
