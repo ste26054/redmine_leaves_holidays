@@ -29,7 +29,7 @@ module RedmineLeavesHolidays
 
 			def contract_period(current_date = Date.today)
 				lp = self.leave_preferences
-				return LeavesHolidaysDates.get_contract_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
+				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
 			def days_remaining

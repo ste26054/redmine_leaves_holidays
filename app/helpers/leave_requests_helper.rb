@@ -85,8 +85,8 @@ module LeaveRequestsHelper
  		project_tree_options_for_select(projects, :selected => selected)
  	end
 
- 	def contract_period(user)
- 		period = user.contract_period
+ 	def leave_period(user)
+ 		period = user.leave_period
  		output = "".html_safe
  		output << "From: #{format_date(period[:start])}<br/>".html_safe
  		output << "To: #{format_date(period[:end])}<br/>".html_safe

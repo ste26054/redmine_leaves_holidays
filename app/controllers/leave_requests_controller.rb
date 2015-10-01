@@ -26,7 +26,7 @@ class LeaveRequestsController < ApplicationController
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
 
-    @period ||= @user.contract_period
+    @period ||= @user.leave_period
     @remaining ||= @user.days_remaining
     @taken ||= @user.days_taken
 

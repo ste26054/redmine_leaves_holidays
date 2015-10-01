@@ -65,13 +65,13 @@ module LeavesHolidaysDates
 	end
 
 	
-	#contract_start_date = 01/01/2014, renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
-	#contract_start_date = 01/01/2013, renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
-	def self.get_contract_period(contract_start_date, renewal_date, current_date = Date.today)
+	#contract_start_date = 01/01/2014, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
+	#contract_start_date = 01/01/2013, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
+	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today)
 
 		renewal_period = {}
 
-		renewal_period[:start] = renewal_date + (current_date.year - renewal_date.year).year
+		renewal_period[:start] = leave_renewal_date + (current_date.year - leave_renewal_date.year).year
 
 		if renewal_period[:start] > current_date
 			renewal_period[:start] = renewal_period[:start] - 1.year
@@ -94,24 +94,24 @@ module LeavesHolidaysDates
 	    res = {}
 
 	    contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-	    renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
+	    leave_renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
 	    
-	    period = self.get_contract_period(contract_start, renewal_date)
+	    leave_period = self.get_leave_period(contract_start, leave_renewal_date)
 
 	    case arg
 	    when :remaining
-	      res[:start] = period[:start]
-	      res[:end] = period[:end]
+	      res[:start] = leave_period[:start]
+	      res[:end] = leave_period[:end]
 	      res[:result] = self.total_leave_days_remaining(user, res[:start], res[:end])
 	      return res
 	    when :accumulated
-	      res[:start] = period[:start]
+	      res[:start] = leave_period[:start]
 	      res[:end] = Date.today
 	      res[:result] = self.total_leave_days_accumulated(user, res[:start], res[:end])
 	      return res
 	    when :taken
-	      res[:start] = period[:start]
-	      res[:end] = period[:end]
+	      res[:start] = leave_period[:start]
+	      res[:end] = leave_period[:end]
 	      res[:result] = self.total_leave_days_taken(user, res[:start], res[:end])
 	      return res
 	    else
