@@ -6,10 +6,11 @@
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
-<% unless LeavesHolidaysLogic.user_params(User.current, :is_contractor) %>
-	<h3>Total leave days remaining from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @remaining %> (Indicative)</h3>
-<% else %>
-	<h3>Total leave days taken from <%= format_date(@period[:start]) %> to <%= format_date(@period[:end]) %>: <%= @taken %> (Indicative)</h3>
+<% unless LeavesHolidaysLogic.user_params(@user, :is_contractor) %>
+  <% leave_period = @user.leave_period %>
+  <% remaining_pending =  LeavesHolidaysDates.total_leave_days_remaining(@user, leave_period[:start], leave_period[:end], true) %>
+
+	<h3>Total days remaining for current Leave Period from <%= format_date(leave_period[:start]) %> to <%= format_date(leave_period[:end]) %>: <%= remaining_pending %> (Indicative, includes requests submitted, processing, accepted)</h3>
 <% end %>
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>

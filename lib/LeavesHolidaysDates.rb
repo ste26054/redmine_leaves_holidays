@@ -31,20 +31,31 @@ module LeavesHolidaysDates
 		return self.floor_to_nearest_half_day(leave_days) + total
 	end
 
-	def self.total_leave_days_remaining(user, from, to)
+	def self.total_leave_days_remaining(user, from, to, include_pending = true)
 		months = self.months_between(from, to + 1.day)
 		
+		# Get number of leave days accumulated per months * number of months between from, to
 		remaining = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
+		
+		# Round this value to the nearest half day
 		remaining = self.floor_to_nearest_half_day(remaining)
+
+		# Add (or remove) extra leave days if there are
 		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
 
-		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
+		# 
+		if include_pending
+			leaves_list = LeaveRequest.for_user(user.id).pending_or_accepted.overlaps(from, to).not_informational
+		else
+			leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
+		end
+
 		leaves_list.find_each do |l|
 			unless l.from_date < from
 				#If a leave overlaps the period, take all of the leave days in the current period
-				#remaining -= l.actual_leave_days
+				remaining -= l.actual_leave_days
 				#If a leace overlaps the period, take only the part inside the period
-				remaining -= l.actual_leave_days_within(from, to)
+				#remaining -= l.actual_leave_days_within(from, to)
 			end
 		end
 		return remaining
@@ -53,15 +64,22 @@ module LeavesHolidaysDates
 
 
 	# leave days taken by for user starting from the users's contract day and month
-	def self.total_leave_days_taken(user, from, to)
+	def self.total_leave_days_taken(user, from, to, include_pending = false)
 		prefs = LeavePreference.where(user_id: user.id).first
-		total = 0.0
+		taken = 0.0
 
-		leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
-		leaves_list.find_each do |l|
-			total += l.actual_leave_days_within(from, to)
+		if include_pending
+			leaves_list = LeaveRequest.for_user(user.id).pending_or_accepted.overlaps(from, to).not_informational
+		else
+			leaves_list = LeaveRequest.for_user(user.id).accepted.overlaps(from, to).not_informational
 		end
-		return total
+
+		leaves_list.find_each do |l|
+			unless l.from_date < from
+				taken += l.actual_leave_days#_within(from, to)
+			end
+		end
+		return taken
 	end
 
 	
@@ -90,13 +108,17 @@ module LeavesHolidaysDates
 		return res
 	end
 
-	def self.get_days(arg, user)
+	def self.get_days(arg, user, leave_request = nil)
 	    res = {}
 
 	    contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
 	    leave_renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
 	    
-	    leave_period = self.get_leave_period(contract_start, leave_renewal_date)
+	    unless leave_request
+	    	leave_period = self.get_leave_period(contract_start, leave_renewal_date)
+	    else
+	    	leave_period = leave_request.get_leave_period
+	    end
 
 	    case arg
 	    when :remaining

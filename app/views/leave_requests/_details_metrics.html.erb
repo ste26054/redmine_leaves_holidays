@@ -1,18 +1,26 @@
 <div class="splitcontentright">
 <div class="box">
-<h3>Leave days metrics (ignores leave requests not yet accepted for the user):</h3>
+<h3>Leave days metrics:</h3>
 
 	<p>
-		Days remaining from <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:remaining, user)[:end]) %>:
-		<strong><%= LeavesHolidaysDates.get_days(:remaining, user)[:result] %></strong>
+		Leave Days remaining from <%= format_date(user.leave_period[:start]) %> to <%= format_date(user.leave_period[:end]) %>:
+		<strong><%= user.days_remaining %></strong>
 	</p>
 	<p>
-		Days accumulated from <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:end]) %>:
-		<strong><%= LeavesHolidaysDates.get_days(:accumulated, user)[:result] %></strong>
+		Leave Days accumulated from <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:accumulated, user)[:end]) %>:
+		<strong><%= LeavesHolidaysDates.get_days(:accumulated, user)[:result] %></strong> (Including (<%= user.days_extra %>) Extra Leave Days)
 	</p>
 	<p>
-		Days taken from <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:end]) %>:
+		Leave Days taken from <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:start]) %> to <%= format_date(LeavesHolidaysDates.get_days(:taken, user)[:end]) %>:
 		<strong><%= LeavesHolidaysDates.get_days(:taken, user)[:result] %></strong>
+	</p>
+	
+	<p><strong>Note For days Remaining / Taken:</strong>
+	<ul>
+		<li>Leave Requests taken into account are those with a status "submitted", "processing" or "accepted"</li>
+		<li>Leave Requests overlapping with <%= format_date(user.leave_period[:start]) %> are <strong>ignored</strong> in the calculation</li>
+		<li>Leave Requests overlapping with <%= format_date(user.leave_period[:end]) %> are <strong>included</strong> in the calculation</li>
+	</ul>
 	</p>
 	</div>
 </div>

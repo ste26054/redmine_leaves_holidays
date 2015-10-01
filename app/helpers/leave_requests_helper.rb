@@ -108,4 +108,8 @@ module LeaveRequestsHelper
  		options_for_select(options, selected)
  	end
 
+ 	def render_days_remaining_user(user)
+ 		
+ 	end
+
 end

@@ -27,24 +27,28 @@ module RedmineLeavesHolidays
 				return LeavesHolidaysLogic.leave_memberships(self)
 			end
 
-			def contract_period(current_date = Date.today)
+			def leave_period(current_date = Date.today)
 				lp = self.leave_preferences
 				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
-			def days_remaining
-				period = self.contract_period
+			def days_remaining(current_date = Date.today)
+				period = self.leave_period(current_date)
 				return LeavesHolidaysDates.total_leave_days_remaining(self, period[:start], period[:end])
 			end
 
-			def days_taken
-				period = self.contract_period
+			def days_taken(current_date = Date.today)
+				period = self.leave_period(current_date)
 				return LeavesHolidaysDates.total_leave_days_taken(self, period[:start], period[:end])
 			end
 
-			def days_accumulated
-				period = self.contract_period
+			def days_accumulated(current_date = Date.today)
+				period = self.leave_period(current_date)
 				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], Date.today)
+			end
+
+			def days_extra
+				LeavesHolidaysLogic.user_params(self, :extra_leave_days).to_f
 			end
 
 			def css_background_color
