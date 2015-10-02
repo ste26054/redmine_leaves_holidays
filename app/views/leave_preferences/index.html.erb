@@ -14,6 +14,12 @@
 		<label for='Roles'>Roles:</label>
 		<%= select_tag 'roles', roles_options_for_select(@role_ids), :class => "small", :multiple => true  %>
 
+    <label for='region'>Region:</label>
+    <%= select_tag 'region', options_for_select(@regions_initial, @region), :class => "small", :multiple => true  %>
+
+    <label for='users'>User:</label>
+    <%= select_tag 'users', options_for_select(@users_initial, @user_ids), :class => "small", :multiple => true  %>
+
 		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
 		<%= link_to l(:button_clear), clear_filters_leave_preferences_path, :class => 'icon icon-reload' %>
 	<% end %>

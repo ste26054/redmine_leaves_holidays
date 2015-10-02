@@ -28,7 +28,7 @@ class LeaveRequestsController < ApplicationController
 
     @period ||= @user.leave_period
     @remaining ||= @user.days_remaining
-    @taken ||= @user.days_taken
+    @taken ||= @user.days_taken_accepted
 
     scope ||= LeaveRequest.for_user(@user.id)
 

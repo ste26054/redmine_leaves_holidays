@@ -108,8 +108,13 @@ module LeaveRequestsHelper
  		options_for_select(options, selected)
  	end
 
- 	def render_days_remaining_user(user)
- 		
+	def users_regions_options_for_select(selected, show_count=true)
+ 		if show_count
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
+ 		else
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k}".html_safe, k]}.sort
+ 		end
+	    options_for_select(options, selected)
  	end
 
 end

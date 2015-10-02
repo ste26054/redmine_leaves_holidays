@@ -127,9 +127,9 @@ class LeaveRequest < ActiveRecord::Base
     return self.leave_status.acceptance_status
   end
 
-  def get_days(arg)
-    LeavesHolidaysDates.get_days(arg, self.user, self)
-  end
+  # def get_days(arg)
+  #   LeavesHolidaysDates.get_days(arg, self.user, self)
+  # end
 
   def get_days_remaining_with
     remaining = self.user.days_remaining(from_date)
@@ -384,7 +384,9 @@ class LeaveRequest < ActiveRecord::Base
   def validate_days_remaining
     if !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
-        errors.add(:base, "The Leave request could not be created because you do not have enough days remaining (#{self.get_days_remaining_without}) if you submit it")
+        drw = self.get_days_remaining_without
+        ald = self.actual_leave_days
+        errors.add(:base, "You have #{drw} #{'day'.pluralize(drw)} remaining for the current leave period. The current leave request is #{ald} #{'day'.pluralize(ald)} long, hence it cannot be created.")
       end
     end
   end

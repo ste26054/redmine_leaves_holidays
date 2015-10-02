@@ -8,6 +8,24 @@ module RedmineLeavesHolidays
 		        base.class_eval do
 		          unloadable # Send unloadable so it will not be unloaded in development
 		          has_one :leave_preference
+
+		          scope :with_leave_region, lambda { |arg|
+		          	return nil if arg.blank?
+						    arg = [*arg] or Array(arg)
+						    args = arg.to_a & LeavesHolidaysLogic.get_region_list
+						    ids = []
+		          	uids_total = pluck(:id)
+		          	users_with_lp = joins(:leave_preference).where(id: uids_total)
+		          	uids_with_lp = users_with_lp.pluck(:id)
+		          	uids_without_lp = uids_total - uids_with_lp
+
+		          	ids << users_with_lp.joins(:leave_preference).where(:leave_preferences => {:region => args}).pluck(:id)
+
+		          	ids << uids_without_lp if RedmineLeavesHolidays::Setting.defaults_settings(:region).in?(args)
+		          	ids = ids.flatten.uniq
+
+						    where(id: ids)
+		          }
 		        end
 		    end
 		end
@@ -32,19 +50,38 @@ module RedmineLeavesHolidays
 				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
+			def leave_period_to_date(current_date = Date.today)
+				lp = self.leave_preferences
+				period = LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
+				res = {}
+				res[:start] = period[:start]
+				res[:end] = current_date
+				return res
+			end
+
+			def actual_days_max(current_date = Date.today)
+				period = self.leave_period(current_date)
+				return LeavesHolidaysDates.actual_days_max(self, period[:start], period[:end])
+			end
+
 			def days_remaining(current_date = Date.today)
 				period = self.leave_period(current_date)
 				return LeavesHolidaysDates.total_leave_days_remaining(self, period[:start], period[:end])
 			end
 
-			def days_taken(current_date = Date.today)
+			def days_taken_accepted(current_date = Date.today)
 				period = self.leave_period(current_date)
 				return LeavesHolidaysDates.total_leave_days_taken(self, period[:start], period[:end])
 			end
 
+			def days_taken_total(current_date = Date.today)
+				period = self.leave_period(current_date)
+				return LeavesHolidaysDates.total_leave_days_taken(self, period[:start], period[:end], true)
+			end
+
 			def days_accumulated(current_date = Date.today)
 				period = self.leave_period(current_date)
-				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], Date.today)
+				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], current_date)
 			end
 
 			def days_extra
