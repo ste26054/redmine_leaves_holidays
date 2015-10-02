@@ -4,10 +4,12 @@
 			<thead>
 			<tr>
 			<%= sort_header_tag('id', caption: "Id") %>
-			<th>Number of Days</th>
+			<th>Days</th>
 			<%= sort_header_tag('from_date', caption: "Leave From") %>
 			<%= sort_header_tag('to_date', caption: "Leave To") %>
+			<th>In current Leave Period</th>
 			<th>Reason</th>
+			<th>Deduced from remaining days</th>
 			<th>Comments</th>
 			<th>Type</th>
 			<th>Status</th>
@@ -20,7 +22,9 @@
 					<td class="number_days"><%= req.actual_leave_days %></td>
 					<td class="from_date"><%= req.from_date %></td>
 					<td class="to_date"><%= req.to_date %></td>
+					<td class="current_leave_period"><%= checked_image req.in_current_leave_period? %></td>
 					<td class="reason"><%= req.issue.subject %></td>
+					<td class="deduced_from_remaining_days"><%= checked_image req.is_actually_deduced? %></td>
 					<td class="comments"><%= req.comments %></td>
 					<td class="request_type"><%= req.request_type %></td>
 					<td class="status">

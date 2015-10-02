@@ -41,6 +41,7 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_overlaps
    validate :validate_update
    validate :validate_quiet
+   validate :validate_days_remaining
    
 
   attr_accessor :leave_time_am, :leave_time_pm
@@ -85,6 +86,8 @@ class LeaveRequest < ActiveRecord::Base
     leave_list.where(user_id: user_list.map(&:id))
   }
 
+  scope :pending_or_accepted, -> { not_rejected.where.not(request_status: "0") }
+
   scope :viewable_by, ->(uid) {
     user = User.find(uid)
     processed_ids = processed.pluck(:id)
@@ -124,8 +127,24 @@ class LeaveRequest < ActiveRecord::Base
     return self.leave_status.acceptance_status
   end
 
-  def get_days(arg)
-    LeavesHolidaysDates.get_days(arg, self.user)
+  # def get_days(arg)
+  #   LeavesHolidaysDates.get_days(arg, self.user, self)
+  # end
+
+  def get_days_remaining_with
+    remaining = self.user.days_remaining(from_date)
+    if !is_actually_deduced? && !is_non_deduce_leave
+      remaining -= actual_leave_days
+    end
+    return remaining
+  end
+
+  def get_days_remaining_without
+    remaining = self.user.days_remaining(from_date)
+    if is_actually_deduced? && !is_non_deduce_leave
+      remaining += actual_leave_days
+    end
+    return remaining
   end
 
   def updated_on
@@ -146,6 +165,15 @@ class LeaveRequest < ActiveRecord::Base
 
   def half_day?
     return self.request_type != "ampm"
+  end
+
+  def get_leave_period
+    return self.user.leave_period(self.from_date)
+  end
+
+  def in_current_leave_period?
+    current_period = self.user.leave_period
+    return current_period == self.get_leave_period
   end
 
   def real_leave_days
@@ -226,6 +254,11 @@ class LeaveRequest < ActiveRecord::Base
   def is_quiet_leave
     return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
   end 
+
+
+  def is_actually_deduced?
+    return !self.is_non_deduce_leave && self.get_status.in?(["submitted", "processing", "accepted"])
+  end
 
   def vote_list_left
     @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
@@ -345,6 +378,16 @@ class LeaveRequest < ActiveRecord::Base
     else
       errors.add(:leave_time_am, "is invalid")
       errors.add(:leave_time_pm, "is invalid")
+    end
+  end
+
+  def validate_days_remaining
+    if !self.is_non_deduce_leave && self.in_current_leave_period?
+      if self.get_days_remaining_with < 0
+        drw = self.get_days_remaining_without
+        ald = self.actual_leave_days
+        errors.add(:base, "You have #{drw} #{'day'.pluralize(drw)} remaining for the current leave period. The current leave request is #{ald} #{'day'.pluralize(ald)} long, hence it cannot be created.")
+      end
     end
   end
 

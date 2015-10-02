@@ -85,8 +85,8 @@ module LeaveRequestsHelper
  		project_tree_options_for_select(projects, :selected => selected)
  	end
 
- 	def contract_period(user)
- 		period = user.contract_period
+ 	def leave_period(user)
+ 		period = user.leave_period
  		output = "".html_safe
  		output << "From: #{format_date(period[:start])}<br/>".html_safe
  		output << "To: #{format_date(period[:end])}<br/>".html_safe
@@ -106,6 +106,15 @@ module LeaveRequestsHelper
  	def roles_options_for_select(selected)
  		options = Role.all.givable.map{|k| [k.name, k.id]}
  		options_for_select(options, selected)
+ 	end
+
+	def users_regions_options_for_select(selected, show_count=true)
+ 		if show_count
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
+ 		else
+ 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k}".html_safe, k]}.sort
+ 		end
+	    options_for_select(options, selected)
  	end
 
 end

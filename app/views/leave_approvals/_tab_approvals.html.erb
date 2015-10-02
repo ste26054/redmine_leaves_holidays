@@ -10,6 +10,7 @@
 				<th>Length (days)</th>
 				<%= sort_header_tag('from_date', caption: "Leave From") %>
 				<%= sort_header_tag('to_date', caption: "Leave To") %>
+				<th>Leave Period</th>
 				<th>Reason</th>
 				<th>Comments</th>
 				<th>Type</th>
@@ -29,25 +30,31 @@
 					</td>
 					<td><%= format_date(req.from_date) %></td>
 					<td><%= format_date(req.to_date) %></td>
+					<% lp = req.get_leave_period %>
+					<td><%= format_date(lp[:start]) %> - <%= format_date(lp[:end]) %></td>
 					<td><%= link_to req.issue.subject, issue_path(req.issue) %></td>
 					<td><%= req.comments %></td>
 					<td><%= req.request_type %></td>
 					<% if req.request_status == "processed" %>
 						<% status = LeaveStatus.for_request(req.id).first %>
-
 						<td><%= status.acceptance_status %> by <%= link_to status.user.name, user_path(status.user) %></td>
 					<% else %>
 						<td><%= req.request_status %></td>
 					<% end %>
 
-					<% if req.request_status != "processed" %>
-						<td><%= req.get_days(:remaining)[:result].round(1) %>d (excl), <%= req.get_days(:remaining)[:result].round(1) - req.actual_leave_days %>d (incl)</td>
+					<% if req.in_current_leave_period? %>
+						<% if req.request_status != "processed" %>
+							<td><%= req.get_days_remaining_without.round(1) %>d (excl), <%= req.get_days_remaining_with %>d (incl)</td>
+						<% else %>
+							<td><%= req.get_days_remaining_with.round(1) %>d</td>
+						<% end %>
+						<% lptd = req.user.leave_period_to_date %>
+						<td   title="from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>"><%= req.user.days_accumulated.round(1) %>d</td>
 					<% else %>
-						<td><%= req.get_days(:remaining)[:result].round(1) %>d</td>
+						<% tdata = "Data is not available because the leave associated is not within the user current leave period" %>
+						<td title="<%= tdata %>">-</td>
+						<td title="<%= tdata %>">-</td>
 					<% end %>
-					
-
-					<td><%= req.get_days(:accumulated)[:result].round(1) %>d</td>
 					
 					<td class="buttons">
 						<%= link_to 'Details', req, :class => 'icon icon-details' %>

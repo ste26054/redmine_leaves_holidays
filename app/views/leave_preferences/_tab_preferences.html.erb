@@ -37,13 +37,13 @@
 				<tr class="hascontextmenu <%= cycle("odd", "even") %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
-				<td><%= link_to u.login, edit_user_leave_preference_path(u), :title => "Edit leave preferences for #{u.name}" %></td>
+				<td><%= link_to u.login, edit_user_leave_preference_path(u), :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %></td>
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
-				<td><div style="min-width: 120px" ><%= contract_period(u) %></div></td>
+				<td><div style="min-width: 120px" ><%= leave_period(u) %></div></td>
 				<td><%= u.days_remaining %></td>
 				<td><%= u.days_accumulated %></td>
-				<td><%= u.days_taken %></td>
+				<td><%= u.days_taken_accepted %></td>
 				<td><%= lp.extra_leave_days %></td>
 				<td><%= lp.annual_max_comments %></td>
 				<td><%= lp.weekly_working_hours %></td>

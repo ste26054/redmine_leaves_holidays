@@ -11,9 +11,11 @@ class LeavePreferencesController < ApplicationController
   before_action :set_holidays, only: [:new, :create, :edit, :bulk_edit, :update, :bulk_update]
 
   def clear_filters
-    if session[:leave_preference_filters]
-      session.delete(:leave_preference_filters)
-    end
+      @user.pref[:leave_preference_filters] = nil
+      @user.pref[:leave_preference_filters_roles] = nil
+      @user.pref[:leave_preference_filters_regions] = nil
+      @user.pref[:leave_preference_filters_users] = nil
+      @user.preference.save
     redirect_to leave_preferences_path
   end
 
@@ -39,7 +41,32 @@ class LeavePreferencesController < ApplicationController
     member_role_ids = MemberRole.where(role_id: @role_ids).pluck(:id)
     
     user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
+    
     @users = User.where(id: user_ids).order(:login)
+
+    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys
+    @region = params[:region] || @regions_initial
+    if params[:region].present?
+      @region = params[:region]
+      @user.pref[:leave_preference_filters_regions] = params[:region]
+      @user.preference.save
+    else
+      @region = @user.pref[:leave_preference_filters_regions] if @user.pref[:leave_preference_filters_regions].present?
+    end
+
+    @users = @users.with_leave_region(@region)
+
+    @users_initial =  @users.order(:firstname).map {|u| [u.name, u.id]}
+    @user_ids = params[:users] || @users.order(:firstname).pluck(:id)
+    if params[:users].present?
+      @user_ids = params[:users]
+      @user.pref[:leave_preference_filters_users] = params[:users]
+      @user.preference.save
+    else
+      @user_ids = @user.pref[:leave_preference_filters_users] if @user.pref[:leave_preference_filters_users].present?
+    end
+
+    @users = @users.where(id: @user_ids).order(:firstname)
   end
 
   def new
