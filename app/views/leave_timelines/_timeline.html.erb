@@ -21,6 +21,8 @@
 <label for='Roles'>Role:</label>
     <%= select_tag 'roles', roles_options_for_select_list(@role_ids, @roles), :class => "small", :multiple => true  %>
 
+<label for='users'>User:</label>
+    <%= select_tag 'users', options_for_select(@users_initial, @user_ids), :class => "small", :multiple => true  %>
 
 <p class="contextual">
   <%= timeline_zoom_link(timeline, :in) %>

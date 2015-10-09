@@ -158,8 +158,8 @@ class LeavePreferencesController < ApplicationController
   end
 
   def notification
-    @vote_list = LeavesHolidaysLogic.vote_list(@user_pref)
-    @manage_list = LeavesHolidaysLogic.manage_list(@user_pref)
+    @vote_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 2)#vote_list(@user_pref)
+    @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)#manage_list(@user_pref)
   end
 
 

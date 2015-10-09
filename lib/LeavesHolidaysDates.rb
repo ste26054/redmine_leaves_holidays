@@ -21,6 +21,12 @@ module LeavesHolidaysDates
 		return ((n.to_f * (1 / 0.5)).floor) / (1 / 0.5)
 	end
 
+	# Used to compute a correct number of leave days
+	# 1.2 -> 1.5, 1.5 -> 1.5, 1.6 -> 2.0, 1.99 -> 2.0...
+	def self.ceil_to_nearest_half_day(n)
+		return ((n.to_f * (1 / 0.5)).ceil) / (1 / 0.5)
+	end
+
 	# Leave days accumulated for the year starting with the user's contract day and month, ignoring leaves taken
 	def self.total_leave_days_accumulated(user, from, to)
 		prefs = LeavePreference.where(user_id: user.id).first
@@ -28,16 +34,26 @@ module LeavesHolidaysDates
 		#total += prefs.extra_leave_days if prefs != nil
 		months = self.months_between(from, to) % 12
 		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
-		return self.floor_to_nearest_half_day(leave_days) + total
+		return self.ceil_to_nearest_half_day(leave_days) + total
 	end
 
 	def self.actual_days_max(user, from, to)
-		months = self.months_between(from, to + 1.day)
-		# Get number of leave days accumulated per months * number of months between from, to
-		value = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
+		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
 
-		# Round this value to the nearest half day
-		return self.floor_to_nearest_half_day(value)
+		working_days_count = user.working_days_count(from, to, false, false, true)
+
+		working_weeks_count = working_days_count / 5.0 # there are 5 working days per week
+
+		holidays_per_week = annual_days_max / 52.0 # 52 weeks a year
+
+		holiday_entitlement = holidays_per_week * working_weeks_count
+
+		if holiday_entitlement < annual_days_max
+			return self.ceil_to_nearest_half_day(holiday_entitlement)
+		else
+			return annual_days_max
+		end
+
 	end
 
 	def self.total_leave_days_remaining(user, from, to, include_pending = true)
@@ -88,7 +104,7 @@ module LeavesHolidaysDates
 	
 	#contract_start_date = 01/01/2014, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
 	#contract_start_date = 01/01/2013, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
-	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today)
+	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false)
 
 		renewal_period = {}
 
@@ -101,7 +117,7 @@ module LeavesHolidaysDates
 		renewal_period[:end] = renewal_period[:start] + 1.year - 1.day
 
 		res = {}
-		if contract_start_date < renewal_period[:start]
+		if (contract_start_date < renewal_period[:start] && !force_full_year) || force_full_year
 			res = renewal_period
 		else
 			res[:start] = contract_start_date
@@ -110,38 +126,5 @@ module LeavesHolidaysDates
 
 		return res
 	end
-
-	# def self.get_days(arg, user, leave_request = nil)
-	#     res = {}
-
-	#     contract_start = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-	#     leave_renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
-	    
-	#     unless leave_request
-	#     	leave_period = self.get_leave_period(contract_start, leave_renewal_date)
-	#     else
-	#     	leave_period = leave_request.get_leave_period
-	#     end
-
-	#     case arg
-	#     # when :remaining
-	#     #   res[:start] = leave_period[:start]
-	#     #   res[:end] = leave_period[:end]
-	#     #   res[:result] = self.total_leave_days_remaining(user, res[:start], res[:end])
-	#     #   return res
-	#     when :accumulated
-	#       res[:start] = leave_period[:start]
-	#       res[:end] = Date.today
-	#       res[:result] = self.total_leave_days_accumulated(user, res[:start], res[:end])
-	#       return res
-	#     when :taken
-	#       res[:start] = leave_period[:start]
-	#       res[:end] = leave_period[:end]
-	#       res[:result] = self.total_leave_days_taken(user, res[:start], res[:end])
-	#       return res
-	#     else
-	#       return res
-	#     end
-	# end
 
 end
