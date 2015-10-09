@@ -250,7 +250,7 @@ module LeavesHolidaysLogic
 		return allowed
 	end
 
-	def self.users_allowed_common_project_level(user_request, mode)
+	def self.users_allowed_common_project_level(user_request, mode, check_leave_requests = true)
 		#projects = user_request.memberships.uniq.map(&:project)
 
 		roles = []
@@ -262,13 +262,15 @@ module LeavesHolidaysLogic
 					project_roles = self.allowed_roles_for_project_mode(project, mode).flatten.uniq.sort_by {|hsh| hsh[:position]}.reverse
 
 					project_roles.each do |role|
-						if (role[:position] < array_roles_user_req.first[:position]) && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
-							if !is_found
-								roles << role
-								is_found = true
-							else
-								if role[:position] == roles.last[:position]
+						if (role[:position] < array_roles_user_req.first[:position])# && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?
+							if (check_leave_requests && LeaveRequest.for_user(role[:user_id].to_i).accepted.ongoing.empty?) || !check_leave_requests
+								if !is_found
 									roles << role
+									is_found = true
+								else
+									if role[:position] == roles.last[:position]
+										roles << role
+									end
 								end
 							end
 						end

@@ -26,9 +26,14 @@ class LeaveTimelinesController < ApplicationController
       @projects = Project.where(id: @user.pref[:timeline_projects_filters]) if @user.pref[:timeline_projects_filters].present?
     end
 
-    projects_members = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
+    projects_user_ids = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
     
-    @scope_initial = leave_requests_initial_users(projects_members)
+    users = User.where(id: projects_user_ids)
+    
+    @users_initial =  users.order(:firstname).map {|u| [u.name, u.id]}
+    @user_ids = params[:users] || users.order(:firstname).pluck(:id)
+
+    @scope_initial = leave_requests_initial_users(@user_ids)
 
     set_region_filter
 
@@ -61,10 +66,16 @@ class LeaveTimelinesController < ApplicationController
   def show_project
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
     @timeline.user = @user
+
     user_ids = @project.members.pluck(:user_id)
+    users = User.where(id: user_ids)
+
+    @users_initial =  users.order(:firstname).map {|u| [u.name, u.id]}
+    @user_ids = params[:users] || users.order(:firstname).pluck(:id)
+
     @timeline.project = @project
 
-    @scope_initial = leave_requests_initial_users(user_ids)
+    @scope_initial = leave_requests_initial_users(@user_ids)
 
     set_region_filter
 
