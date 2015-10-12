@@ -9,6 +9,6 @@ class CreateLeaveEvents < ActiveRecord::Migration
     	t.belongs_to :user, index: true
     end
 
-    remove_column :leave_preferences, :triggered_at
+    remove_column :leave_preferences, :triggered_at, :datetime
   end
 end
