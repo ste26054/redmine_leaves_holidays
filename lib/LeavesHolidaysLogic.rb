@@ -1,10 +1,17 @@
 module LeavesHolidaysLogic
 	using LeavesHolidaysExtensions #local patch of user methods 
 	
-	def self.issues_list
+	def self.issues_list(user = nil)
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
 		issues_project = RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)
-		return Issue.where(project_id: issues_project, tracker_id: issues_tracker)
+		issues = Issue.where(project_id: issues_project, tracker_id: issues_tracker)
+		return issues unless user
+		
+		if user.is_contractor
+			return issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors).map(&:to_i))
+		else
+			return issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors).map(&:to_i))
+		end
 	end
 
 	def self.roles_list

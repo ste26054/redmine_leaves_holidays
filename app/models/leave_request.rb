@@ -359,7 +359,7 @@ class LeaveRequest < ActiveRecord::Base
 	end
 
 	def validate_issue
-		if issue_id != nil && !((LeavesHolidaysLogic.issues_list.pluck(:id)).include?(issue_id))
+		if issue_id != nil && !((LeavesHolidaysLogic.issues_list(self.user).pluck(:id)).include?(issue_id))
 			errors.add(:issue, "is invalid")
 		end
 	end
@@ -382,7 +382,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_days_remaining
-    if !self.is_non_deduce_leave && self.in_current_leave_period?
+    if validate_date_period && !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days

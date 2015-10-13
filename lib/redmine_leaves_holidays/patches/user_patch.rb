@@ -118,6 +118,10 @@ module RedmineLeavesHolidays
     			return dates_interval.count
 
 			end
+
+			def is_contractor
+				self.leave_preferences.is_contractor
+			end
 		end
 	end
 end
