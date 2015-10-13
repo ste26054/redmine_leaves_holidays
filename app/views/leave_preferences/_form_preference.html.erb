@@ -1,3 +1,7 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
 <div id="leave_user_prefs">
 	<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
 </div>
@@ -34,7 +38,13 @@
 			<%= f.select :region, options %>
 		</p>
 
-
+		<% if preference.pending_day_count && preference.pending_day_count != 0 %>
+		<p>
+			User has <strong><%= preference.pending_day_count %></strong> days to carry over from previous period: 
+			<%= link_to "Accept", manage_pending_days_user_leave_preference_path(accept: true), :class => 'icon icon-checked' %>
+			<%= link_to "Discard", manage_pending_days_user_leave_preference_path(accept: false), :class => 'icon icon-unchecked' %>
+		</p>
+		<% end %>
 
 		<p>
 			<label>Extra Leave Days:</label>
@@ -97,6 +107,7 @@
 			<th><%= "annual_leave_days_max".humanize %></th>
 			<th><%= "region".humanize %></th>
 			<th><%= "extra_leave_days".humanize %></th>
+			<th><%= "pending_days".humanize %></th>
 			<th>Extra leave days comments</th>
 			<th><%= "contract_start_date".humanize %></th>
 			<th><%= "leave_renewal_date".humanize %></th>
@@ -111,14 +122,15 @@
 						<td><%= event.created_at %></td>
 						<td><%= event.event_type %></td>
 						<td><%= event.comments %></td>
-						<td><%= preference.weekly_working_hours %>
-						<td><%= preference.annual_leave_days_max %>
-						<td><%= preference.region %>
-						<td><%= preference.extra_leave_days %>
-						<td><%= preference.annual_max_comments %>
-						<td><%= preference.contract_start_date %>
-						<td><%= preference.leave_renewal_date %>
-						<td><%= preference.is_contractor %>
+						<td><%= preference.weekly_working_hours %></td>
+						<td><%= preference.annual_leave_days_max %></td>
+						<td><%= preference.region %></td>
+						<td><%= preference.extra_leave_days %></td>
+						<td><%= preference.pending_day_count %></td>
+						<td><%= preference.annual_max_comments %></td>
+						<td><%= preference.contract_start_date %></td>
+						<td><%= preference.leave_renewal_date %></td>
+						<td><%= preference.is_contractor %></td>
 						</tr>
 					<% end %>
 				<% end -%>

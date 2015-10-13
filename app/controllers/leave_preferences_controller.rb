@@ -77,6 +77,7 @@ class LeavePreferencesController < ApplicationController
 
   def create
   	@preference = LeavePreference.new(leave_preference_params) unless @exists
+    @preference.pending_day_count = 5
     @preference.user_id = @user_pref.id
   	if @preference.save
       event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_create", comments: "changed_by: #{User.current.login}")
@@ -162,6 +163,16 @@ class LeavePreferencesController < ApplicationController
     @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)#manage_list(@user_pref)
   end
 
+  def manage_pending_days
+    if params[:accept] && params[:accept].in?(["false", "true"])
+      if params[:accept] == "true"
+        @preference.extra_leave_days += @preference.pending_day_count
+      end
+      @preference.pending_day_count = 0.0
+      @preference.save
+    end
+    redirect_to edit_user_leave_preference_path
+  end
 
 private
 
