@@ -44,7 +44,8 @@ class LeavePreferencesController < ApplicationController
     
     @users = User.where(id: user_ids).order(:login)
 
-    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys
+    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys + [RedmineLeavesHolidays::Setting.defaults_settings(:region)]
+    @regions_initial = @regions_initial.uniq
     @region = params[:region] || @regions_initial
     if params[:region].present?
       @region = params[:region]

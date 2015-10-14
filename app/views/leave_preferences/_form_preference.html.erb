@@ -35,7 +35,7 @@
 
 		<% unless user_pref.is_contractor %>
 			<p>
-				<label>Holiday Entitlement Max:</label>
+				<label>Holiday Entitlement Max (Allowance):</label>
 				<%= f.text_field :annual_leave_days_max %>
 			</p>
 
@@ -48,12 +48,12 @@
 			<% end %>
 
 			<p>
-				<label>Extra Leave Days:</label>
+				<label>Adjustment:</label>
 				<%= f.text_field :extra_leave_days %>
 			</p>
 
 			<p>
-				<label>Extra Leave Days Comments:</label>
+				<label>Adjustment Comments:</label>
 			</p>
 			<p>
 				<%= f.text_area  :annual_max_comments, cols: "30", rows: "10" %>

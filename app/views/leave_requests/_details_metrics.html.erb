@@ -13,10 +13,10 @@
 		<p>
 			Leave Days remaining from <%= format_date(lp[:start]) %> to <%= format_date(lp[:end]) %>:
 			<ul>
-				<li>Extra Days: <strong><%= user.days_extra %></strong></li>
-				<li>+ Actual Holiday Entitlement: <strong><%= user.actual_days_max %></strong></li>
-				<li>- Leave Taken (submitted, processing): <strong><%= user.days_taken_total - user.days_taken_accepted %></strong></li>
-				<li>- Leave Taken (accepted): <strong><%= user.days_taken_accepted %></strong></li>
+				<li>Adjustment: <strong><%= user.days_extra %></strong></li>
+				<li><strong>+</strong> Actual Holiday Entitlement (Allowance): <strong><%= user.actual_days_max %></strong></li>
+				<li><strong>-</strong> Leave Taken (submitted, processing): <strong><%= user.days_taken_total - user.days_taken_accepted %></strong></li>
+				<li><strong>-</strong> Leave Taken (accepted): <strong><%= user.days_taken_accepted %></strong></li>
 				<li><strong>Total: <%= user.days_remaining %></strong></li>
 			</ul>
 	<% end %>
