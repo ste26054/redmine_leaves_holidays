@@ -34,7 +34,7 @@
 		<tbody>
 			<% for u in users %>
 				<% lp = u.leave_preferences %>
-				<tr class="hascontextmenu <%= cycle("odd", "even") %>">
+				<tr class="hascontextmenu <%= cycle("odd", "even") %> <%= lp.css_classes %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
 				<td><%= link_to u.login, edit_user_leave_preference_path(u), :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %></td>

@@ -8,7 +8,7 @@
 
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
 <div class="box">
-<%= form_for [user, preference], :url => user_leave_preference_path, :remote => false do |f| %>
+<%= form_for [user_pref, preference], :url => user_leave_preference_path, :remote => false do |f| %>
 
 
 		<% if preference.errors.any? %>
@@ -28,35 +28,37 @@
 		</p>
 
 		<p>
-			<label>Holiday Entitlement Max:</label>
-			<%= f.text_field :annual_leave_days_max %>
-		</p>
-
-		<p>
 			<label>Holidays Region:</label>
 			<%- options = @regions -%>
 			<%= f.select :region, options %>
 		</p>
 
-		<% if preference.pending_day_count && preference.pending_day_count != 0 %>
-		<p>
-			User has <strong><%= preference.pending_day_count %></strong> days to carry over from previous period: 
-			<%= link_to "Accept", manage_pending_days_user_leave_preference_path(accept: true), :class => 'icon icon-checked' %>
-			<%= link_to "Discard", manage_pending_days_user_leave_preference_path(accept: false), :class => 'icon icon-unchecked' %>
-		</p>
+		<% unless user_pref.is_contractor %>
+			<p>
+				<label>Holiday Entitlement Max:</label>
+				<%= f.text_field :annual_leave_days_max %>
+			</p>
+
+			<% if preference.pending_day_count && preference.pending_day_count != 0 %>
+			<p><strong>
+				User has <%= preference.pending_day_count %> days to carry over from previous period: 
+				<%= link_to "Accept", manage_pending_days_user_leave_preference_path(accept: true), :class => 'icon icon-checked' %>
+				<%= link_to "Discard", manage_pending_days_user_leave_preference_path(accept: false), :class => 'icon icon-unchecked' %>
+			</strong></p>
+			<% end %>
+
+			<p>
+				<label>Extra Leave Days:</label>
+				<%= f.text_field :extra_leave_days %>
+			</p>
+
+			<p>
+				<label>Extra Leave Days Comments:</label>
+			</p>
+			<p>
+				<%= f.text_area  :annual_max_comments, cols: "30", rows: "10" %>
+			</p>
 		<% end %>
-
-		<p>
-			<label>Extra Leave Days:</label>
-			<%= f.text_field :extra_leave_days %>
-		</p>
-
-		<p>
-			<label>Extra Leave Days Comments:</label>
-		</p>
-		<p>
-			<%= f.text_area  :annual_max_comments, cols: "30", rows: "10" %>
-		</p>
 
 		<p>
 			<label>Contract Start Date:</label>
@@ -69,7 +71,7 @@
 		</p>
 
 		<p>
-			<label>User is a Contractor (Disables the approval system):</label>
+			<label>User is a Contractor <strong>(Disables the approval system)</strong>:</label>
 			<%= f.check_box :is_contractor %>
 		</p>
 

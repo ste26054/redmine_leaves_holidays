@@ -27,7 +27,8 @@ table.cal tbody th {
   font-weight: normal;
 }
 
-tr.leave-request.manageable-by-me.needs-attention {color: #f00; font-weight: bold;}
+/*tr.leave-request.manageable-by-me*/
+.needs-attention {color: #f00; font-weight: bold;}
 
 
 /***** Tooltips ******/

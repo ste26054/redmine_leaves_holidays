@@ -58,12 +58,16 @@ module LeaveTimelinesHelper
   end
 
   def leave_projects_options_for_select_user(selected, user)
-    projects =user.memberships.map{ |e| e.project }.uniq
+    projects = user.memberships.map{ |e| e.project }.uniq.delete_if{|p| p.id == RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id).to_i}
     project_tree_options_for_select(projects, :selected => selected)
   end
 
-  def roles_options_for_select_list(selected, roles)
-    options = roles.map{|k| [k.name, k.id]}
+  def roles_options_for_select_list(selected, roles, project = nil)
+    if project
+      options = project.users_by_role.keys.uniq.map{|k| [k.name, k.id]}
+    else
+      options = roles.map{|k| [k.name, k.id]}
+    end
     options_for_select(options, selected)
   end
 

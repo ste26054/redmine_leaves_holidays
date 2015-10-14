@@ -4,7 +4,7 @@ module LeavesHolidaysTriggers
 
 	# Checks renewal for any active user
 	def self.check_perform_users_renewal(date = Date.today)
-		users = User.where(status: 1)
+		users = User.all.active.not_contractor
 		users.each do |user|
 			if self.user_renew_contract?(user, date)
       			self.trigger_renew_contract_user(user)
@@ -14,15 +14,19 @@ module LeavesHolidaysTriggers
 
 	# Tells if a user contract should be renewed -> should report non taken leave
 	def self.user_renew_contract?(user, date = Date.today)
+		# Get user contract start date
 		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-    	renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
-		# Gets the last renewal date of leave for user
+		# Get user leave renewal date
+    renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
+		# Gets the last renewal date for user
 		last_renewal = LeaveEvent.for_user(user.id).contract_renewal.last
 		last_renewal_date = last_renewal.created_at.to_date if last_renewal != nil
 
-		period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date)
+		# Get the leave period associated with the given date
+		period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date, date)
 
-		# If the date is the same as the starting period and the contract was not yet renewed, return true
+		# If the given date is actually the start of the leave period calculated
+		# and if the last renewal date is different from the start period, return true
 		return period[:start] == date && period[:start] != last_renewal_date
 	end
 
@@ -41,12 +45,16 @@ module LeavesHolidaysTriggers
 
 		period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date, last_renewal_date)
 
-	    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
+    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
 
-	    user.leave_preferences.update(extra_leave_days: remaining, annual_max_comments: "System reported #{remaining} days remaining on #{Date.today} for new leave period")
+    if remaining <= 0
+    	user.leave_preferences.update(extra_leave_days: remaining)
+    else
+    	user.leave_preferences.update(pending_day_count: remaining, extra_leave_days: 0.0)
+    end
 
-	    event = LeaveEvent.new(user_id: user.id, event_type: "contract_renewal", comments: "extra: #{remaining}")
-	    event.event_data = user.leave_preferences.attributes
-	    event.save
+    event = LeaveEvent.new(user_id: user.id, event_type: "contract_renewal", comments: "SYSTEM renewed leave period")
+    event.event_data = user.leave_preferences.attributes
+    event.save
 	end
 end

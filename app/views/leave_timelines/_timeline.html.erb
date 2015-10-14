@@ -16,10 +16,12 @@
 <% if action_name == "show" %>
   <label for='projects'>Project:</label>
       <%= select_tag 'projects', leave_projects_options_for_select_user(@projects, timeline.user), :class => "small", :multiple => true  %>
-<% end %>
-
-<label for='Roles'>Role:</label>
+  <label for='Roles'>Role:</label>
     <%= select_tag 'roles', roles_options_for_select_list(@role_ids, @roles), :class => "small", :multiple => true  %>
+<% else %>
+  <label for='Roles'>Role:</label>
+    <%= select_tag 'roles', roles_options_for_select_list(@role_ids, @roles, @project), :class => "small", :multiple => true  %>
+<% end %>
 
 <label for='users'>User:</label>
     <%= select_tag 'users', options_for_select(@users_initial, @user_ids), :class => "small", :multiple => true  %>

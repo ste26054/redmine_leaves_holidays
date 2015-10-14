@@ -29,6 +29,7 @@ class LeavePreference < ActiveRecord::Base
 
   def css_classes
     s = "leave-preference user-#{self.user_id}"
+    s << ' needs-attention' if self.id && self.pending_day_count && self.pending_day_count != 0
     return s
   end
 
