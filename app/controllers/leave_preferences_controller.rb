@@ -44,7 +44,8 @@ class LeavePreferencesController < ApplicationController
     
     @users = User.where(id: user_ids).order(:login)
 
-    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys
+    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys + [RedmineLeavesHolidays::Setting.defaults_settings(:region)]
+    @regions_initial = @regions_initial.uniq
     @region = params[:region] || @regions_initial
     if params[:region].present?
       @region = params[:region]
@@ -158,10 +159,23 @@ class LeavePreferencesController < ApplicationController
   end
 
   def notification
-    @vote_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 2)#vote_list(@user_pref)
-    @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)#manage_list(@user_pref)
+    @vote_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 2)
+    @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)
   end
 
+  def manage_pending_days
+    if params[:accept] && params[:accept].in?(["false", "true"])
+      if params[:accept] == "true"
+        @preference.extra_leave_days += @preference.pending_day_count
+      end
+      @preference.pending_day_count = 0.0
+      @preference.save
+      event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_update", comments: "changed_by: #{User.current.login}")
+      event.event_data = @preference.attributes
+      event.save
+    end
+    redirect_to edit_user_leave_preference_path
+  end
 
 private
 

@@ -13,6 +13,7 @@ RedmineApp::Application.routes.draw do
 	resources :users do
 		resource :leave_preference do
 			get 'notification'
+			get 'manage_pending_days'
 		end
 	end
 

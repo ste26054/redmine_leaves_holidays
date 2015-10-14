@@ -26,6 +26,20 @@ module RedmineLeavesHolidays
 
 						    where(id: ids)
 		          }
+
+		          scope :not_contractor, lambda {
+		          	ids = []
+		          	uids_total = pluck(:id)
+		          	users_with_lp = joins(:leave_preference).where(id: uids_total)
+		          	uids_with_lp = users_with_lp.pluck(:id)
+		          	uids_without_lp = uids_total - uids_with_lp
+
+		          	ids << users_with_lp.joins(:leave_preference).where(:leave_preferences => {:is_contractor => 0}).pluck(:id)
+		          	ids << uids_without_lp
+		          	ids = ids.flatten.uniq
+
+						    where(id: ids)
+		          }
 		        end
 		    end
 		end
@@ -117,6 +131,10 @@ module RedmineLeavesHolidays
 
     			return dates_interval.count
 
+			end
+
+			def is_contractor
+				self.leave_preferences.is_contractor
 			end
 		end
 	end

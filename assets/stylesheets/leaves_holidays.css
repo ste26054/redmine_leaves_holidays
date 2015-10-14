@@ -27,7 +27,8 @@ table.cal tbody th {
   font-weight: normal;
 }
 
-tr.leave-request.manageable-by-me.needs-attention {color: #f00; font-weight: bold;}
+/*tr.leave-request.manageable-by-me*/
+.needs-attention {color: #f00; font-weight: bold;}
 
 
 /***** Tooltips ******/
@@ -43,3 +44,5 @@ font-size: 0.8em;
 }
 
 .gantt_hdr.holiday {background-color:#DADADA;}
+
+.icon-unchecked  { background-image: url(../images/false.png); }

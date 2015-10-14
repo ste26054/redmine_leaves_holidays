@@ -154,7 +154,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def set_issue_trackers
-  	@issues_trackers ||= LeavesHolidaysLogic.issues_list
+  	@issues_trackers ||= LeavesHolidaysLogic.issues_list(@user)
   end
 
   def leave_request_params

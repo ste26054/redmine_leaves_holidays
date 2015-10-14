@@ -15,7 +15,7 @@ class LeaveTimelinesController < ApplicationController
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
 
-    user_projects = @user.memberships.pluck(:project_id)
+    user_projects = @user.memberships.pluck(:project_id) - [RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id).to_i]
 
     @projects = Project.where(id: user_projects)
     if params[:projects].present?

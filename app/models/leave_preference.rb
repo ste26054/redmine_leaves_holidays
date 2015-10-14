@@ -6,7 +6,7 @@ class LeavePreference < ActiveRecord::Base
   # before_validation :set_user
 
   belongs_to :user
-  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date
+  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count
 
 
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
@@ -15,9 +15,11 @@ class LeavePreference < ActiveRecord::Base
   validates :leave_renewal_date, presence: true, date: true
 
   validates :extra_leave_days, presence: true, numericality: true, inclusion: { in: -365..365}
+  validates :pending_day_count, numericality: true, inclusion: { in: -365..365}
   validates :region, presence: true
   validates :user_id, presence: true
   validates :is_contractor, :inclusion => {:in => [true, false]}
+
 
   validate :validate_region
 
@@ -27,6 +29,7 @@ class LeavePreference < ActiveRecord::Base
 
   def css_classes
     s = "leave-preference user-#{self.user_id}"
+    s << ' needs-attention' if self.id && self.pending_day_count && self.pending_day_count != 0
     return s
   end
 
@@ -56,5 +59,6 @@ class LeavePreference < ActiveRecord::Base
       event.save
     end
   end
+
 
 end

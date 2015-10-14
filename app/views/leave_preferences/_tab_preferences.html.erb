@@ -34,14 +34,18 @@
 		<tbody>
 			<% for u in users %>
 				<% lp = u.leave_preferences %>
-				<tr class="hascontextmenu <%= cycle("odd", "even") %>">
+				<tr class="hascontextmenu <%= cycle("odd", "even") %> <%= lp.css_classes %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
 				<td><%= link_to u.login, edit_user_leave_preference_path(u), :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %></td>
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
 				<td><div style="min-width: 120px" ><%= leave_period(u) %></div></td>
-				<td><%= u.days_remaining %></td>
+				<% unless u.is_contractor %>
+					<td><%= u.days_remaining %></td>
+				<% else %>
+					<td>-</td>
+				<% end %>
 				<td><%= u.days_accumulated %></td>
 				<td><%= u.days_taken_accepted %></td>
 				<td><%= lp.extra_leave_days %></td>

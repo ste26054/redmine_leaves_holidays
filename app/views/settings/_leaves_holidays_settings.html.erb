@@ -80,6 +80,19 @@
 	</p>
 
 	<p>
+		<label>Leave Reasons available to regular users:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)) -%>
+		<%= select_tag "settings[available_reasons_non_contractors]", options, :multiple => true, :size => 10 %>
+	</p>
+
+
+	<p>
+		<label>Leave Reasons available to contractors</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)) -%>
+		<%= select_tag "settings[available_reasons_contractors]", options, :multiple => true, :size => 10 %>
+	</p>
+
+	<p>
 		<label>Default leave renewal date for auto increment / report of available leave days (year is ignored):</label>
 
 		<%= date_field_tag "settings[leave_renewal_date]", RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date) %>
