@@ -73,3 +73,7 @@ module RedmineLeavesHolidays
     end
   end	
 end
+
+unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::MailerPatch)
+    Mailer.send(:include,RedmineLeavesHolidays::Patches::MailerPatch)
+end
