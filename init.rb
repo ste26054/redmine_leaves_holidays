@@ -29,6 +29,7 @@ end
 end
 
 Rails.configuration.to_prepare do
+  
   Holidays.load_all
   require 'rufus/scheduler'
   job = Rufus::Scheduler.singleton(:max_work_threads => 1).cron '30 0 * * *' do
@@ -37,3 +38,4 @@ Rails.configuration.to_prepare do
     Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
   end
 end
+

@@ -1,3 +1,6 @@
 <% unless @project.module_enabled?(:leave_management) %>
   <h3>Please enable the Leave Management module first</h3>
+<% else %>
+
+  <p><%= link_to "New leave management rule", new_project_leave_management_path(@project), :remote => true, :class => "icon icon-add" %></p>
 <% end %>

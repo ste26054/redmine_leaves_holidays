@@ -25,6 +25,10 @@ RedmineApp::Application.routes.draw do
 		end
 	end
 
+	resources :projects do
+		resources :leave_managements
+	end
+
 	get '/leave_approvals', :to => 'leave_approvals#index'
 	get '/leave_calendars', :to => 'leave_calendars#show'
 	get '/leave_timeline', :to => 'leave_timelines#show'

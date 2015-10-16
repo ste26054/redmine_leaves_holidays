@@ -64,6 +64,11 @@ module RedmineLeavesHolidays
 				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
+			def previous_leave_period(current_date = Date.today)
+				lp = self.leave_preferences
+				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
+			end
+
 			def leave_period_to_date(current_date = Date.today)
 				lp = self.leave_preferences
 				period = LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)

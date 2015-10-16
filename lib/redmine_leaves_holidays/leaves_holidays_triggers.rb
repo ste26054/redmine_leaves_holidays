@@ -7,7 +7,7 @@ module LeavesHolidaysTriggers
 		users = User.all.active.not_contractor
 		users.each do |user|
 			if self.user_renew_contract?(user, date)
-      			self.trigger_renew_contract_user(user)
+      			self.trigger_renew_contract_user(user, date)
     		end
 		end
 	end
@@ -24,26 +24,24 @@ module LeavesHolidaysTriggers
 
 		# Get the leave period associated with the given date
 		period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date, date)
-
+    previous_period = LeavesHolidaysDates.get_previous_leave_period(contract_date, renewal_date, date)
 		# If the given date is actually the start of the leave period calculated
 		# and if the last renewal date is different from the start period, return true
-		return period[:start] == date && period[:start] != last_renewal_date
+		return period[:start] == date && period[:start] != last_renewal_date && previous_period != nil
 	end
 
 	# Adds event entry
 	# renews the contract for the given user (report of non taken leave days for new contract year)
-	def self.trigger_renew_contract_user(user)
+	def self.trigger_renew_contract_user(user, date = Date.today)
 		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
 		renewal_date = LeavesHolidaysLogic.user_params(user, :leave_renewal_date).to_date
 		last_renewal = LeaveEvent.for_user(user.id).contract_renewal.last
 
 		if last_renewal != nil
-			last_renewal_date = last_renewal.created_at.to_date
+			period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date, last_renewal.created_at.to_date)
 		else
-			last_renewal_date = contract_date
+			period = LeavesHolidaysDates.get_previous_leave_period(contract_date, renewal_date, date)
 		end
-
-		period = LeavesHolidaysDates.get_leave_period(contract_date, renewal_date, last_renewal_date)
 
     remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
 
