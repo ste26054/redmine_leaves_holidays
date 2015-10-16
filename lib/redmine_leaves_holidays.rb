@@ -15,5 +15,6 @@ Rails.configuration.to_prepare do
   require 'redmine_leaves_holidays/patches/mailer_patch'
   require 'redmine_leaves_holidays/patches/projects_helper_patch'
   require 'redmine_leaves_holidays/patches/user_patch'
+  require 'redmine_leaves_holidays/patches/project_patch'
 
 end
