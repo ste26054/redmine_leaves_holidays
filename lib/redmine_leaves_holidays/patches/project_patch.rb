@@ -14,8 +14,12 @@ module RedmineLeavesHolidays
     end
 
     module ProjectInstanceMethods
-      def roles_list
+      def role_list
         return self.users_by_role.keys.sort
+      end
+
+      def user_list
+        return self.users.sort
       end
     end
   end

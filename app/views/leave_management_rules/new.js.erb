@@ -1,0 +1,4 @@
+$('#ajax-modal').html('<%= escape_javascript(render :partial => 'leave_management_rules/new_modal') %>');
+showModal('ajax-modal', '90%');
+$('#sender_list_id').html('<%= escape_javascript options_for_select(sender_collection_for_select_options(@project), @sender_list_id) %>');
+$('#receiver_list_id').html('<%= escape_javascript options_for_select(receiver_collection_for_select_options(@project), @receiver_list_id) %>');

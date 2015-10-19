@@ -8,6 +8,8 @@ module RedmineLeavesHolidays
 		        base.class_eval do
 		          unloadable # Send unloadable so it will not be unloaded in development
 		          has_one :leave_preference
+		          has_many :leave_management_rules, as: :sender, dependent: :destroy
+		          has_many :leave_management_rules, as: :receiver, dependent: :destroy
 
 		          scope :with_leave_region, lambda { |arg|
 		          	return nil if arg.blank?

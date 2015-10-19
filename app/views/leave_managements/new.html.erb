@@ -1,8 +1,0 @@
-<h3 class="title"><%= "New leave management rule" %></h3>
-
-<%= form_for @leave_management, :as => :leave_management, :url => project_leave_managements_path(@project), :method => :post do |f| %>
-  <%= render :partial => 'new_form' %>
-  <p class="buttons">
-    <%= submit_tag l(:button_add) %>
-  </p>
-<% end %>

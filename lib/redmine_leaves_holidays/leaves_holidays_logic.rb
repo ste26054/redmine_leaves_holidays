@@ -14,7 +14,7 @@ module LeavesHolidaysLogic
 		end
 	end
 
-	def self.roles_list
+	def self.role_list
 		Role.find_all_givable.sort.collect{|t| [position: t.position, id: t.id, name: t.name] }
 	end
 

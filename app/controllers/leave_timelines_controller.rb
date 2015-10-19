@@ -40,11 +40,11 @@ class LeaveTimelinesController < ApplicationController
     roles = Role.all.givable
     @roles = roles.to_a.sort
     if params[:roles].present?
-      roles = roles_list.where(id: params[:roles])
+      roles = role_list.where(id: params[:roles])
       @user.pref[:timeline_role_filters] = params[:roles]
       @user.preference.save
     else
-      roles = roles_list.where(id: @user.pref[:timeline_role_filters]) if @user.pref[:timeline_role_filters].present?
+      roles = role_list.where(id: @user.pref[:timeline_role_filters]) if @user.pref[:timeline_role_filters].present?
     end
     @role_ids = roles.pluck(:id)
     @timeline.role_ids = @role_ids
@@ -144,7 +144,7 @@ class LeaveTimelinesController < ApplicationController
     end
   end
 
-  def roles_list
+  def role_list
     # projects = @projects || [@project]
     # role_ids = []
     # projects.each do |project|
