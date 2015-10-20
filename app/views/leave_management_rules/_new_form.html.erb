@@ -1,31 +1,50 @@
 <fieldset class="box">
   <p>Ctrl+click or Maj+click for multi-selection</p>
-  <div style="text-align: center;"> 
-  <ul style="display: inline-block;">
-    <legend><%= label_tag "sender_type", "Sender Type:" %></legend>
-    <p><%= select_tag 'sender_type', actor_type_options_for_select(@sender_type) %></p>
-  </ul>
-  <ul style="display: inline-block;">
-    <legend><%= label_tag "sender_list_id", "Sender List:" %></legend>
-    <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 20 %></p>
-  </ul>
 
-  <ul style="display: inline-block;">
-    <legend><%= label_tag "action_rule", "Action to perform:" %></legend>
-    <p><%= select_tag 'action_rule', action_sender_options_for_select(@action) %></p>
-  </ul>
-
-  <ul style="display: inline-block;">
-    <legend><%= label_tag "receiver_type", "Receiver Type:" %></legend>
-    <p><%= select_tag 'receiver_type', actor_type_options_for_select(@receiver_type) %></p>
-  </ul>
-  <ul style="display: inline-block;">
-    <legend><%= label_tag "receiver_list_id", "Receiver List:" %></legend>
-    <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 20 %></p>
-  </ul>
-
-  </div>
-
+  <table align="center">
+    <tr>
+      <td>
+        <legend><%= label_tag "sender_type", "Sender Type:" %></legend>
+        <p><%= select_tag 'sender_type', actor_type_options_for_select(@sender_type) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "sender_list_id", "Sender List:" %></legend>
+        <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 10 %>
+        </p>
+      </td>
+      <td>
+        <legend><%= label_tag "action_rule", "Action to perform:" %></legend>
+        <p><%= select_tag 'action_rule', action_sender_options_for_select(@action) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "receiver_type", "Receiver Type:" %></legend>
+        <p><%= select_tag 'receiver_type', actor_type_options_for_select(@receiver_type) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "receiver_list_id", "Receiver List:" %></legend>
+        <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 10 %></p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <div id="sender_exception_div">
+        <legend><%= label_tag "sender_exception", "Sender List:" %></legend>
+        <p><%= select_tag 'sender_exception', nil, :multiple => true, :include_blank => true, :size => 5 %>
+        </p>
+        </div>
+      </td>
+      <td></td>
+      <td></td>
+      <td>
+        <div id="receiver_exception_div">
+        <legend><%= label_tag "receiver_exception", "receiver List:" %></legend>
+        <p><%= select_tag 'receiver_exception', nil, :multiple => true, :include_blank => true, :size => 5 %>
+        </p>
+        </div>
+      </td>
+    </tr>
+  </table>
   
 
 </fieldset>
@@ -40,5 +59,11 @@
         data: $('#leave_management_rules').serialize()
       });
     });
+    <% unless @sender_exception %>
+      $("#sender_exception_div").hide();
+    <% end %>
+    <% unless @receiver_exception %>
+      $("#receiver_exception_div").hide();
+    <% end %>
   });
 <% end %>

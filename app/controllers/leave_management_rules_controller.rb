@@ -10,12 +10,13 @@ class LeaveManagementRulesController < ApplicationController
 
     @sender_type = params[:sender_type] || LeavesHolidaysManagements.default_actor_type
     @sender_list_id ||= params[:sender_list_id]
+    @sender_exception ||= params[:sender_exception]
 
     @action ||= params[:action_rule]
     
     @receiver_type = params[:receiver_type] || LeavesHolidaysManagements.default_actor_type
     @receiver_list_id ||= params[:receiver_list_id]
-
+    @receiver_exception ||= params[:receiver_exception]
   end
 
   def create
