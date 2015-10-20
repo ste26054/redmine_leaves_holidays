@@ -8,22 +8,40 @@ module LeaveManagementRulesHelper
 
   # Given an actor, "sender" or "receiver", remove selected from available options for opposite actor.
   def actor_collection_for_select_options(project, actor)
+    # Return empty list if actor is not a sender nor a receiver
     return [] unless actor.in?(['sender', 'receiver'])
+    # Gets the opposite actor of the actor given sender -> receiver, etc.
     actor_opposite = actor == 'sender' ? 'receiver' : 'sender'
 
+    # Gets the type of the sender/receiver, User or Role
     receiver_type = @receiver_type || LeavesHolidaysManagements.default_actor_type
     sender_type = @sender_type || LeavesHolidaysManagements.default_actor_type
 
+    # If actor is the sender, get sender type. otherwise, get receiver type
     actor_type = actor == 'sender' ? sender_type : receiver_type
-
+    actor_opposite_type = actor_opposite == 'sender' ? sender_type : receiver_type
+    # Get a list of roles or users with regards to the actor type provided
     list = project.send(actor_type.underscore + "_list")
 
+    # Get the list of ids already selected previously for the other actor
     list_opposite_ids = actor_opposite == 'sender' ? @sender_list_id : @receiver_list_id
-
-    if sender_type == receiver_type && list_opposite_ids
+    
+    # if the list is not empty
+    if list_opposite_ids
       list_opposite = list_opposite_ids.map{|e| e.to_i}
-      list.delete_if {|l| l.id.in?(list_opposite)}
+      if actor_type == actor_opposite_type
+        list.delete_if {|l| l.id.in?(list_opposite)}
+        return list.map{|l| [l.name, l.id]}
+      else
+        if actor_opposite_type == 'Role' && actor_type == 'User'
+          actor_opposite_roles_selected = Role.where(id: list_opposite).to_a
+          actor_opposite_associated_user_ids = project.users_for_roles(actor_opposite_roles_selected).map(&:id)
+          list.delete_if {|l| l.id.in?(actor_opposite_associated_user_ids)}
+          return list.map{|l| [l.name, l.id]}
+        end
+      end
     end
+
     return list.map{|l| [l.name, l.id]}
   end
 

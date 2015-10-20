@@ -24,7 +24,7 @@ class LeaveManagementRulesController < ApplicationController
       params[:sender_list_id].each do |sender_id|
         params[:receiver_list_id].each do |receiver_id|
           @leave_management_rule = LeaveManagementRule.new(project: @project, sender: params[:sender_type].constantize.find(sender_id.to_i), receiver: params[:receiver_type].constantize.find(receiver_id.to_i), action: LeaveManagementRule.actions.select{|k,v| v == params[:action_rule].to_i}.keys.first)
-          if @leave_management_rule.save
+          unless @leave_management_rule.save
             saved = true
           end
         end
