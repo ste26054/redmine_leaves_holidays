@@ -6,7 +6,7 @@
   </ul>
   <ul style="display: inline-block;">
     <legend><%= label_tag "sender_list_id", "Sender List:" %></legend>
-    <p><%= select_tag 'sender_list_id', sender_collection_for_select_options(@project), :multiple => true, :size => 20 %></p>
+    <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 20 %></p>
   </ul>
 
   <ul style="display: inline-block;">
@@ -20,7 +20,7 @@
   </ul>
   <ul style="display: inline-block;">
     <legend><%= label_tag "receiver_list_id", "Receiver List:" %></legend>
-    <p><%= select_tag 'receiver_list_id', receiver_collection_for_select_options(@project), :multiple => true, :size => 20 %></p>
+    <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 20 %></p>
   </ul>
 
   </div>
@@ -32,7 +32,7 @@
 
 <%= javascript_tag do %>
   $(document).ready(function(){
-    $('#sender_type, #receiver_type').change(function(){
+    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id').change(function(){
       $.ajax({
         url: '<%= escape_javascript new_project_leave_management_rule_path(:format => 'js') %>',
         type: 'post',

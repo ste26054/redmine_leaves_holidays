@@ -6,20 +6,29 @@ module LeaveManagementRulesHelper
     options_for_select(options, selected)
   end
 
-  def sender_collection_for_select_options(project)
-    sender_type = @sender_type || LeavesHolidaysManagements.default_actor_type
-    list = project.send(sender_type.underscore + "_list")
-    return list.map{|l| [l.name, l.id]}
-  end
+  # Given an actor, "sender" or "receiver", remove selected from available options for opposite actor.
+  def actor_collection_for_select_options(project, actor)
+    return [] unless actor.in?(['sender', 'receiver'])
+    actor_opposite = actor == 'sender' ? 'receiver' : 'sender'
 
-  def receiver_collection_for_select_options(project)
     receiver_type = @receiver_type || LeavesHolidaysManagements.default_actor_type
-    list = project.send(receiver_type.underscore + "_list")
+    sender_type = @sender_type || LeavesHolidaysManagements.default_actor_type
+
+    actor_type = actor == 'sender' ? sender_type : receiver_type
+
+    list = project.send(actor_type.underscore + "_list")
+
+    list_opposite_ids = actor_opposite == 'sender' ? @sender_list_id : @receiver_list_id
+
+    if sender_type == receiver_type && list_opposite_ids
+      list_opposite = list_opposite_ids.map{|e| e.to_i}
+      list.delete_if {|l| l.id.in?(list_opposite)}
+    end
     return list.map{|l| [l.name, l.id]}
   end
 
   def action_sender_options_for_select(selected)
-    options = LeaveManagementRule.actions.to_a.map{|a| [a[0].humanize, a[1]]}
+    options = LeaveManagementRule.actions.to_a.map{|a| [a[0].humanize, a[1]]}.reverse
     options_for_select(options, selected)
   end
 end
