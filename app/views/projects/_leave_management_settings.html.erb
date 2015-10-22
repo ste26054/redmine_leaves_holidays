@@ -3,5 +3,116 @@
 <% else %>
 
   <p><%= link_to "New leave management rule", new_project_leave_management_rule_path(@project), :remote => true, :class => "icon icon-add" %></p>
-  <p>Test</p>
+  <p>Summary</p>
+<table class="list">
+<thead>
+		<tr>
+			<th>Sender</th>
+			<th>Action</th>
+			<th>Receiver</th>
+			<th></th>
+		<tr>
+</thead>
+<tbody> 
+
+
+
+
+	<tr><td colspan="4">is managed by -- Role</td></tr>
+	<% byReceiver = LeaveManagementRule.all.where(action: 2, sender_type: "Role").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
+	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
+	<% result.flat_map(&:entries).each do |line| %>
+		<tr>
+			<td><%= line[0].join(", ") %></td>
+			<td> is managed by</td>
+			<td><%= line[1].join(", ") %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+	<tr><td colspan="4">is managed by -- Principal</td></tr>
+	<% byReceiver = LeaveManagementRule.all.where(action: 2, sender_type: "Principal").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
+	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
+	<% result.flat_map(&:entries).each do |line| %>
+		<tr>
+			<td><%= line[0].join(", ") %></td>
+			<td> is managed by</td>
+			<td><%= line[1].join(", ") %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+	<tr><td colspan="4">is consulted by</td></tr>
+	<% receiverGroup = LeaveManagementRule.all.where(action: 1).group_by(&:receiver) %>
+	<% receiverGroup.each do |line| %>
+		<tr>
+			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>
+			<td><%= line[1].first.action %></td>
+			<td><%= line[1].map{|rule| rule.receiver}.uniq.join(", ") %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+	<tr><td colspan="4">notifies approved</td></tr>
+	<% receiverGroup = LeaveManagementRule.all.where(action: 0).group_by(&:receiver) %>
+	<% receiverGroup.each do |line| %>
+		<tr>
+			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>
+			<td><%= line[1].first.action %></td>
+			<td><%= line[1].map{|rule| rule.receiver}.uniq.join(", ") %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+</tbody>			
+</table>
+
+<!-- **************************RAW DATA********************************************- -->
+<table class="list">
+<thead>
+		<tr>
+			<th>Sender</th>
+			<th>Action</th>
+			<th>Receiver</th>
+			<th></th>
+		<tr>
+</thead>
+<tbody> 
+
+	<tr><td colspan="4">is managed by</td></tr>
+	<% receiverGroup = LeaveManagementRule.all.where(action: 2) %>
+	<% receiverGroup.each do |rule| %>
+		<tr>
+			<td><%= rule.sender %></td>
+			<td><%= rule.action %></td>
+			<td><%= rule.receiver %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+	<tr><td colspan="4">is consulted by</td></tr>
+	<% receiverGroup = LeaveManagementRule.all.where(action: 1) %>
+	<% receiverGroup.each do |rule| %>
+		<tr>
+			<td><%= rule.sender %></td>
+			<td><%= rule.action %></td>
+			<td><%= rule.receiver %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+
+	<tr><td colspan="4">notifies approved</td></tr>
+	<% receiverGroup = LeaveManagementRule.all.where(action: 0) %>
+	<% receiverGroup.each do |rule| %>
+		<tr>
+			<td><%= rule.sender %></td>
+			<td><%= rule.action %></td>
+			<td><%= rule.receiver %></td>
+			<td>Edit | Delete</td>
+		<tr>
+	<% end %>
+</tbody>			
+</table>
+<!-- **************************RAW DATA*********************************************- -->
+
 <% end %>
