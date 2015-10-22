@@ -28,20 +28,30 @@
     <tr>
       <td></td>
       <td>
-        <div id="sender_exception_div">
-        <legend><%= label_tag "sender_exception", "Sender List:" %></legend>
-        <p><%= select_tag 'sender_exception', nil, :multiple => true, :include_blank => true, :size => 5 %>
-        </p>
-        </div>
+        <% if @sender_type == "Role" && @sender_list_id && !@sender_list_id.empty? %>
+          <% @sender_options = sender_exception_collection_for_select_options(@project) %>
+          <% unless @sender_options.empty? %>
+            <div id="sender_exception_div">
+            <legend><%= label_tag "sender_exception_id", "Sender List Exception:" %></legend>
+            <p><%= select_tag 'sender_exception_id', @sender_options, :multiple => true, :selected => 0, :size => 5 %>
+            </p>
+            </div>
+          <% end %>
+        <% end %>
       </td>
       <td></td>
       <td></td>
       <td>
-        <div id="receiver_exception_div">
-        <legend><%= label_tag "receiver_exception", "receiver List:" %></legend>
-        <p><%= select_tag 'receiver_exception', nil, :multiple => true, :include_blank => true, :size => 5 %>
-        </p>
-        </div>
+        <% if @receiver_type == "Role" && @receiver_list_id && !@receiver_list_id.empty? %>
+          <% @receiver_options = receiver_exception_collection_for_select_options(@project) %>
+          <% unless @receiver_options.empty? %>
+            <div id="receiver_exception_div">
+            <legend><%= label_tag "receiver_exception_id", "Receiver List Exception:" %></legend>
+            <p><%= select_tag 'receiver_exception_id', @receiver_options, :multiple => true, :selected => 0, :size => 5 %>
+            </p>
+            </div>
+          <% end %>
+        <% end %>
       </td>
     </tr>
   </table>
@@ -59,11 +69,5 @@
         data: $('#leave_management_rules').serialize()
       });
     });
-    <% unless @sender_exception %>
-      $("#sender_exception_div").hide();
-    <% end %>
-    <% unless @receiver_exception %>
-      $("#receiver_exception_div").hide();
-    <% end %>
   });
 <% end %>

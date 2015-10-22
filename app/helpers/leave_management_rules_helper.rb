@@ -14,8 +14,8 @@ module LeaveManagementRulesHelper
     actor_opposite = actor == 'sender' ? 'receiver' : 'sender'
 
     # Gets the type of the sender/receiver, User or Role
-    receiver_type = @receiver_type || LeavesHolidaysManagements.default_actor_type
-    sender_type = @sender_type || LeavesHolidaysManagements.default_actor_type
+    receiver_type = @receiver_type# || LeavesHolidaysManagements.default_actor_type
+    sender_type = @sender_type#|| LeavesHolidaysManagements.default_actor_type
 
     # If actor is the sender, get sender type. otherwise, get receiver type
     actor_type = actor == 'sender' ? sender_type : receiver_type
@@ -43,6 +43,22 @@ module LeaveManagementRulesHelper
     end
 
     return list.map{|l| [l.name, l.id]}
+  end
+
+  def sender_exception_collection_for_select_options(project)
+    return [] if @sender_type != "Role" || !@sender_list_id || @sender_list_id.empty?
+    sender_roles_selected = Role.where(id: @sender_list_id.map{|e| e.to_i}).to_a
+    users_associated_with_roles_selected = project.users_for_roles(sender_roles_selected)
+    return [] if users_associated_with_roles_selected.count == 1
+    return users_associated_with_roles_selected.map{|l| [l.name, l.id]}
+  end
+
+  def receiver_exception_collection_for_select_options(project)
+    return [] if @receiver_type != "Role" || !@receiver_list_id || @receiver_list_id.empty?
+    receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
+    users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
+    return [] if users_associated_with_roles_selected.count == 1
+    return users_associated_with_roles_selected.map{|l| [l.name, l.id]}
   end
 
   def action_sender_options_for_select(selected)
