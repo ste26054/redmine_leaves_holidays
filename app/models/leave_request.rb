@@ -173,7 +173,7 @@ class LeaveRequest < ActiveRecord::Base
 
   def in_current_leave_period?
     current_period = self.user.leave_period
-    return current_period == self.get_leave_period
+    return current_period && current_period == self.get_leave_period
   end
 
   def real_leave_days

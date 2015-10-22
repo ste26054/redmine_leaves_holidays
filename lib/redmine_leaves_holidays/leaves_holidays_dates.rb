@@ -28,29 +28,42 @@ module LeavesHolidaysDates
 	end
 
 	# Leave days accumulated for the year starting with the user's contract day and month, ignoring leaves taken
+	# Checked 22/10/2015 OK
 	def self.total_leave_days_accumulated(user, from, to)
-		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-		return 0.0 if to < contract_date
-		from = contract_date if from < contract_date
+		contract_start_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+		contract_end_date = user.contract_end_date
 
-		total = 0.0
+		return 0.0 if to < contract_start_date #ok
+		from = contract_start_date if from < contract_start_date #ok
+		to = contract_end_date if contract_end_date && to > contract_end_date #ok
+
+		#total = 0.0
 		#total += prefs.extra_leave_days if prefs != nil
 		months = self.months_between(from, to) % 12
 		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
-		return self.ceil_to_nearest_half_day(leave_days) + total
+		return self.ceil_to_nearest_half_day(leave_days)# + total
 	end
 
+	# Gives the actual leave entitlement for the user if he does not work a full year (new comer, contract ended)
+	# Checked 22/10/2015 OK
 	def self.actual_days_max(user, from, to)
+
 		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
 		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-		return 0.0 if to < contract_date
-		from = contract_date if from < contract_date
 
-		working_days_count = user.working_days_count(from, to, false, false, true)
+		contract_end_date = user.contract_end_date
+
+		return 0.0 if to < contract_date #ok
+		from = contract_date if from < contract_date #ok
+		to = contract_end_date if contract_end_date && to > contract_end_date #ok
+
+		# Get working days between 2 dates, excluding sat, sun and bank holidays
+		working_days_count = user.working_days_count(from, to, false, false, true) #ok
 
 		working_weeks_count = working_days_count / 5.0 # there are 5 working days per week
 
 		holidays_per_week = annual_days_max / 52.0 # 52 weeks a year
+
 
 		holiday_entitlement = holidays_per_week * working_weeks_count
 
@@ -110,32 +123,46 @@ module LeavesHolidaysDates
 	
 	#contract_start_date = 01/01/2014, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
 	#contract_start_date = 01/01/2013, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
-	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false)
+	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false, contract_end_date = nil)
+		# If current date before contract start date, set it to contract start date
 		current_date = contract_start_date if current_date < contract_start_date
+
+		# If there is a contract end date, and current date is after the end of the contract, set it to contract end date
+		current_date = contract_end_date if contract_end_date && current_date > contract_end_date
 
 		renewal_period = {}
 
+		# Set beginning of renewal period: take renewal day/month, then /year of current date
 		renewal_period[:start] = leave_renewal_date + (current_date.year - leave_renewal_date.year).year
 
+		# If beginning of renewal period is after the current date, set it 1 year before
 		if renewal_period[:start] > current_date
 			renewal_period[:start] = renewal_period[:start] - 1.year
 		end
 
+		# Make end of renewal period 1 year - 1 day before
 		renewal_period[:end] = renewal_period[:start] + 1.year - 1.day
 
+		return renewal_period if force_full_year
+		
+		# Cases for not full years
 		res = {}
-		if (contract_start_date < renewal_period[:start] && !force_full_year) || force_full_year
+		if (contract_start_date < renewal_period[:start])
 			res = renewal_period
 		else
 			res[:start] = contract_start_date
 			res[:end] = renewal_period[:end]
 		end
 
+		if contract_end_date && contract_end_date < renewal_period[:end]
+			res[:end] = contract_end_date
+		end
+
 		return res
 	end
 
-	def self.get_previous_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false)
-		current_leave_period = self.get_leave_period(contract_start_date, leave_renewal_date, current_date, force_full_year)
+	def self.get_previous_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false, contract_end_date = nil)
+		current_leave_period = self.get_leave_period(contract_start_date, leave_renewal_date, current_date, force_full_year, contract_end_date)
 		return nil if current_leave_period[:start] - 1.day < contract_start_date
 		return self.get_leave_period(contract_start_date, leave_renewal_date, current_leave_period[:start] - 1.day, force_full_year)
 	end
