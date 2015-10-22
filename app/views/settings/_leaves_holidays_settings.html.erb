@@ -23,12 +23,12 @@
 
 	<p>
 		<label><%= l(:label_leaves_default_working_hours) %>:</label>
-		<%= number_field_tag 'settings[weekly_working_hours]', RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours), :min => 0, :max => 90, :step => 1 %>
+		<%= number_field_tag 'settings[weekly_working_hours]', RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours), in: 0.0..100.0, step: 0.1 %>
 	</p>
 
 	<p>
 		<label><%= l(:label_leaves_default_days_year) %>:</label>
-		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), :min => 0, :step => 1 %>
+		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), in: 0.0..100.0, step: 0.5 %>
 	</p>
 
 	<%- users = User.where(status: 1).collect{|t| [t.name, t.id]} -%>

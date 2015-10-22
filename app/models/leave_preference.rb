@@ -6,12 +6,14 @@ class LeavePreference < ActiveRecord::Base
   # before_validation :set_user
 
   belongs_to :user
-  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count
+  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count
 
 
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
   validates :annual_leave_days_max, presence: true, numericality: true, inclusion: { in: 0..365}
   validates :contract_start_date, presence: true, date: true
+  validates :contract_end_date, date: true
+
   validates :leave_renewal_date, presence: true, date: true
 
   validates :extra_leave_days, presence: true, numericality: true, inclusion: { in: -365..365}
@@ -22,6 +24,7 @@ class LeavePreference < ActiveRecord::Base
 
 
   validate :validate_region
+  validate :validate_contract_end_date
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
@@ -48,6 +51,14 @@ class LeavePreference < ActiveRecord::Base
   	unless regions.include?(self.region)
   		errors.add(:region, "is invalid")
   	end 
+  end
+
+  def validate_contract_end_date
+    if contract_start_date && contract_end_date
+      if contract_start_date > contract_end_date
+        errors.add(:contract_end_date, "cannot be > to contract start date")
+      end
+    end
   end
 
   def check_event_backup

@@ -40,6 +40,18 @@ module RedmineLeavesHolidays
 
 						    where(id: ids)
 		          }
+
+		          # Returns all users in current scope that does not have a contract end date, or where contract end date > Today
+		          scope :under_contract, lambda {
+		          	ids = []
+		          	uids_total = pluck(:id)
+		          	uids_contracts_ended = joins(:leave_preference).where('leave_preferences.contract_end_date < ?', Date.today).pluck(:id)
+
+		          	ids = uids_total - uids_contracts_ended
+		          	
+						    where(id: ids)
+		          }
+
 		        end
 		    end
 		end
@@ -61,21 +73,28 @@ module RedmineLeavesHolidays
 
 			def leave_period(current_date = Date.today)
 				lp = self.leave_preferences
-				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
+				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
 			end
 			
 			def previous_leave_period(current_date = Date.today)
 				lp = self.leave_preferences
-				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
+				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
 			end
 
 			def leave_period_to_date(current_date = Date.today)
 				lp = self.leave_preferences
-				period = LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
-				res = {}
-				res[:start] = period[:start]
-				res[:end] = current_date
-				return res
+				period = self.leave_period(current_date)
+				if current_date >= period[:start] && current_date <= period[:end]
+					period[:end] = current_date
+					return period
+				end
+				if current_date < period[:start]
+					period[:end] = period[:start]
+					return period
+				end
+				if current_date > period[:end]
+					return period
+				end
 			end
 
 			def actual_days_max(current_date = Date.today)
@@ -99,8 +118,8 @@ module RedmineLeavesHolidays
 			end
 
 			def days_accumulated(current_date = Date.today)
-				period = self.leave_period(current_date)
-				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], current_date)
+				period = self.leave_period_to_date(current_date)
+				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], period[:end])
 			end
 
 			def days_extra
@@ -123,6 +142,7 @@ module RedmineLeavesHolidays
 		    return "background: \##{hex}; color: #{font_color};"
 		  end
 
+		  # To optimize when include_bank_holidays = true
 		  def working_days_count(from_date, to_date, include_sat = false, include_sun = false, include_bank_holidays = false)
 				user_region = LeavesHolidaysLogic.user_params(self, :region)
 				dates_interval = (from_date..to_date).to_a
@@ -131,7 +151,7 @@ module RedmineLeavesHolidays
 
     			dates_interval.delete_if {|i| i.wday == 6 && !include_sat || #delete date from array if day of week is a saturday (6)
                 			              i.wday == 0 && !include_sun || #delete date from array if day of week is a sunday (0)
-                            		      !include_bank_holidays && i.holiday?(user_region.to_sym, :observed)
+                            		      (!include_bank_holidays && i.holiday?(user_region.to_sym, :observed))
     									 }
 
     			return dates_interval.count
@@ -140,6 +160,10 @@ module RedmineLeavesHolidays
 
 			def is_contractor
 				self.leave_preferences.is_contractor
+			end
+
+			def contract_end_date
+				self.leave_preferences.contract_end_date
 			end
 		end
 	end
