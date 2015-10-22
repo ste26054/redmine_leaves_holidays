@@ -29,7 +29,10 @@ module LeavesHolidaysDates
 
 	# Leave days accumulated for the year starting with the user's contract day and month, ignoring leaves taken
 	def self.total_leave_days_accumulated(user, from, to)
-		prefs = LeavePreference.where(user_id: user.id).first
+		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+		return 0.0 if to < contract_date
+		from = contract_date if from < contract_date
+
 		total = 0.0
 		#total += prefs.extra_leave_days if prefs != nil
 		months = self.months_between(from, to) % 12
@@ -39,6 +42,9 @@ module LeavesHolidaysDates
 
 	def self.actual_days_max(user, from, to)
 		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
+		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+		return 0.0 if to < contract_date
+		from = contract_date if from < contract_date
 
 		working_days_count = user.working_days_count(from, to, false, false, true)
 
@@ -105,6 +111,7 @@ module LeavesHolidaysDates
 	#contract_start_date = 01/01/2014, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/01/2014, res[:end] = 31/05/2014
 	#contract_start_date = 01/01/2013, leave_renewal_date = 01/06, current_date = 05/01/2014 -> res[:start] = 01/06/2013, res[:end] = 31/05/2014
 	def self.get_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false)
+		current_date = contract_start_date if current_date < contract_start_date
 
 		renewal_period = {}
 
@@ -125,6 +132,12 @@ module LeavesHolidaysDates
 		end
 
 		return res
+	end
+
+	def self.get_previous_leave_period(contract_start_date, leave_renewal_date, current_date = Date.today, force_full_year = false)
+		current_leave_period = self.get_leave_period(contract_start_date, leave_renewal_date, current_date, force_full_year)
+		return nil if current_leave_period[:start] - 1.day < contract_start_date
+		return self.get_leave_period(contract_start_date, leave_renewal_date, current_leave_period[:start] - 1.day, force_full_year)
 	end
 
 end
