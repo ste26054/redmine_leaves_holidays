@@ -382,7 +382,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_days_remaining
-    if validate_date_period && !self.is_non_deduce_leave && self.in_current_leave_period?
+    if !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days
@@ -412,7 +412,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_overlaps
-    overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
+    overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).not_rejected.where.not(id: self.id)
 
     if half_day?
       if overlaps.count > 1
