@@ -1,5 +1,5 @@
+using LeavesHolidaysExtensions #local patch of user methods 
 module LeavesHolidaysLogic
-	using LeavesHolidaysExtensions #local patch of user methods 
 	
 	def self.issues_list(user = nil)
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
