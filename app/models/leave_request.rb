@@ -413,7 +413,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_overlaps
-    overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).where.not(id: self.id)
+    overlaps = LeaveRequest.for_user(self.user_id).overlaps(from_date, to_date).not_rejected.where.not(id: self.id)
 
     if half_day?
       if overlaps.count > 1

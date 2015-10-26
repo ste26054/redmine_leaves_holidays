@@ -32,10 +32,14 @@ Rails.configuration.to_prepare do
   
   Holidays.load_all
   require 'rufus/scheduler'
-  job = Rufus::Scheduler.singleton(:max_work_threads => 1).cron '30 0 * * *' do
 
-    LeavesHolidaysTriggers::check_perform_users_renewal
-    Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
+  leave_job = Rufus::Scheduler.new(:lockfile => ".leave-scheduler.lock")
+  
+  unless leave_job.down?
+	leave_job.cron '30 0 * * *' do
+		LeavesHolidaysTriggers::check_perform_users_renewal
+        Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
+	end
   end
 end
 
