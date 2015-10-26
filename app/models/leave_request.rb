@@ -15,6 +15,7 @@ class LeaveRequest < ActiveRecord::Base
   before_validation :set_user
   before_validation :set_user_preferences
   before_validation :set_informational
+  before_save :validate_days_remaining
   before_update :validate_update
   after_save :send_notifications
 
@@ -382,7 +383,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_days_remaining
-    if validate_date_period && !self.is_non_deduce_leave && self.in_current_leave_period?
+    if !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days
