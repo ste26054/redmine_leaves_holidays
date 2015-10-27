@@ -67,52 +67,5 @@
 </tbody>			
 </table>
 
-<!-- **************************RAW DATA********************************************- -->
-<table class="list">
-<thead>
-		<tr>
-			<th>Sender</th>
-			<th>Action</th>
-			<th>Receiver</th>
-			<th></th>
-		<tr>
-</thead>
-<tbody> 
-
-	<tr><td colspan="4">is managed by</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(action: 2) %>
-	<% receiverGroup.each do |rule| %>
-		<tr>
-			<td><%= rule.sender %></td>
-			<td><%= rule.action %></td>
-			<td><%= rule.receiver %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
-
-	<tr><td colspan="4">is consulted by</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(action: 1) %>
-	<% receiverGroup.each do |rule| %>
-		<tr>
-			<td><%= rule.sender %></td>
-			<td><%= rule.action %></td>
-			<td><%= rule.receiver %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
-
-	<tr><td colspan="4">notifies approved</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(action: 0) %>
-	<% receiverGroup.each do |rule| %>
-		<tr>
-			<td><%= rule.sender %></td>
-			<td><%= rule.action %></td>
-			<td><%= rule.receiver %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
-</tbody>			
-</table>
-<!-- **************************RAW DATA*********************************************- -->
 
 <% end %>

@@ -172,6 +172,30 @@ module RedmineLeavesHolidays
 			def contract_end_date
 				self.leave_preferences.contract_end_date
 			end
+
+			def leave_managed_by
+				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'is_managed_by')
+			end
+
+			def leave_consulted_by
+				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'is_consulted_by')
+			end
+
+			def leave_notifies
+				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'notifies_approved')
+			end
+
+			def leave_manages
+				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_managed_by')
+			end
+
+			def leave_consults
+				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_consulted_by')
+			end
+
+			def leave_notified_from
+				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'notifies_approved')
+			end
 		end
 	end
 end

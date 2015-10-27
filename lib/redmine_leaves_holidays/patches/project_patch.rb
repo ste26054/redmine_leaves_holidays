@@ -18,6 +18,10 @@ module RedmineLeavesHolidays
         return self.users_by_role.keys.sort
       end
 
+      def roles_for_user(user)
+        return self.users_by_role.select{|k,v| user.in?(v)}.keys
+      end
+
       def users_for_roles(roles)
         unless roles.is_a?(Array)
           roles = [roles]

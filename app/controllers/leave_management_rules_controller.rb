@@ -25,11 +25,15 @@ class LeaveManagementRulesController < ApplicationController
         params[:receiver_list_id].each do |receiver_id|
           @leave_management_rule = LeaveManagementRule.new(project: @project, sender: params[:sender_type].constantize.find(sender_id.to_i), receiver: params[:receiver_type].constantize.find(receiver_id.to_i), action: LeaveManagementRule.actions.select{|k,v| v == params[:action_rule].to_i}.keys.first)
           if @leave_management_rule.save
-            params[:sender_exception_id].each do |sender_excpt|
-              LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :sender, user: User.find(sender_excpt.to_i))
+            if params[:sender_exception_id]
+              params[:sender_exception_id].each do |sender_excpt|
+                LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :sender, user: User.find(sender_excpt.to_i))
+              end
             end
-            params[:receiver_exception_id].each do |receiver_excpt|
-              LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :receiver, user: User.find(receiver_excpt.to_i))
+            if params[:receiver_exception_id]
+              params[:receiver_exception_id].each do |receiver_excpt|
+                LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :receiver, user: User.find(receiver_excpt.to_i))
+              end
             end
           end
         end
