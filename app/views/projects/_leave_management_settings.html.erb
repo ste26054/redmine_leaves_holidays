@@ -19,7 +19,7 @@
 
 
 	<tr><td colspan="4">is managed by -- Role</td></tr>
-	<% byReceiver = LeaveManagementRule.all.where(action: 2, sender_type: "Role").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
+	<% byReceiver = LeaveManagementRule.all.where(project: @project, action: 2, sender_type: "Role").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
 	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
 	<% result.flat_map(&:entries).each do |line| %>
 		<tr>
@@ -31,7 +31,7 @@
 	<% end %>
 
 	<tr><td colspan="4">is managed by -- Principal</td></tr>
-	<% byReceiver = LeaveManagementRule.all.where(action: 2, sender_type: "Principal").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
+	<% byReceiver = LeaveManagementRule.all.where(project: @project, action: 2, sender_type: "Principal").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
 	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
 	<% result.flat_map(&:entries).each do |line| %>
 		<tr>
@@ -43,7 +43,7 @@
 	<% end %>
 
 	<tr><td colspan="4">is consulted by</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(action: 1).group_by(&:receiver) %>
+	<% receiverGroup = LeaveManagementRule.all.where(project: @project, action: 1).group_by(&:receiver) %>
 	<% receiverGroup.each do |line| %>
 		<tr>
 			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>
@@ -54,7 +54,7 @@
 	<% end %>
 
 	<tr><td colspan="4">notifies approved</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(action: 0).group_by(&:receiver) %>
+	<% receiverGroup = LeaveManagementRule.all.where(project: @project, action: 0).group_by(&:receiver) %>
 	<% receiverGroup.each do |line| %>
 		<tr>
 			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>

@@ -185,8 +185,20 @@ module RedmineLeavesHolidays
 				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'notifies_approved')
 			end
 
-			def leave_manages
-				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_managed_by')
+			def leave_manages(force_users = false)
+				management_rules = LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_managed_by')
+				unless force_users
+					return management_rules
+				else
+					management_user_list = management_rules.select{|r| r.sender.class == User }.map(&:sender)
+					management_role_list = management_rules.select{|r| r.sender.class == Role }
+					management_user_list += management_role_list.map{|r| r.project.users_for_roles(r.sender) }.flatten
+					return management_user_list.uniq
+				end
+			end
+
+			def leave_users_manage_list
+				return LeavesHolidaysManagements.leave_manages_recursive(self) - [self]
 			end
 
 			def leave_consults
