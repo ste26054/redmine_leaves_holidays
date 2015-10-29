@@ -15,54 +15,34 @@
 </thead>
 <tbody> 
 
+<% LeavesHolidaysManagements.actor_types_db.each do |receiver_type| %>
+	<% LeaveManagementRule.actions.keys.each do |action| %>
+		<% LeavesHolidaysManagements.actor_types_db.each do |sender_type| %>
+			<% management_rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type).group_by(&:receiver) %>
+			<% management_rules_reverse = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type).group_by(&:sender) %>
+			<tr>
+				<td><%= management_rules.values.to_json %></td>
+				<td></td>
+				<td><%= management_rules_reverse.values.to_json %></td>
+			</tr> 
+
+			<% unless management_rules.empty? %>
+				<% management_rules.each do |k,v| %>
+
+					<tr>
+						<td><%= v.map {|r| r.sender.name}.uniq.join(", ") %></td>
+						<td><%= v.map {|r| r.action.humanize}.uniq.join(", ") %></td>
+						<td><%= v.map {|r| r.receiver.name}.uniq.join(", ") %></td>
+						<td><%= v.map(&:id) %></td>
+					</tr>
+				<% end %>
+			<% end %>
 
 
-
-	<tr><td colspan="4">is managed by -- Role</td></tr>
-	<% byReceiver = LeaveManagementRule.all.where(project: @project, action: 2, sender_type: "Role").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
-	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
-	<% result.flat_map(&:entries).each do |line| %>
-		<tr>
-			<td><%= line[0].join(", ") %></td>
-			<td> is managed by</td>
-			<td><%= line[1].join(", ") %></td>
-			<td>Edit | Delete</td>
-		<tr>
+		<% end %>
 	<% end %>
+<% end %>
 
-	<tr><td colspan="4">is managed by -- Principal</td></tr>
-	<% byReceiver = LeaveManagementRule.all.where(project: @project, action: 2, sender_type: "Principal").group_by(&:receiver).map{|rule| {rule[1].map{|element| element.sender.name} => rule[0].name}} %>
-	<% result = byReceiver.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]} %>
-	<% result.flat_map(&:entries).each do |line| %>
-		<tr>
-			<td><%= line[0].join(", ") %></td>
-			<td> is managed by</td>
-			<td><%= line[1].join(", ") %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
-
-	<tr><td colspan="4">is consulted by</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(project: @project, action: 1).group_by(&:receiver) %>
-	<% receiverGroup.each do |line| %>
-		<tr>
-			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>
-			<td><%= line[1].first.action %></td>
-			<td><%= line[1].map{|rule| rule.receiver}.uniq.join(", ") %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
-
-	<tr><td colspan="4">notifies approved</td></tr>
-	<% receiverGroup = LeaveManagementRule.all.where(project: @project, action: 0).group_by(&:receiver) %>
-	<% receiverGroup.each do |line| %>
-		<tr>
-			<td><%= line[1].map{|rule| rule.sender}.uniq.join(", ") %></td>
-			<td><%= line[1].first.action %></td>
-			<td><%= line[1].map{|rule| rule.receiver}.uniq.join(", ") %></td>
-			<td>Edit | Delete</td>
-		<tr>
-	<% end %>
 
 </tbody>			
 </table>

@@ -47,6 +47,23 @@ class LeaveManagementRulesController < ApplicationController
     end
   end
 
+  def edit
+    management_rule_ids ||= params[:management_rule_ids]
+    management_rules = LeaveManagementRule.where(id: management_rule_ids, project: @project)
+    sender_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender])
+    receiver_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver])
+    
+    @sender_type = management_rules.first.sender_type
+    @sender_list_id = management_rules.pluck(:sender_id)
+    @sender_exception_id = sender_exceptions.pluck(:user_id)
+
+    @action = management_rules.first.action
+    
+    @receiver_type = management_rules.first.receiver_type
+    @receiver_list_id = management_rules.pluck(:receiver_id)
+    @receiver_exception_id = receiver_exceptions.pluck(:user_id)
+  end
+
   def index
     respond_to do |format|
       format.html { head 406 }
