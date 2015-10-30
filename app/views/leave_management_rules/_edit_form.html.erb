@@ -1,0 +1,73 @@
+<fieldset class="box">
+  <p>Ctrl+click or Maj+click for multi-selection</p>
+
+  <table align="center">
+    <tr>
+      <td>
+        <legend><%= label_tag "sender_type", "Sender Type:" %></legend>
+        <p><%= select_tag 'sender_type', actor_type_options_for_select(@sender_type) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "sender_list_id", "Sender List:" %></legend>
+        <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 10 %>
+        </p>
+      </td>
+      <td>
+        <legend><%= label_tag "action_rule", "Action to perform:" %></legend>
+        <p><%= select_tag 'action_rule', action_sender_options_for_select(@action) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "receiver_type", "Receiver Type:" %></legend>
+        <p><%= select_tag 'receiver_type', actor_type_options_for_select(@receiver_type) %></p>
+      </td>
+      <td>
+        <legend><%= label_tag "receiver_list_id", "Receiver List:" %></legend>
+        <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 10 %></p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <% if @sender_type == "Role" && @sender_list_id && !@sender_list_id.empty? %>
+          <% @sender_options = sender_exception_collection_for_select_options(@project) %>
+          <% unless @sender_options.empty? %>
+            <div id="sender_exception_div">
+            <legend><%= label_tag "sender_exception_id", "Sender List Exception:" %></legend>
+            <p><%= select_tag 'sender_exception_id', @sender_options, :multiple => true, :selected => 0, :size => 5 %>
+            </p>
+            </div>
+          <% end %>
+        <% end %>
+      </td>
+      <td></td>
+      <td></td>
+      <td>
+        <% if @receiver_type == "Role" && @receiver_list_id && !@receiver_list_id.empty? %>
+          <% @receiver_options = receiver_exception_collection_for_select_options(@project) %>
+          <% unless @receiver_options.empty? %>
+            <div id="receiver_exception_div">
+            <legend><%= label_tag "receiver_exception_id", "Receiver List Exception:" %></legend>
+            <p><%= select_tag 'receiver_exception_id', @receiver_options, :multiple => true, :selected => 0, :size => 5 %>
+            </p>
+            </div>
+          <% end %>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+  
+
+</fieldset>
+
+
+<%= javascript_tag do %>
+  $(document).ready(function(){
+    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id').change(function(){
+      $.ajax({
+        url: '<%= escape_javascript management_rules_edit_project_leave_management_rules_path(:format => 'js') %>',
+        type: 'post',
+        data: $('#leave_management_rules').serialize()
+      });
+    });
+  });
+<% end %>

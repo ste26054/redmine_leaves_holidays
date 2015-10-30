@@ -204,8 +204,9 @@ module RedmineLeavesHolidays
 				end
 			end
 
+
 			def leave_users_manage_list
-				return LeavesHolidaysManagements.leave_manages_recursive(self) - [self]
+				return LeavesHolidaysManagements.leave_manages_user_recursive(self) - [self]
 			end
 
 			def leave_consults

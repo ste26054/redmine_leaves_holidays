@@ -1,0 +1,14 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
+
+<h3 class="title"><%= "New leave management rule" %></h3>
+
+<%= form_tag project_leave_management_rules_path, :id => :leave_management_rules, :remote => true, :method => :post do %>
+  <%= render :partial => 'new_form' %>
+  <p class="buttons">
+    <%= submit_tag l(:button_edit), :id => 'leave_management-add-submit' %>
+    <%= submit_tag l(:button_cancel), :name => nil, :onclick => "hideModal(this);", :type => 'button' %>
+  </p>
+<% end %>

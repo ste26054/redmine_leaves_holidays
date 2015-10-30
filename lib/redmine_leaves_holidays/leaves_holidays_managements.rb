@@ -58,22 +58,67 @@ module LeavesHolidaysManagements
     return LeaveManagementRule.where(id: rules_list_ids - rules_exception_list_ids)#.includes(:sender, :receiver, :project)
   end
 
-  def self.leave_manages_recursive(to_check = [], checked = [], project_list = [])
+
+  def self.role_action_actor_list(role, actor, action, leave_management_project_list)
+    return [] unless actor.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions.keys)
+
+    unless leave_management_project_list.is_a?(Array)
+      leave_management_project_list = [leave_management_project_list]
+    end
+
+    # get associated rules
+    leave_management_rules = LeaveManagementRule.where(project: leave_management_project_list, action: LeaveManagementRule.actions[action])
+    rules_list = []
+
+    if actor == 'sender'
+      rules_list << leave_management_rules.sender_role.where(sender: role).pluck(:id)
+    else
+      rules_list << leave_management_rules.receiver_role.where(receiver: role).pluck(:id)
+    end
+
+    rules_list_ids = rules_list.flatten
+
+    #get rules where there is an exception regarding the given user
+    #rules_exception_list_ids = LeaveExceptionRule.where(leave_management_rule_id: rules_list_ids, actor_concerned: LeaveExceptionRule.actors_concerned[actor], user: user).pluck(:leave_management_rule_id).uniq
+
+    return LeaveManagementRule.where(id: rules_list_ids)# - rules_exception_list_ids)#.includes(:sender, :receiver, :project)
+  end
+
+  def self.leave_manages_user_recursive(to_check = [], checked = [], project_list = [], freeze_project_list = false, force_users = true)
       unless to_check.is_a?(Array)
           to_check = [to_check]
       end
 
-      if checked.empty?
+      if (freeze_project_list == false && checked.empty?) || !(freeze_project_list == true && !project_list.empty?)
         project_list = to_check.map{|u| u.leave_manages.map(&:project)}.flatten.uniq
       end
       to_be_checked_next = []
-      (to_check - checked).each do |user|
-        to_be_checked_next << user.leave_manages(true, project_list)
-        checked << user
+      (to_check - checked).each do |m|
+        to_be_checked_next << m.leave_manages(force_users, project_list)
+        checked << m
       end
 
       unless to_be_checked_next.empty?
-        self.leave_manages_recursive(to_be_checked_next.flatten, checked, project_list)
+        self.leave_manages_user_recursive(to_be_checked_next.flatten, checked, project_list, freeze_project_list, force_users)
+      else
+        return checked
+      end
+
+  end
+
+  def self.leave_manages_role_recursive(to_check = [], checked = [], project_list = [])
+      unless to_check.is_a?(Array)
+          to_check = [to_check]
+      end
+
+      to_be_checked_next = []
+      (to_check - checked).each do |m|
+        to_be_checked_next << m.leave_manages(project_list).map(&:sender).select{|r| r.sender.class = Role}
+        checked << m
+      end
+
+      unless to_be_checked_next.empty?
+        self.leave_manages_role_recursive(to_be_checked_next.flatten, checked, project_list)
       else
         return checked
       end
@@ -82,7 +127,11 @@ module LeavesHolidaysManagements
 
   #TBC
   def self.regroup(array)
-    array.group_by{|t| t[0]}.map{|k,v| [k, v.flatten - k]}
+    for i in 0..1
+      array = array.group_by{|t| t[i]}.map{|k,v| [k, (v.flatten - k).uniq]}
+      array.map(&:reverse!) if i.odd?
+    end
+    return array
   end
 
 

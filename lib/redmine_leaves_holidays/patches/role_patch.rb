@@ -15,6 +15,14 @@ module RedmineLeavesHolidays
     end
 
     module RoleInstanceMethods
+      def leave_manages(project_list)
+        management_rules = LeavesHolidaysManagements.role_action_actor_list(self, 'receiver', 'is_managed_by', project_list)
+        return management_rules
+      end
+
+      def leave_roles_manage_list(project_list)
+        return LeavesHolidaysManagements.leave_manages_role_recursive(self, [], project_list) - [self]
+      end
 
     end
   end

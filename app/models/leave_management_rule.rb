@@ -18,6 +18,7 @@ class LeaveManagementRule < ActiveRecord::Base
 
   validate :validate_sender_not_receiver
   validate :validate_rule_uniq
+  validate :validate_no_cyclic_rule
 
   scope :sender_role, lambda { where(sender_type: "Role") }
   scope :receiver_role, lambda { where(receiver_type: "Role") }
@@ -52,6 +53,13 @@ class LeaveManagementRule < ActiveRecord::Base
       rule_idtq = rule_idtq.not(id: self.id)
     end
     errors.add(:base, "cannot add duplicate rules") if rule_idtq.count > 0
+  end
+
+  def validate_no_cyclic_rule
+    cyclic_rule = LeaveManagementRule.where(sender: self.receiver, receiver: self.sender, project: self.project, action: LeaveManagementRule.actions[self.action])
+    unless cyclic_rule.empty? 
+      errors.add(:base, "cannot add cyclic rules within project")
+    end
   end
 
 
