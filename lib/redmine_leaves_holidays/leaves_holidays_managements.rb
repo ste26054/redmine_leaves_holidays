@@ -4,17 +4,13 @@ module LeavesHolidaysManagements
   return ['Role', 'User']
  end
 
- def self.actor_types_db
-  return ['Role', 'Principal']
- end
-
  def self.default_actor_type
   return self.actor_types[0]
  end
 
 
 
- # Returns the list of management rules for the given user (The user appears either as a Principal, or as a Role in the Rules)
+ # Returns the list of management rules for the given user (The user appears either as a User, or as a Role in the Rules)
   def self.user_action_actor_list(user, actor, action, leave_management_project_list = [])
     return [] unless actor.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions.keys)
 

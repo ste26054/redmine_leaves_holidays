@@ -1,50 +1,69 @@
 <% unless @project.module_enabled?(:leave_management) %>
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
-
+	<h3>Leave Management Rules</h3>
   <p><%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %></p>
-  <p>Summary</p>
-<table class="list">
-<thead>
-		<tr>
-			<th>Sender</th>
-			<th>Action</th>
-			<th>Receiver</th>
-			<th></th>
-		<tr>
-</thead>
-<tbody> 
 
-<% LeavesHolidaysManagements.actor_types_db.each do |receiver_type| %>
-	<% LeaveManagementRule.actions.keys.each do |action| %>
-		<% LeavesHolidaysManagements.actor_types_db.each do |sender_type| %>
-			<% rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type).includes(:sender, :receiver) %>
-			<% rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) %>
+<% if LeaveManagementRule.where(project: @project).count > 0 %>
+	<table class="list">
+	<thead>
+			<tr>
+				<th>Sender</th>
+				<th>Action</th>
+				<th>Receiver</th>
+				<th></th>
+			<tr>
+	</thead>
+	<tbody> 
 
-			<% unless rules_grouped.empty? %>
-				<% rules_grouped.each do |v| %>
-					<tr>
-						<td><%= v[0].join(", ") %></td>
-						<td><%= action.humanize %></td>
-						<td><%= v[1].join(", ") %></td>
+	<% LeavesHolidaysManagements.actor_types.each do |receiver_type| %>
+		<% LeaveManagementRule.actions.keys.each do |action| %>
+			<% LeavesHolidaysManagements.actor_types.each do |sender_type| %>
+				<% rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type) %>
+				<% rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) %>
+				<% unless rules_grouped.empty? %>
+					<% rules_grouped.each do |v| %>
 						<% rule_ids = rules.select {|r| r.sender.in?(v[0]) && r.receiver.in?(v[1])}.map(&:id) %>
-						<td><%= rule_ids %>
-								<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
-								%>
-						</td>
-					</tr>
+						<% exceptions_sender = LeaveExceptionRule.where(leave_management_rule_id: rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender]).includes(:user) %>
+						<% exceptions_receiver = LeaveExceptionRule.where(leave_management_rule_id: rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver]).includes(:user) %>
+						<tr>
+							<td>
+								<%= v[0].join(", ") %>
+								<% unless exceptions_sender.empty? %>
+									<% exception_users = exceptions_sender.map(&:user).map(&:name).uniq %>
+									</br><strong><%= "Exception".pluralize(exception_users.count) %>:</strong> <%= exception_users.join(", ") %>
+								<% end %>
+							</td>
+
+							<td><%= action.humanize %></td>
+
+							<td>
+								<%= v[1].join(", ") %>
+								<% unless exceptions_receiver.empty? %>
+									</br><strong><%= "Exception".pluralize(exceptions_receiver.uniq.count) %>:</strong> <%= exceptions_receiver.map(&:user).map(&:name).uniq.join(", ") %>
+								<% end %>
+							</td>
+							<td>
+									<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
+									%>
+									<%= link_to "Delete", project_leave_management_rules_update_path(@project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
+									%>
+							</td>
+						</tr>
+					<% end %>
 				<% end %>
+
+
 			<% end %>
-
-
 		<% end %>
 	<% end %>
+
+
+	</tbody>			
+	</table>
+<% else %>
+	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
-
-
-</tbody>			
-</table>
-
 
 <% end %>
 
