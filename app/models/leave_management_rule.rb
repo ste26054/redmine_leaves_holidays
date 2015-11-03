@@ -4,7 +4,7 @@ class LeaveManagementRule < ActiveRecord::Base
   belongs_to :sender, polymorphic: true # Sender can be a Role or a User
   belongs_to :receiver , polymorphic: true # receiver can be a Role or a User
 
-  has_many :leave_exception_rules
+  has_many :leave_exception_rules, dependent: :destroy
 
   # Sender [notifies, is consulted by, is managed by] Receiver
   enum action: { notifies_approved: 0, is_consulted_by: 1, is_managed_by: 2 } #Action to make
@@ -20,11 +20,22 @@ class LeaveManagementRule < ActiveRecord::Base
   validate :validate_rule_uniq
   validate :validate_no_cyclic_rule
 
+  before_save :check_principal
+
   scope :sender_role, lambda { where(sender_type: "Role") }
   scope :receiver_role, lambda { where(receiver_type: "Role") }
   scope :sender_user, lambda { where(sender_type: "Principal") }
   scope :receiver_user, lambda { where(receiver_type: "Principal") }
 
+
+  def check_principal
+    if self.sender_type == "Principal"
+      self.sender_type = "User"
+    end
+    if self.receiver_type == "Principal"
+      self.receiver_type = "User"
+    end
+  end
 
   def self.projects
     Project.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id)).active
@@ -36,6 +47,16 @@ class LeaveManagementRule < ActiveRecord::Base
 
   def receiver_list
     actor_list('receiver')
+  end
+
+  def sender_type_form
+    return sender_type if sender_type == "Role"
+    return "User"
+  end
+
+  def receiver_type_form
+    return receiver_type if receiver_type == "Role"
+    return "User"
   end
 
 

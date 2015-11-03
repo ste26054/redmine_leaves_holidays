@@ -26,17 +26,13 @@ RedmineApp::Application.routes.draw do
 	end
 
 	resources :projects do
-		resources :leave_management_rules do
-			collection  do
-				match '/management_rules_edit', :to => 'leave_management_rules#edit', :via => [:get, :post]
-				put '/management_rules_update', :to => 'leave_management_rules#update'
-			end
-		end
+		match '/projects/:project_id/leave_management_rules/edit', :to => 'leave_management_rules#edit', :via => [:get, :post], as: :leave_management_rules_edit
+		match '/projects/:project_id/leave_management_rules/update', :to => 'leave_management_rules#update', :via => [:get, :post], as: :leave_management_rules_update
 	end
 
 	get '/leave_approvals', :to => 'leave_approvals#index'
 	get '/leave_calendars', :to => 'leave_calendars#show'
 	get '/leave_timeline', :to => 'leave_timelines#show'
 	get '/projects/:project_id/leave_timeline', :to => 'leave_timelines#show_project'
-	post '/projects/:project_id/leave_management_rules/new', :to => 'leave_management_rules#new'
+	
 end

@@ -2,7 +2,7 @@
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
 
-  <p><%= link_to "New leave management rule", new_project_leave_management_rule_path(@project), :remote => true, :class => "icon icon-add" %></p>
+  <p><%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %></p>
   <p>Summary</p>
 <table class="list">
 <thead>
@@ -29,7 +29,8 @@
 						<td><%= v[1].join(", ") %></td>
 						<% rule_ids = rules.select {|r| r.sender.in?(v[0]) && r.receiver.in?(v[1])}.map(&:id) %>
 						<td><%= rule_ids %>
-								<%= link_to "Edit", management_rules_edit_project_leave_management_rules_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" %>
+								<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
+								%>
 						</td>
 					</tr>
 				<% end %>
