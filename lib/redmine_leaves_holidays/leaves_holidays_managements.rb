@@ -4,8 +4,21 @@ module LeavesHolidaysManagements
   return ['Role', 'User']
  end
 
+ def self.actor_types_db
+  return ['Role', 'Principal']
+ end
+
  def self.default_actor_type
   return self.actor_types[0]
+ end
+
+ def self.acting_as_list
+  return ['sender','receiver']
+ end
+
+ def self.acting_as_opposite(acting_as)
+  return nil unless acting_as.in?(self.acting_as_list)
+  return (self.acting_as_list - [acting_as]).first
  end
 
 
@@ -128,6 +141,51 @@ module LeavesHolidaysManagements
       array.map(&:reverse!) if i.odd?
     end
     return array
+  end
+
+  def self.management_rules_list(actor, acting_as, action, projects = [])
+    if actor == nil || acting_as == nil || action == nil
+      return []
+    end
+    return [] unless actor.class.to_s.in?(self.actor_types) || acting_as.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions)
+    return [] if actor.class == Role && !projects && projects.empty?
+
+    # Setting projects to lookup
+    if actor.class == User
+      actor_type_db = 'Principal'
+      if projects.empty?
+        project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.to_a
+      else
+        project_list = projects
+      end
+      memberships = Member.where(user: actor, project: project_list)
+      member_roles = MemberRole.where(member_id: memberships).includes(member: :project).includes(:role)
+
+      #get a hash [:project => [roles]] for the user
+      roles_for_project =  member_roles.group_by{|mr| mr.member.project}.map{|k,v|  [k, v.map(&:role).uniq]}.to_h
+
+      leave_management_rules_ids = []
+      roles_for_project.each do |project, roles|
+        leave_management_rules_ids << LeaveManagementRule.where(project: project, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = 'Role' AND #{acting_as}_id = ?", roles.map(&:id)).pluck(:id)
+      end
+
+      leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = 'Principal' AND #{acting_as}_id = ?", actor.id).pluck(:id)
+
+    else
+      actor_type_db = 'Role'
+      project_list = projects
+
+      leave_management_rules_ids = LeaveManagementRule.where(project: project_list, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = ? AND #{acting_as}_id = ?", actor_type_db, actor.id).pluck(:id)
+    end
+
+    exceptions = []
+    if actor.class == User 
+      exceptions = LeaveExceptionRule.where(actor_concerned: LeaveExceptionRule.actors_concerned[acting_as], user: actor).pluck(:leave_management_rule_id).uniq
+    end
+
+    leave_management_rules = LeaveManagementRule.where(id: leave_management_rules_ids.flatten.uniq - exceptions).includes(:sender, :receiver, :leave_exception_rules, :project)
+
+    return leave_management_rules.map(&:id)
   end
 
 

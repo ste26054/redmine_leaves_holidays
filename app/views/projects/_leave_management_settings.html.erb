@@ -16,9 +16,9 @@
 	</thead>
 	<tbody> 
 
-	<% LeavesHolidaysManagements.actor_types.each do |receiver_type| %>
+	<% LeavesHolidaysManagements.actor_types_db.each do |receiver_type| %>
 		<% LeaveManagementRule.actions.keys.each do |action| %>
-			<% LeavesHolidaysManagements.actor_types.each do |sender_type| %>
+			<% LeavesHolidaysManagements.actor_types_db.each do |sender_type| %>
 				<% rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type) %>
 				<% rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) %>
 				<% unless rules_grouped.empty? %>
@@ -44,6 +44,7 @@
 								<% end %>
 							</td>
 							<td>
+								<%= rule_ids %>
 									<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
 									%>
 									<%= link_to "Delete", project_leave_management_rules_update_path(@project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 

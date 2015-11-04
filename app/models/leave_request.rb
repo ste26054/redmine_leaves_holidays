@@ -243,17 +243,20 @@ class LeaveRequest < ActiveRecord::Base
 
   # Triggers approval system
   def is_non_approval_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues) || []
+    return self.issue_id.to_s.in?(p)
   end
 
   # Triggers remaining days deducting
   def is_non_deduce_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues) || []
+    return self.issue_id.to_s.in?(p)
   end
 
   # Triggers reduced notifications to only view_all roles
   def is_quiet_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues) || []
+    return self.issue_id.to_s.in?(p)
   end 
 
 

@@ -20,7 +20,7 @@ class LeaveManagementRule < ActiveRecord::Base
   validate :validate_rule_uniq
   validate :validate_no_cyclic_rule
 
-  before_save :check_principal
+  #before_save :check_principal
 
   scope :sender_role, lambda { where(sender_type: "Role") }
   scope :receiver_role, lambda { where(receiver_type: "Role") }
@@ -28,14 +28,14 @@ class LeaveManagementRule < ActiveRecord::Base
   scope :receiver_user, lambda { where(receiver_type: "Principal") }
 
 
-  def check_principal
-    if self.sender_type == "Principal"
-      self.sender_type = "User"
-    end
-    if self.receiver_type == "Principal"
-      self.receiver_type = "User"
-    end
-  end
+  # def check_principal
+  #   if self.sender_type == "Principal"
+  #     self.sender_type = "User"
+  #   end
+  #   if self.receiver_type == "Principal"
+  #     self.receiver_type = "User"
+  #   end
+  # end
 
   def self.projects
     Project.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id)).active
