@@ -1,140 +1,26 @@
 module LeavesHolidaysManagements
 
- def self.actor_types
-  return ['Role', 'User']
- end
-
- def self.actor_types_db
-  return ['Role', 'Principal']
- end
-
- def self.default_actor_type
-  return self.actor_types[0]
- end
-
- def self.acting_as_list
-  return ['sender','receiver']
- end
-
- def self.acting_as_opposite(acting_as)
-  return nil unless acting_as.in?(self.acting_as_list)
-  return (self.acting_as_list - [acting_as]).first
- end
-
-
-
- # Returns the list of management rules for the given user (The user appears either as a User, or as a Role in the Rules)
-  def self.user_action_actor_list(user, actor, action, leave_management_project_list = [])
-    return [] unless actor.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions.keys)
-
-    unless leave_management_project_list.is_a?(Array)
-      leave_management_project_list = [leave_management_project_list]
-    end
-
-    # list of projects where user is a member and there are management rules defined
-    if leave_management_project_list.empty?
-      leave_management_project_list = user.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.to_a
-    else
-      leave_management_project_list = user.projects.where(id: leave_management_project_list.map(&:id)).active.to_a
-    end
-    # get associated rules
-    leave_management_rules = LeaveManagementRule.where(project: leave_management_project_list, action: LeaveManagementRule.actions[action])
-    rules_list = []
-
-    if actor == 'sender'
-      rules_list << leave_management_rules.sender_user.where(sender: user).pluck(:id)
-      rules_role = leave_management_rules.sender_role
-    else
-      rules_list << leave_management_rules.receiver_user.where(receiver: user).pluck(:id)
-      rules_role = leave_management_rules.receiver_role
-    end
-
-     # For each project
-    leave_management_project_list.each do |project|
-      # get associated roles for given user
-      if actor == 'sender'
-        rules_list << rules_role.where(sender: project.roles_for_user(user), project: project).pluck(:id)
-      else
-        rules_list << rules_role.where(receiver: project.roles_for_user(user), project: project).pluck(:id)
-      end
-    end
-
-    rules_list_ids = rules_list.flatten
-
-    #get rules where there is an exception regarding the given user
-    rules_exception_list_ids = LeaveExceptionRule.where(leave_management_rule_id: rules_list_ids, actor_concerned: LeaveExceptionRule.actors_concerned[actor], user: user).pluck(:leave_management_rule_id).uniq
-
-    return LeaveManagementRule.where(id: rules_list_ids - rules_exception_list_ids)#.includes(:sender, :receiver, :project)
+  def self.actor_types
+    return ['Role', 'User']
   end
 
-
-  def self.role_action_actor_list(role, actor, action, leave_management_project_list)
-    return [] unless actor.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions.keys)
-
-    unless leave_management_project_list.is_a?(Array)
-      leave_management_project_list = [leave_management_project_list]
-    end
-
-    # get associated rules
-    leave_management_rules = LeaveManagementRule.where(project: leave_management_project_list, action: LeaveManagementRule.actions[action])
-    rules_list = []
-
-    if actor == 'sender'
-      rules_list << leave_management_rules.sender_role.where(sender: role).pluck(:id)
-    else
-      rules_list << leave_management_rules.receiver_role.where(receiver: role).pluck(:id)
-    end
-
-    rules_list_ids = rules_list.flatten
-
-    #get rules where there is an exception regarding the given user
-    #rules_exception_list_ids = LeaveExceptionRule.where(leave_management_rule_id: rules_list_ids, actor_concerned: LeaveExceptionRule.actors_concerned[actor], user: user).pluck(:leave_management_rule_id).uniq
-
-    return LeaveManagementRule.where(id: rules_list_ids)# - rules_exception_list_ids)#.includes(:sender, :receiver, :project)
+  def self.actor_types_db
+    return ['Role', 'Principal']
   end
 
-  def self.leave_manages_user_recursive(to_check = [], checked = [], project_list = [], freeze_project_list = false, force_users = true)
-      unless to_check.is_a?(Array)
-          to_check = [to_check]
-      end
-
-      if (freeze_project_list == false && checked.empty?) || !(freeze_project_list == true && !project_list.empty?)
-        project_list = to_check.map{|u| u.leave_manages.map(&:project)}.flatten.uniq
-      end
-      to_be_checked_next = []
-      (to_check - checked).each do |m|
-        to_be_checked_next << m.leave_manages(force_users, project_list)
-        checked << m
-      end
-
-      unless to_be_checked_next.empty?
-        self.leave_manages_user_recursive(to_be_checked_next.flatten, checked, project_list, freeze_project_list, force_users)
-      else
-        return checked
-      end
-
+  def self.default_actor_type
+    return self.actor_types[0]
   end
 
-  def self.leave_manages_role_recursive(to_check = [], checked = [], project_list = [])
-      unless to_check.is_a?(Array)
-          to_check = [to_check]
-      end
-
-      to_be_checked_next = []
-      (to_check - checked).each do |m|
-        to_be_checked_next << m.leave_manages(project_list).map(&:sender).select{|r| r.sender.class = Role}
-        checked << m
-      end
-
-      unless to_be_checked_next.empty?
-        self.leave_manages_role_recursive(to_be_checked_next.flatten, checked, project_list)
-      else
-        return checked
-      end
-
+  def self.acting_as_list
+    return ['sender','receiver']
   end
 
-  #TBC
+  def self.acting_as_opposite(acting_as)
+    return nil unless acting_as.in?(self.acting_as_list)
+    return (self.acting_as_list - [acting_as]).first
+  end
+
   def self.regroup(array)
     for i in 0..1
       array = array.group_by{|t| t[i]}.map{|k,v| [k, (v.flatten - k).uniq]}
@@ -143,53 +29,130 @@ module LeavesHolidaysManagements
     return array
   end
 
-  def self.management_rules_list(actor, acting_as, action, projects = [])
+  def self.management_rules_list(actor, acting_as, action, projects = [], user_exceptions = [])
     if actor == nil || acting_as == nil || action == nil
       return []
     end
     return [] unless actor.class.to_s.in?(self.actor_types) || acting_as.in?(['sender', 'receiver']) || action.in?(LeaveManagementRule.actions)
     return [] if actor.class == Role && !projects && projects.empty?
 
+    if projects && !projects.is_a?(Array)
+      projects = [projects]
+    end
+
+    leave_management_rules_ids = []
+
     # Setting projects to lookup
     if actor.class == User
+      # Set actual User class in db to Principal
       actor_type_db = 'Principal'
+      # If no project list provided
       if projects.empty?
+        # Get active actor projects where management rules are set
         project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.to_a
       else
+        # get given project list
         project_list = projects
       end
+      # Get associated memberhips of the User for given project list
       memberships = Member.where(user: actor, project: project_list)
+      # and associated roles 
       member_roles = MemberRole.where(member_id: memberships).includes(member: :project).includes(:role)
 
       #get a hash [:project => [roles]] for the user
       roles_for_project =  member_roles.group_by{|mr| mr.member.project}.map{|k,v|  [k, v.map(&:role).uniq]}.to_h
 
-      leave_management_rules_ids = []
+      # Get management rules associated to the roles the user appears in for the given projects
       roles_for_project.each do |project, roles|
-        leave_management_rules_ids << LeaveManagementRule.where(project: project, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = 'Role' AND #{acting_as}_id = ?", roles.map(&:id)).pluck(:id)
+        leave_management_rules_ids << LeaveManagementRule.where(project: project, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Role', "#{acting_as}_id".to_sym => roles.map(&:id)).pluck(:id)
       end
 
-      leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = 'Principal' AND #{acting_as}_id = ?", actor.id).pluck(:id)
+      # Get management rules directly associated to the given user
+      leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Principal', "#{acting_as}_id".to_sym => ([actor.id] - user_exceptions).flatten).pluck(:id)
 
     else
       actor_type_db = 'Role'
       project_list = projects
 
-      leave_management_rules_ids = LeaveManagementRule.where(project: project_list, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type = ? AND #{acting_as}_id = ?", actor_type_db, actor.id).pluck(:id)
+      project_list.each do |project|
+        users = project.users_for_roles(actor)
+        leave_management_rules_ids << LeaveManagementRule.where(project: project, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Principal',"#{acting_as}_id".to_sym => (users.map(&:id) - user_exceptions).flatten).pluck(:id)
+      end
+      # Get rules directly associated to the role
+      leave_management_rules_ids << LeaveManagementRule.where(project: project_list, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => actor_type_db, "#{acting_as}_id".to_sym => actor.id).pluck(:id)
     end
 
     exceptions = []
     if actor.class == User 
-      exceptions = LeaveExceptionRule.where(actor_concerned: LeaveExceptionRule.actors_concerned[acting_as], user: actor).pluck(:leave_management_rule_id).uniq
+      exceptions = LeaveExceptionRule.where(actor_concerned: LeaveExceptionRule.actors_concerned[acting_as], user_id: actor.id).pluck(:leave_management_rule_id).uniq
     end
 
-    leave_management_rules = LeaveManagementRule.where(id: leave_management_rules_ids.flatten.uniq - exceptions).includes(:sender, :receiver, :leave_exception_rules, :project)
+    leave_management_rules = LeaveManagementRule.where(id: leave_management_rules_ids.flatten.uniq - exceptions)
 
-    return leave_management_rules.map(&:id)
+    return leave_management_rules
   end
 
+  def self.management_rules_list_recursive(actor, acting_as, action, projects = [])
+    leave_management_rules_initial = self.management_rules_list(actor, acting_as, action, projects)
+    
+    projects_ref = Project.where(id: leave_management_rules_initial.pluck(:project_id).uniq).to_a
 
+    to_check = leave_management_rules_initial.to_a
+    checked = []
+    i = 1
+    while !to_check.empty?
+      to_check_next = []
+      checked_loop = []
+      (to_check.flatten - checked).each do |rule|
+        actor = rule.send(self.acting_as_opposite(acting_as))
+        exceptions = []
+        unless rule.leave_exception_rules.empty?
+          exceptions << rule.leave_exception_rules.where(actor_concerned: LeaveExceptionRule.actors_concerned[self.acting_as_opposite(acting_as)]).pluck(:user_id)
+        end
+        to_check_next << self.management_rules_list(actor, acting_as, action, projects_ref & [rule.project], exceptions.flatten)
+        checked_loop << rule
+      end
+      checked << checked_loop unless checked_loop.empty?
+      to_check = to_check_next
+      i += 1
 
+    end
+    return checked
+  end
+
+  # Need to be called with rules bound to a single project !
+  def self.group_management_rules(rule_ids)
+    rules = LeaveManagementRule.where(id: rule_ids)
+    rows = []
+    # LeaveManagementRule.actions.keys.each do |action|
+    #   LeavesHolidaysManagements.actor_types_db.each do |receiver_type| 
+    #     LeavesHolidaysManagements.actor_types_db.each do |sender_type| 
+          rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) 
+          unless rules_grouped.empty? 
+
+            rules_grouped.each do |v| 
+
+              pregrouped_rules = rules.to_a.select {|r| r.sender.in?(v[0]) && r.receiver.in?(v[1])}.to_a
+
+              exceptions_sender_rules = rules.joins(:leave_exception_rules).where(id: pregrouped_rules.map(&:id), leave_exception_rules: {actor_concerned: LeaveExceptionRule.actors_concerned['sender']}).to_a#.pluck(:id)
+
+              exceptions_receiver_rules = rules.joins(:leave_exception_rules).where(id: pregrouped_rules.map(&:id), leave_exception_rules: {actor_concerned: LeaveExceptionRule.actors_concerned['receiver']}).to_a#.pluck(:id)
+
+              no_excp = pregrouped_rules - exceptions_sender_rules - exceptions_receiver_rules
+              both_excp = exceptions_sender_rules & exceptions_receiver_rules
+
+              rows << no_excp unless no_excp.empty?
+              rows << exceptions_sender_rules unless exceptions_sender_rules.empty?
+              rows << exceptions_receiver_rules unless exceptions_receiver_rules.empty?
+              rows << both_excp unless both_excp.empty?
+
+        #     end
+        #   end
+        # end
+      end
+    end
+    return rows.uniq
+  end
 
 
 end

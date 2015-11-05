@@ -20,27 +20,31 @@
 		<% LeaveManagementRule.actions.keys.each do |action| %>
 			<% LeavesHolidaysManagements.actor_types_db.each do |sender_type| %>
 				<% rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type) %>
-				<% rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) %>
+				
+				<% rules_grouped = LeavesHolidaysManagements.group_management_rules(rules.pluck(:id)) %>
 				<% unless rules_grouped.empty? %>
-					<% rules_grouped.each do |v| %>
-						<% rule_ids = rules.select {|r| r.sender.in?(v[0]) && r.receiver.in?(v[1])}.map(&:id) %>
-						<% exceptions_sender = LeaveExceptionRule.where(leave_management_rule_id: rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender]).includes(:user) %>
-						<% exceptions_receiver = LeaveExceptionRule.where(leave_management_rule_id: rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver]).includes(:user) %>
+
+					<% rules_grouped.each do |rule_group| %>
+						<% rule_ids = rule_group.map(&:id) %>
+						<% exceptions = rule_group.first.leave_exception_rules %>
 						<tr>
 							<td>
-								<%= v[0].join(", ") %>
-								<% unless exceptions_sender.empty? %>
-									<% exception_users = exceptions_sender.map(&:user).map(&:name).uniq %>
-									</br><strong><%= "Exception".pluralize(exception_users.count) %>:</strong> <%= exception_users.join(", ") %>
+								<%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
+								<% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
+								<% unless excp_sender.empty? %>
+									<% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
+									</br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
 								<% end %>
 							</td>
 
 							<td><%= action.humanize %></td>
 
 							<td>
-								<%= v[1].join(", ") %>
-								<% unless exceptions_receiver.empty? %>
-									</br><strong><%= "Exception".pluralize(exceptions_receiver.uniq.count) %>:</strong> <%= exceptions_receiver.map(&:user).map(&:name).uniq.join(", ") %>
+								<%= rule_group.map{ |r| r.receiver.name }.uniq.join(", ") %>
+								<% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
+								<% unless excp_receiver.empty? %>
+									<% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
+									</br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
 								<% end %>
 							</td>
 							<td>
@@ -51,6 +55,7 @@
 									%>
 							</td>
 						</tr>
+
 					<% end %>
 				<% end %>
 

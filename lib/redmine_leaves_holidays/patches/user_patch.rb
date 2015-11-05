@@ -173,49 +173,6 @@ module RedmineLeavesHolidays
 				self.leave_preferences.contract_end_date
 			end
 
-			def leave_managed_by
-				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'is_managed_by')
-			end
-
-			def leave_consulted_by
-				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'is_consulted_by')
-			end
-
-			def leave_notifies
-				LeavesHolidaysManagements.user_action_actor_list(self, 'sender', 'notifies_approved')
-			end
-
-			# Returns a list of projects where the user is a member, and where there are leave management rules defined for the project (There may not be rules associated to the user)
-			def leave_management_projects
-				self.projects.active.where(id: LeaveManagementRule.projects.pluck(:id))
-			end
-
-			# Returns the list of rules regarding the user where user manages other users/roles, up to 1 level. if force_users is set as true, returns a list of users managed.
-			# If a project list is given, will return the list of rules/users from the given project list.
-			def leave_manages(force_users = false, project_list = [])
-				management_rules = LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_managed_by', project_list)
-				unless force_users
-					return management_rules
-				else
-					management_user_list = management_rules.select{|r| r.sender.class == User }.map(&:sender)
-					management_role_list = management_rules.select{|r| r.sender.class == Role }
-					management_user_list += management_role_list.map{|r| r.project.users_for_roles(r.sender) }.flatten
-					return management_user_list.uniq
-				end
-			end
-
-
-			def leave_users_manage_list
-				return LeavesHolidaysManagements.leave_manages_user_recursive(self) - [self]
-			end
-
-			def leave_consults
-				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'is_consulted_by')
-			end
-
-			def leave_notified_from
-				LeavesHolidaysManagements.user_action_actor_list(self, 'receiver', 'notifies_approved')
-			end
 		end
 	end
 end
