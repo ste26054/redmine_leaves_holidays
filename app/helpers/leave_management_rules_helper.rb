@@ -49,7 +49,7 @@ module LeaveManagementRulesHelper
     return [] if @sender_type != "Role" || !@sender_list_id || @sender_list_id.empty?
     sender_roles_selected = Role.where(id: @sender_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(sender_roles_selected)
-    return [] if users_associated_with_roles_selected.count == 1
+    #return [] if users_associated_with_roles_selected.count == 1
     return users_associated_with_roles_selected.map{|l| [l.name, l.id]}
   end
 
@@ -57,8 +57,16 @@ module LeaveManagementRulesHelper
     return [] if @receiver_type != "Role" || !@receiver_list_id || @receiver_list_id.empty?
     receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
-    return [] if users_associated_with_roles_selected.count == 1
+    #return [] if users_associated_with_roles_selected.count == 1
     return users_associated_with_roles_selected.map{|l| [l.name, l.id]}
+  end
+
+  def backup_receiver_collection_for_select_options#(project)
+    return [] if @action.to_i != LeaveManagementRule.actions['is_managed_by']
+    #receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
+    #users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
+    #return [] if users_associated_with_roles_selected.count == 1
+    return User.all.active.map{|l| [l.name, l.id]}
   end
 
   def action_sender_options_for_select(selected)

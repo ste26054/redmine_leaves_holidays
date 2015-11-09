@@ -1,5 +1,5 @@
 <fieldset class="box">
-  <p>Ctrl+click or Maj+click for multi-selection</p>
+  <p>Ctrl+click or Maj+click to select or deselect entries</p>
 
   <table align="center">
     <tr>
@@ -24,6 +24,12 @@
         <legend><%= label_tag "receiver_list_id", "Receiver List:" %></legend>
         <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 10 %></p>
       </td>
+      <% if @action.to_i == LeaveManagementRule.actions['is_managed_by'] %>
+        <td>
+          <legend><%= label_tag "backup_receiver_id", "Backup List:" %></legend>  
+          <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options, :multiple => true, :size => 10 %></p>
+        </td>
+      <% end %>
     </tr>
     <tr>
       <td></td>
@@ -62,7 +68,7 @@
 
 <%= javascript_tag do %>
   $(document).ready(function(){
-    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id').change(function(){
+    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule').change(function(){
       $.ajax({
         url: '<%= escape_javascript project_leave_management_rules_edit_path(:format => 'js') %>',
         type: 'post',

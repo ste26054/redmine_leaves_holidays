@@ -77,6 +77,7 @@ class LeaveRequest < ActiveRecord::Base
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
 
+  # TO CHECK
   scope :processable_by, ->(user) {
     ids = []
 
@@ -89,6 +90,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :pending_or_accepted, -> { not_rejected.where.not(request_status: "0") }
 
+  # TO CHECK
   scope :viewable_by, ->(uid) {
     user = User.find(uid)
     processed_ids = processed.pluck(:id)
@@ -474,6 +476,7 @@ class LeaveRequest < ActiveRecord::Base
       return d
   end
 
+  # TO CHECK
   def send_notifications
 
     changes = self.changes

@@ -33,6 +33,16 @@ module RedmineLeavesHolidays
       def user_list
         return self.users.sort
       end
+
+      def users_by_role_not_managed_anywhere
+        users_role = self.users_by_role
+        users_role.each do |k,v|
+          v.keep_if{ |user| LeavesHolidaysManagements.management_rules_list(user, 'sender', 'is_managed_by').to_a.empty? && !user.id.in?(LeavesHolidaysLogic.plugin_admins)}
+        end
+        users_role.delete_if{ |k,v| v.empty? }
+        return users_role
+      end
+
     end
   end
 end

@@ -21,14 +21,6 @@ module LeavesHolidaysManagements
     return (self.acting_as_list - [acting_as]).first
   end
 
-  def self.regroup(array)
-    for i in 0..1
-      array = array.group_by{|t| t[i]}.map{|k,v| [k, (v.flatten - k).uniq]}
-      array.map(&:reverse!) if i.odd?
-    end
-    return array
-  end
-
   def self.management_rules_list(actor, acting_as, action, projects = [], user_exceptions = [])
     if actor == nil || acting_as == nil || action == nil
       return []
@@ -120,38 +112,31 @@ module LeavesHolidaysManagements
     return checked
   end
 
-  # Need to be called with rules bound to a single project !
   def self.group_management_rules(rule_ids)
-    rules = LeaveManagementRule.where(id: rule_ids)
-    rows = []
-    # LeaveManagementRule.actions.keys.each do |action|
-    #   LeavesHolidaysManagements.actor_types_db.each do |receiver_type| 
-    #     LeavesHolidaysManagements.actor_types_db.each do |sender_type| 
-          rules_grouped = LeavesHolidaysManagements.regroup(rules.to_a.map{|r| [[r.sender], [r.receiver]]}) 
-          unless rules_grouped.empty? 
+    rules = LeaveManagementRule.where(id: rule_ids).includes(:leave_exception_rules)
+    rules_array = []
 
-            rules_grouped.each do |v| 
+    rules.find_each do |rule|
+      
+      rule_object = {id: rule.id, project_id: rule.project_id, sender_id: rule.sender_id, sender_type: rule.sender_type, action: rule.action, receiver_id: rule.receiver_id, receiver_type: rule.receiver_type, exceptions_sender: [], exceptions_receiver: [], backup_receiver: []}
 
-              pregrouped_rules = rules.to_a.select {|r| r.sender.in?(v[0]) && r.receiver.in?(v[1])}.to_a
-
-              exceptions_sender_rules = rules.joins(:leave_exception_rules).where(id: pregrouped_rules.map(&:id), leave_exception_rules: {actor_concerned: LeaveExceptionRule.actors_concerned['sender']}).to_a#.pluck(:id)
-
-              exceptions_receiver_rules = rules.joins(:leave_exception_rules).where(id: pregrouped_rules.map(&:id), leave_exception_rules: {actor_concerned: LeaveExceptionRule.actors_concerned['receiver']}).to_a#.pluck(:id)
-
-              no_excp = pregrouped_rules - exceptions_sender_rules - exceptions_receiver_rules
-              both_excp = exceptions_sender_rules & exceptions_receiver_rules
-
-              rows << no_excp unless no_excp.empty?
-              rows << exceptions_sender_rules unless exceptions_sender_rules.empty?
-              rows << exceptions_receiver_rules unless exceptions_receiver_rules.empty?
-              rows << both_excp unless both_excp.empty?
-
-        #     end
-        #   end
-        # end
+      rule.leave_exception_rules.includes(:user).find_each do |exception|
+        excp = {user_id: exception.user_id}
+        if exception.actor_concerned == 'sender'
+          rule_object[:exceptions_sender] << excp
+        end
+        if exception.actor_concerned == 'receiver'
+          rule_object[:exceptions_receiver] << excp
+        end
+        if exception.actor_concerned == 'backup_receiver'
+          rule_object[:backup_receiver] << excp
+        end
       end
+
+      rules_array << rule_object
     end
-    return rows.uniq
+
+    return rules_array.group_by{|r| [r[:project_id], r[:sender_type], r[:action], r[:receiver_type], r[:exceptions_sender], r[:exceptions_receiver], r[:backup_receiver]]}.values.map{|a| a.map{|b| b[:id]}}
   end
 
 

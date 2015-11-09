@@ -13,17 +13,18 @@ class LeaveManagementRulesController < ApplicationController
       @sender_list_id ||= params[:sender_list_id]
       @sender_exception_id ||= params[:sender_exception_id]
 
-      @action ||= params[:action_rule]
+      @action = params[:action_rule] || LeaveManagementRule.actions['is_managed_by'] 
       
       @receiver_type = params[:receiver_type] || LeavesHolidaysManagements.default_actor_type
       @receiver_list_id ||= params[:receiver_list_id]
       @receiver_exception_id ||= params[:receiver_exception_id]
+      @backup_receiver_id ||= params[:backup_receiver_id]
     else
       management_rule_ids = params[:management_rule_ids]
       management_rules = LeaveManagementRule.where(id: management_rule_ids, project: @project)
       sender_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender])
       receiver_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver])
-
+      backup_receiver = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:backup_receiver])
 
       @sender_type = management_rules.first.sender_type_form
       @sender_list_id ||= management_rules.pluck(:sender_id)
@@ -34,6 +35,7 @@ class LeaveManagementRulesController < ApplicationController
       @receiver_type = management_rules.first.receiver_type_form
       @receiver_list_id ||= management_rules.pluck(:receiver_id)
       @receiver_exception_id ||= receiver_exceptions.pluck(:user_id)
+      @backup_receiver_id ||= backup_receiver.pluck(:user_id)
       session[:management_rule_ids] = management_rule_ids
     end
   end
@@ -59,6 +61,12 @@ class LeaveManagementRulesController < ApplicationController
               if params[:receiver_exception_id]
                 params[:receiver_exception_id].each do |receiver_excpt|
                   LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :receiver, user: User.find(receiver_excpt.to_i))
+                end
+              end
+              if params[:backup_receiver_id]
+                params[:backup_receiver_id].each do |backup_receiver|
+                  Rails.logger.info "SAVING BACKUP RULE !"
+                  LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :backup_receiver, user: User.find(backup_receiver.to_i))
                 end
               end
             end

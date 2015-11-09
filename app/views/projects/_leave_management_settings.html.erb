@@ -11,56 +11,57 @@
 				<th>Sender</th>
 				<th>Action</th>
 				<th>Receiver</th>
+				<th>Backup</th>
 				<th></th>
 			<tr>
 	</thead>
 	<tbody> 
 
-	<% LeavesHolidaysManagements.actor_types_db.each do |receiver_type| %>
-		<% LeaveManagementRule.actions.keys.each do |action| %>
-			<% LeavesHolidaysManagements.actor_types_db.each do |sender_type| %>
-				<% rules = LeaveManagementRule.where(project: @project, action: LeaveManagementRule.actions[action], sender_type: sender_type, receiver_type: receiver_type) %>
-				
-				<% rules_grouped = LeavesHolidaysManagements.group_management_rules(rules.pluck(:id)) %>
-				<% unless rules_grouped.empty? %>
+	<% rules_ids = LeaveManagementRule.where(project: @project).pluck(:id) %>
+	<% rules_grouped = LeavesHolidaysManagements.group_management_rules(rules_ids) %>
+	
+	<% unless rules_grouped.empty? %>
 
-					<% rules_grouped.each do |rule_group| %>
-						<% rule_ids = rule_group.map(&:id) %>
-						<% exceptions = rule_group.first.leave_exception_rules %>
-						<tr>
-							<td>
-								<%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
-								<% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
-								<% unless excp_sender.empty? %>
-									<% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
-									</br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
-								<% end %>
-							</td>
-
-							<td><%= action.humanize %></td>
-
-							<td>
-								<%= rule_group.map{ |r| r.receiver.name }.uniq.join(", ") %>
-								<% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
-								<% unless excp_receiver.empty? %>
-									<% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
-									</br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
-								<% end %>
-							</td>
-							<td>
-								<%= rule_ids %>
-									<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
-									%>
-									<%= link_to "Delete", project_leave_management_rules_update_path(@project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
-									%>
-							</td>
-						</tr>
-
+		<% rules_grouped.each do |rule_ids| %>
+			<% rule_group = LeaveManagementRule.where(id: rule_ids).includes(:sender,:receiver,:leave_exception_rules).to_a %>
+			<% exceptions = rule_group.first.leave_exception_rules.includes(:user) %>
+			<tr>
+				<td>
+					<%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
+					<% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
+					<% unless excp_sender.empty? %>
+						<% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
+						</br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
 					<% end %>
-				<% end %>
+				</td>
 
+				<td><%= rule_group.map{ |r| r.action.humanize }.uniq.join(", ") %></td>
 
-			<% end %>
+				<td>
+					<%= rule_group.map{ |r| r.receiver.name }.uniq.join(", ") %>
+					<% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
+					<% unless excp_receiver.empty? %>
+						<% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
+						</br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
+					<% end %>
+				</td>
+				<td>
+					<% backup_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver']) %>
+					<% unless backup_receiver.empty? %>
+						<% backup_receiver_users = backup_receiver.map(&:user).map(&:name).uniq %>
+						<%= backup_receiver_users.join(", ") %>
+					<% end %>
+				</td>
+				<td>
+					<%= rule_ids 
+					%>
+						<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids), :remote => true, :class => "icon icon-edit" 
+						%>
+						<%= link_to "Delete", project_leave_management_rules_update_path(@project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
+						%>
+				</td>
+			</tr>
+
 		<% end %>
 	<% end %>
 
@@ -70,6 +71,16 @@
 <% else %>
 	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
+	<% not_assigned_people = @project.users_by_role_not_managed_anywhere %>
+	<% unless not_assigned_people.empty? %>
+		<br/>
+		<p><strong>Project members whose leave requests are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>), because no management rule is defined for them in any project:</p></strong>
+		<% not_assigned_people.each do |k,v| %>
+			<ul>
+				<li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
+			</ul>
+		<% end %>
+	<% end %>
 
 <% end %>
 

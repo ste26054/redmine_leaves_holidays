@@ -32,6 +32,7 @@ class LeaveVote < ActiveRecord::Base
     end
   end
 
+  # TO CHECK
   def send_notifications
     changes = self.changes
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
