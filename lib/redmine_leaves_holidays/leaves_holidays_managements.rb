@@ -92,10 +92,10 @@ module LeavesHolidaysManagements
     to_check = leave_management_rules_initial.to_a
     checked = []
     i = 1
-    while !to_check.empty?
+    while !to_check.empty? || i < 1000
       to_check_next = []
       checked_loop = []
-      (to_check.flatten - checked).each do |rule|
+      to_check.each do |rule|
         actor = rule.send(self.acting_as_opposite(acting_as))
         exceptions = []
         unless rule.leave_exception_rules.empty?
@@ -105,11 +105,26 @@ module LeavesHolidaysManagements
         checked_loop << rule
       end
       checked << checked_loop unless checked_loop.empty?
-      to_check = to_check_next
+      to_check = to_check_next.flatten.uniq - checked.flatten.uniq
       i += 1
 
     end
     return checked
+  end
+
+  def self.check_discrepancies_for(actor, acting_as, action, projects = [])
+    principal_rules = self.management_rules_list(actor, acting_as, action, projects)
+    descendent_rules = self.management_rules_list_recursive(actor, acting_as, action, projects).flatten.uniq - principal_rules
+
+    return descendent_rules.flatten.select {|r| actor == r.send(self.acting_as_opposite(acting_as))}
+  end
+
+  def self.regroup(array)
+    for i in 0..1
+      array = array.group_by{|t| t[i]}.map{|k,v| [k, (v.flatten - k).uniq]}
+      array.map(&:reverse!) if i.odd?
+    end
+    return array
   end
 
   def self.group_management_rules(rule_ids)
@@ -117,7 +132,7 @@ module LeavesHolidaysManagements
     rules_array = []
 
     rules.find_each do |rule|
-      
+
       rule_object = {id: rule.id, project_id: rule.project_id, sender_id: rule.sender_id, sender_type: rule.sender_type, action: rule.action, receiver_id: rule.receiver_id, receiver_type: rule.receiver_type, exceptions_sender: [], exceptions_receiver: [], backup_receiver: []}
 
       rule.leave_exception_rules.includes(:user).find_each do |exception|
@@ -135,8 +150,42 @@ module LeavesHolidaysManagements
 
       rules_array << rule_object
     end
-
+    #return rules_array
     return rules_array.group_by{|r| [r[:project_id], r[:sender_type], r[:action], r[:receiver_type], r[:exceptions_sender], r[:exceptions_receiver], r[:backup_receiver]]}.values.map{|a| a.map{|b| b[:id]}}
+    # Rails.logger.info "#{grouped_rules}"
+    # aa = []
+    # grouped_rules.each do |rule_group|
+    #   rules_group_obj = rules.select{|r| }
+    #   sender_receiver_hsh = rule_group.group_by{|r| r.receiver}.inject({}) {|h, (k,v)| h[k] = v.map(&:sender); h}.group_by {|k,v| v}.inject({}) {|h, (k,v)| h[k] = v.map{|a| a.flatten - k.flatten}.flatten; h}.inject({}) {|h, (k,v)| h[k.map(&:id)] = v.map{|a| a.id}; h}.map {|sender, receiver| sender.product(receiver)}
+
+    #   aa << sender_receiver_hsh
+
+    # end
+
+    # return aa
+
+  end
+
+  def self.deep_group_management_rules(rules)
+    rules_grouped_ids = self.group_management_rules(rules.map(&:id))
+
+    snd_recv = []
+    rules_grouped_ids.each do |rule_id_group|
+      rule_group = rules.select{|r| r.id.in?(rule_id_group)}
+      sender_receiver_groups = rule_group.group_by{|r| r.receiver}.inject({}) {|h, (k,v)| h[k] = v.map(&:sender); h}.group_by {|k,v| v}.inject({}) {|h, (k,v)| h[k] = v.map{|a| a.flatten - k.flatten}.flatten; h}.map {|sender, receiver| sender.product(receiver)}
+      #Rails.logger.info "SENDER_RECV_GROUP: #{sender_receiver_groups.to_json}"
+      # sender_receiver_groups.each do |sr|
+      #   rule_sel = rule_group.select {|rule| sr[0] == rule.sender && sr[1] == rule.receiver}
+      #   Rails.logger.info "rule sel: #{rule_sel}"
+      # end
+      subgp = []
+      sender_receiver_groups.each do |subgroup|
+        subgp << subgroup.map{|sr| rule_group.select{|rule| sr[0] == rule.sender && sr[1] == rule.receiver }.first}.map(&:id)
+      end
+      snd_recv << subgp unless subgp.empty?
+       
+    end
+    return snd_recv.flatten(1)
   end
 
 

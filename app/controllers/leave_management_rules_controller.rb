@@ -49,6 +49,7 @@ class LeaveManagementRulesController < ApplicationController
         session[:management_rule_ids] = nil
       end
       if params[:sender_list_id] && params[:receiver_list_id]
+        @leave_management_rule_errors = []
         params[:sender_list_id].each do |sender_id|
           params[:receiver_list_id].each do |receiver_id|
             @leave_management_rule = LeaveManagementRule.new(project: @project, sender: params[:sender_type].constantize.find(sender_id.to_i), receiver: params[:receiver_type].constantize.find(receiver_id.to_i), action: LeaveManagementRule.actions.select{|k,v| v == params[:action_rule].to_i}.keys.first)
@@ -65,10 +66,11 @@ class LeaveManagementRulesController < ApplicationController
               end
               if params[:backup_receiver_id]
                 params[:backup_receiver_id].each do |backup_receiver|
-                  Rails.logger.info "SAVING BACKUP RULE !"
                   LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :backup_receiver, user: User.find(backup_receiver.to_i))
                 end
               end
+            else
+              @leave_management_rule_errors << @leave_management_rule
             end
           end
         end

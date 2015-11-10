@@ -17,9 +17,9 @@
 	</thead>
 	<tbody> 
 
-	<% rules_ids = LeaveManagementRule.where(project: @project).pluck(:id) %>
-	<% rules_grouped = LeavesHolidaysManagements.group_management_rules(rules_ids) %>
 	
+	<% rules_grouped = LeavesHolidaysManagements.deep_group_management_rules(LeaveManagementRule.where(project: @project).to_a) %>
+
 	<% unless rules_grouped.empty? %>
 
 		<% rules_grouped.each do |rule_ids| %>
