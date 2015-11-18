@@ -39,6 +39,10 @@ module LeavesHolidaysLogic
 		return user.logged? && user.allowed_to?(:create_leave_requests, nil, :global => true)
 	end
 
+	def self.has_create_rights_project(user, project)
+		return user.logged? && user.allowed_to?(:create_leave_requests, project)
+	end
+
 	def self.has_view_all_rights(user)
 		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end

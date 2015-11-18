@@ -20,6 +20,9 @@ class LeaveManagementRule < ActiveRecord::Base
   validate :validate_rule_uniq
   validate :validate_no_cyclic_rule
 
+  after_save :validate_no_discrepancies
+  #validate :validate_no_discrepancies
+
   scope :sender_role, lambda { where(sender_type: "Role") }
   scope :receiver_role, lambda { where(receiver_type: "Role") }
   scope :sender_user, lambda { where(sender_type: "Principal") }
@@ -45,6 +48,15 @@ class LeaveManagementRule < ActiveRecord::Base
   def receiver_type_form
     return receiver_type if receiver_type == "Role"
     return "User"
+  end
+
+  # Returns an object representing the users concerned by a rule
+  def to_users 
+    return {rule: self, user_senders: actor_list('sender'), action: self.action, user_receivers: actor_list('receiver'), backup_list: backup_list}
+  end
+
+  def backup_list
+    return self.leave_exception_rules.includes(:user).where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver']).map(&:user).flatten
   end
 
 
@@ -75,11 +87,20 @@ class LeaveManagementRule < ActiveRecord::Base
   def actor_list(actor)
     return [] unless actor.in?(['sender', 'receiver'])
     if self.send(actor).class == Role
-      user_list = self.project.users_for_roles(self.send(actor))
+      user_list = self.project.users_for_roles(self.send(actor)).flatten
       return user_list if self.leave_exception_rules.empty?
-      return user_list - self.leave_exception_rules.includes(:user).where(actor_concerned: LeaveExceptionRule.actors_concerned[actor]).map(&:user)
+      return (user_list - self.leave_exception_rules.includes(:user).where(actor_concerned: LeaveExceptionRule.actors_concerned[actor]).map(&:user)).flatten
     else
-      return [self.send(actor)]
+      return [self.send(actor)].flatten
+    end
+  end
+
+  def validate_no_discrepancies
+    snd = LeavesHolidaysManagements.check_discrepancies_for(self.sender, 'sender', self.action, self.project)
+    recv = LeavesHolidaysManagements.check_discrepancies_for(self.receiver, 'receiver', self.action, self.project)
+    unless ((snd + recv).uniq - [self]).empty?
+      errors.add(:base, "cannot add cyclic rules within project")
+      raise ActiveRecord::RecordInvalid.new(self)
     end
   end
 

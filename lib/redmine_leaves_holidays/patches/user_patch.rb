@@ -173,6 +173,21 @@ module RedmineLeavesHolidays
 				self.leave_preferences.contract_end_date
 			end
 
+			def leave_projects
+				return self.projects.active.where(id: LeaveManagementRule.distinct(:project_id).pluck(:project_id))
+			end
+
+			# returns the list of projects where the user has a direct leave management rule set 
+			def leave_managed_projects
+				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
+			end
+
+			# Returns the list of rules where the user appears as a backup
+			def leave_backup_rules
+
+			end
+
+
 		end
 	end
 end

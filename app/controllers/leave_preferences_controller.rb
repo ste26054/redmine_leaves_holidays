@@ -161,6 +161,7 @@ class LeavePreferencesController < ApplicationController
   def notification
     @vote_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 2)
     @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)
+    # @manage_list = LeaveManagementRule.management_rules_list_recursive(@user_pref, 'sender', 'is_managed_by')
   end
 
   def manage_pending_days

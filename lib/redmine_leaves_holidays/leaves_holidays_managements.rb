@@ -62,6 +62,11 @@ module LeavesHolidaysManagements
       # Get management rules directly associated to the given user
       leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Principal', "#{acting_as}_id".to_sym => ([actor.id] - user_exceptions).flatten).pluck(:id)
 
+      # If given user acts as a backup, and the following params match
+      if acting_as == 'receiver' && LeaveManagementRule.actions["is_managed_by"]
+        leave_management_rules_ids << LeaveManagementRule.joins(:leave_exception_rules).where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action], leave_exception_rules: {user_id: actor.id, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]})
+      end
+
     else
       actor_type_db = 'Role'
       project_list = projects
@@ -92,7 +97,7 @@ module LeavesHolidaysManagements
     to_check = leave_management_rules_initial.to_a
     checked = []
     i = 1
-    while !to_check.empty? || i < 1000
+    while !to_check.empty? && i < 10
       to_check_next = []
       checked_loop = []
       to_check.each do |rule|
@@ -110,6 +115,61 @@ module LeavesHolidaysManagements
 
     end
     return checked
+  end
+
+  def self.management_rules_list_recursive_with_nesting(actor, acting_as, action, projects = [])
+    management_rules = self.management_rules_list_recursive(actor, acting_as, action, projects)
+    rules_nesting = []
+
+    management_rules.each do |rules|
+      rules.each_with_index do |rule, nesting_level|
+        rules_nesting << {nesting: nesting_level, rule: rule}
+      end
+    end
+
+    return rules_nesting.flatten.group_by{|r| r[:nesting]}
+  end
+
+  #in: [[1, 2], [3, 4], [5], [6, 7, 8], [9], [10, 11]]
+  #out: [[1, 3, 5, 6, 9, 10], [2, 4, 7, 11], [8]]
+  def self.slice_array_of_arrays(array_of_arrays)
+    out = []
+    for i in 0..(array_of_arrays.map(&:size).max - 1)
+      out << array_of_arrays.map{|a| a.slice(i)}.compact
+    end
+    return out
+  end
+
+  def self.management_users_list_recursive(actor, acting_as, action, projects = [])
+    leave_management_rules_initial = self.management_rules_list(actor, acting_as, action, projects)
+    
+    projects_ref = Project.where(id: leave_management_rules_initial.pluck(:project_id).uniq).to_a
+
+    to_check = leave_management_rules_initial.to_a
+    checked = []
+    user_rules = []
+    i = 1
+    while !to_check.empty? && i < 10
+      to_check_next = []
+      checked_loop = []
+      user_rules_loop = {nesting_level: i, user_rules: []}
+      to_check.each do |rule|
+        actor = rule.send(self.acting_as_opposite(acting_as))
+        exceptions = []
+        unless rule.leave_exception_rules.empty?
+          exceptions << rule.leave_exception_rules.where(actor_concerned: LeaveExceptionRule.actors_concerned[self.acting_as_opposite(acting_as)]).pluck(:user_id)
+        end
+        to_check_next << self.management_rules_list(actor, acting_as, action, projects_ref & [rule.project], exceptions.flatten)
+        checked_loop << rule
+        user_rules_loop[:user_rules] << rule.to_users
+      end
+      checked << checked_loop unless checked_loop.empty?
+      user_rules << user_rules_loop
+      to_check = to_check_next.flatten.uniq - checked.flatten.uniq
+      i += 1
+
+    end
+    return user_rules
   end
 
   def self.check_discrepancies_for(actor, acting_as, action, projects = [])
@@ -152,18 +212,6 @@ module LeavesHolidaysManagements
     end
     #return rules_array
     return rules_array.group_by{|r| [r[:project_id], r[:sender_type], r[:action], r[:receiver_type], r[:exceptions_sender], r[:exceptions_receiver], r[:backup_receiver]]}.values.map{|a| a.map{|b| b[:id]}}
-    # Rails.logger.info "#{grouped_rules}"
-    # aa = []
-    # grouped_rules.each do |rule_group|
-    #   rules_group_obj = rules.select{|r| }
-    #   sender_receiver_hsh = rule_group.group_by{|r| r.receiver}.inject({}) {|h, (k,v)| h[k] = v.map(&:sender); h}.group_by {|k,v| v}.inject({}) {|h, (k,v)| h[k] = v.map{|a| a.flatten - k.flatten}.flatten; h}.inject({}) {|h, (k,v)| h[k.map(&:id)] = v.map{|a| a.id}; h}.map {|sender, receiver| sender.product(receiver)}
-
-    #   aa << sender_receiver_hsh
-
-    # end
-
-    # return aa
-
   end
 
   def self.deep_group_management_rules(rules)
@@ -173,11 +221,6 @@ module LeavesHolidaysManagements
     rules_grouped_ids.each do |rule_id_group|
       rule_group = rules.select{|r| r.id.in?(rule_id_group)}
       sender_receiver_groups = rule_group.group_by{|r| r.receiver}.inject({}) {|h, (k,v)| h[k] = v.map(&:sender); h}.group_by {|k,v| v}.inject({}) {|h, (k,v)| h[k] = v.map{|a| a.flatten - k.flatten}.flatten; h}.map {|sender, receiver| sender.product(receiver)}
-      #Rails.logger.info "SENDER_RECV_GROUP: #{sender_receiver_groups.to_json}"
-      # sender_receiver_groups.each do |sr|
-      #   rule_sel = rule_group.select {|rule| sr[0] == rule.sender && sr[1] == rule.receiver}
-      #   Rails.logger.info "rule sel: #{rule_sel}"
-      # end
       subgp = []
       sender_receiver_groups.each do |subgroup|
         subgp << subgroup.map{|sr| rule_group.select{|rule| sr[0] == rule.sender && sr[1] == rule.receiver }.first}.map(&:id)
