@@ -2,76 +2,57 @@
 
 <% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
 
-<% @user_pref.leave_projects.each do |leave_project| %>
+<% leave_projects = @user_pref.leave_projects %>
+
+<% if leave_projects.empty? %>
+	<p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>
+
+<% leave_projects.each do |leave_project| %>
 
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
 
-	<% manage_rules = LeavesHolidaysManagements.management_rules_list_recursive(@user_pref, 'receiver', 'is_managed_by', leave_project) %>
-	<% managed_rules = LeavesHolidaysManagements.management_rules_list_recursive(@user_pref, 'sender', 'is_managed_by', leave_project) %>
+	<% manage_users = @user_pref.manage_users_project(leave_project) %>
+	<% managed_users = @user_pref.managed_users_project(leave_project) %>
 
-	<% consults_rules = LeavesHolidaysManagements.management_rules_list(@user_pref, 'sender', 'consults', leave_project) %>
-	<% consulted_rules = LeavesHolidaysManagements.management_rules_list(@user_pref, 'receiver', 'consults', leave_project) %>
+	<% consulted_users = @user_pref.consulted_users_project(leave_project) %>
+	<% notified_users = @user_pref.notified_users_project(leave_project) %>
+	<% consults_users = @user_pref.consults_users_project(leave_project) %>
+	<% notify_users = @user_pref.notify_users_project(leave_project) %>
 
-	<% notify_rules = LeavesHolidaysManagements.management_rules_list(@user_pref, 'sender', 'notifies_approved', leave_project) %>
-	<% notified_rules = LeavesHolidaysManagements.management_rules_list(@user_pref, 'receiver', 'notifies_approved', leave_project) %>
 	
-	<% unless manage_rules.empty? %>
 	<ul><strong>User manages leave requests from:</strong>
-	<% end %>
-	<% manage_rules.each_with_index do |rules, nesting| %>
-		<% users = rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq %>
-		<% if nesting == 0 %>
-			<ul>
-				Directly: <%= users_link_to_notification(users) %>
-			</ul>
-		<% else %>
-			<ul>Indirectly: <%= users_link_to_notification(users) %>
-
-			</ul>
-		<% end %>
+	<% unless manage_users.values.flatten.empty? %>
+		<ul>Directly: <%= users_link_to_notification(manage_users[:directly].flatten) %></ul>
+		<ul>Indirectly: <%= users_link_to_notification(manage_users[:indirectly].flatten) %></ul>
+	<% else %>
+		--
 	<% end %>
 	</ul>
 
-	<% users = consulted_rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq %>
-	<% unless users.empty? %>
-		<ul><strong>User is consulted for leave requests from:</strong> <%= users_link_to_notification(users) %></ul>
+	<% unless consulted_users.empty? %>
+		<ul><strong>User is consulted for leave requests from:</strong> <%= users_link_to_notification(consulted_users) %></ul>
 	<% end %>
 
-	<% users = notified_rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq %>
-	<% unless users.empty? %>
-		<ul><strong>User is notified for leave requests from:</strong> <%= users_link_to_notification(users) %></ul>
+	<% unless notified_users.empty? %>
+		<ul><strong>User is notified for leave requests from:</strong> <%= users_link_to_notification(notified_users) %></ul>
 	<% end %>
-
-
-
-
 
 	<ul><strong>User is managed by:</strong>
-	<% if managed_rules.empty? %>
-	 --
-	<% end %>
-	<% managed_rules.each_with_index do |rules, nesting| %>
-		<% users = rules.map(&:to_users).map{|r| r[:user_receivers]}.flatten.uniq %>
-		<% if nesting == 0 %>
-			<ul>
-				Directly: <%= users_link_to_notification(users) %>
-			</ul>
-		<% else %>
-			<ul>Indirectly: <%= users_link_to_notification(users) %>
-
-			</ul>
-		<% end %>
+	<% unless managed_users.values.flatten.empty? %>
+		<ul>Directly: <%= users_link_to_notification(managed_users[:directly].flatten) %></ul>
+		<ul>Indirectly: <%= users_link_to_notification(managed_users[:indirectly].flatten) %></ul>
+	<% else %>
+		--
 	<% end %>
 	</ul>
 
-	<% users = consults_rules.map(&:to_users).map{|r| r[:user_receivers]}.flatten.uniq %>
-	<% unless users.empty? %>
-		<ul><strong>User consults for his/her leave requests:</strong> <%= users_link_to_notification(users) %></ul>
+	<% unless consults_users.empty? %>
+		<ul><strong>User consults for his/her leave requests:</strong> <%= users_link_to_notification(consults_users) %></ul>
 	<% end %>
 
-	<% users = notify_rules.map(&:to_users).map{|r| r[:user_receivers]}.flatten.uniq %>
-	<% unless users.empty? %>
-		<ul><strong>User notifies for his/her approved leave requests:</strong> <%= users_link_to_notification(users) %></ul>
+	<% unless notify_users.empty? %>
+		<ul><strong>User notifies for his/her approved leave requests:</strong> <%= users_link_to_notification(notify_users) %></ul>
 	<% end %>
 
 <% end %>

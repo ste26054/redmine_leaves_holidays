@@ -71,6 +71,7 @@ class LeaveManagementRulesController < ApplicationController
               end
             else
               @leave_management_rule_errors << @leave_management_rule
+              return
             end
           end
         end

@@ -96,12 +96,26 @@ class LeaveManagementRule < ActiveRecord::Base
   end
 
   def validate_no_discrepancies
-    snd = LeavesHolidaysManagements.check_discrepancies_for(self.sender, 'sender', self.action, self.project)
-    recv = LeavesHolidaysManagements.check_discrepancies_for(self.receiver, 'receiver', self.action, self.project)
-    unless ((snd + recv).uniq - [self]).empty?
-      errors.add(:base, "cannot add cyclic rules within project")
+    # snd = LeavesHolidaysManagements.check_discrepancies_for(self.sender, 'sender', self.action, self.project)
+    # recv = LeavesHolidaysManagements.check_discrepancies_for(self.receiver, 'receiver', self.action, self.project)
+    # unless ((snd + recv).uniq - [self]).empty?
+    #   errors.add(:base, "cannot add cyclic rules within project")
+    #   raise ActiveRecord::RecordInvalid.new(self)
+    # end
+
+    if self.action == "is_managed_by"
+      snd_manage_users = self.sender.manage_users_project(self.project).values.flatten.uniq
+      snd_managed_users = self.sender.managed_users_project(self.project).values.flatten.uniq
+
+      rcv_manage_users = self.receiver.manage_users_project(self.project).values.flatten.uniq
+      rcv_managed_users = self.receiver.managed_users_project(self.project).values.flatten.uniq
+
+      unless (snd_manage_users & snd_managed_users).empty? || (rcv_manage_users & rcv_managed_users).empty?
+        errors.add(:base, "cannot add cyclic rules within project")
       raise ActiveRecord::RecordInvalid.new(self)
+      end
     end
+
   end
 
 end
