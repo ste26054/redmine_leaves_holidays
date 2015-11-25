@@ -7,7 +7,9 @@ class LeaveManagementRulesController < ApplicationController
   include LeaveManagementRulesHelper
 
   def edit
-    session[:management_rule_ids] = nil
+    unless params[:edit] && params[:edit] == "true"
+      session[:management_rule_ids] = nil
+    end
     unless params[:management_rule_ids]
       @sender_type = params[:sender_type] || LeavesHolidaysManagements.default_actor_type
       @sender_list_id ||= params[:sender_list_id]
@@ -20,8 +22,8 @@ class LeaveManagementRulesController < ApplicationController
       @receiver_exception_id ||= params[:receiver_exception_id]
       @backup_receiver_id ||= params[:backup_receiver_id]
     else
-      management_rule_ids = params[:management_rule_ids]
-      management_rules = LeaveManagementRule.where(id: management_rule_ids, project: @project)
+      management_rules = LeaveManagementRule.where(id: params[:management_rule_ids], project: @project)
+      management_rule_ids = management_rules.pluck(:id)
       sender_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender])
       receiver_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver])
       backup_receiver = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:backup_receiver])
@@ -75,20 +77,16 @@ class LeaveManagementRulesController < ApplicationController
           end
         end
       end
-      session[:management_rule_ids] = nil
+      
     end
-    
+    session[:management_rule_ids] = nil
 
-    respond_to do |format|
-      format.html { redirect_to_settings_in_projects }
-      format.js {}
-    end
   end
 
   def index
-    # respond_to do |format|
-    #   format.html { head 406 }
-    # end
+    respond_to do |format|
+      format.html { head 406 }
+    end
   end
 
   private

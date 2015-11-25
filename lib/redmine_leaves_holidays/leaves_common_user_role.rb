@@ -35,11 +35,12 @@ module LeavesCommonUserRole
 
       rules_users_objects_by_backups.each do |rules_backup|
         backups = rules_backup.map{|r| r[:backup_list]}.flatten.uniq
+        managed = rules_backup.map{|r| r[:user_senders]}.flatten.uniq
         managers = rules_backup.map{|r| r[:user_receivers]}.flatten.uniq
         if nesting == 0
-          managed_users[:directly] << {managers: managers, backups: backups}
+          managed_users[:directly] << {managed: managed, managers: managers, backups: backups}
         else
-          managed_users[:indirectly] << {managers: managers, backups: backups}
+          managed_users[:indirectly] << {managed: managed, managers: managers, backups: backups}
         end
       end
     end

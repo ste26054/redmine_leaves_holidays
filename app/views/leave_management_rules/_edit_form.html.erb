@@ -70,7 +70,7 @@
   $(document).ready(function(){
     $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule').change(function(){
       $.ajax({
-        url: '<%= escape_javascript project_leave_management_rules_edit_path(:format => 'js') %>',
+        url: '<%= escape_javascript project_leave_management_rules_edit_path(:format => 'js', :edit => params["edit"]) %>',
         type: 'post',
         data: $('#leave_management_rules').serialize()
       });
