@@ -12,7 +12,7 @@
 
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
 
-	<% manage_users = @user_pref.manage_users_project(leave_project) %>
+	<% manage_users_backups = @user_pref.manage_users_project_with_backup(leave_project) %>
 	<% managed_users_backups = @user_pref.managed_users_project_with_backup(leave_project) %>
 
 	<% consulted_users = @user_pref.consulted_users_project(leave_project) %>
@@ -22,13 +22,40 @@
 
 	
 	<ul><strong>User manages leave requests from:</strong>
-	<% unless manage_users.values.flatten.empty? %>
-		<ul>Directly: <%= users_link_to_notification(manage_users[:directly].flatten) %></ul>
-		<ul>Indirectly: <%= users_link_to_notification(manage_users[:indirectly].flatten) %></ul>
-	<% else %>
-		--
-	<% end %>
+
+		<% unless manage_users_backups[:directly].empty? %>
+			<ul>Directly:
+			<% manage_users_backups[:directly].each do |direct| %>
+				<ul>
+					<%= users_link_to_notification(direct[:managed]) %>
+					<% if @user_pref.in?(direct[:backups]) %>
+						(As a backup of <%= users_link_to_notification(direct[:managers]) %>)
+					<% end %>
+				</ul>
+
+			<% end %>
+			</ul>
+		<% end %>
+
+		<% unless manage_users_backups[:indirectly].empty? %>
+			<ul>Indirectly:
+			<% manage_users_backups[:indirectly].each do |indirect| %>
+				<ul>
+				<% unless indirect[:managed].empty? %>
+					<%= users_link_to_notification(indirect[:managed]) %>
+				<% end %>
+
+				</ul>
+			<% end %>
+			</ul>
+		<% end %>
+
 	</ul>
+
+
+
+
+
 
 	<% unless consulted_users.empty? %>
 		<ul><strong>User is consulted for leave requests from:</strong> <%= users_link_to_notification(consulted_users) %></ul>
