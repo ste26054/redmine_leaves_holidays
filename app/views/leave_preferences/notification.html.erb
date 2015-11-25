@@ -13,7 +13,7 @@
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
 
 	<% manage_users = @user_pref.manage_users_project(leave_project) %>
-	<% managed_users = @user_pref.managed_users_project(leave_project) %>
+	<% managed_users_backups = @user_pref.managed_users_project_with_backup(leave_project) %>
 
 	<% consulted_users = @user_pref.consulted_users_project(leave_project) %>
 	<% notified_users = @user_pref.notified_users_project(leave_project) %>
@@ -38,14 +38,45 @@
 		<ul><strong>User is notified for leave requests from:</strong> <%= users_link_to_notification(notified_users) %></ul>
 	<% end %>
 
+
 	<ul><strong>User is managed by:</strong>
-	<% unless managed_users.values.flatten.empty? %>
-		<ul>Directly: <%= users_link_to_notification(managed_users[:directly].flatten) %></ul>
-		<ul>Indirectly: <%= users_link_to_notification(managed_users[:indirectly].flatten) %></ul>
-	<% else %>
-		--
-	<% end %>
+
+		<% unless managed_users_backups[:directly].empty? %>
+			<ul>Directly:
+			<% managed_users_backups[:directly].each do |direct| %>
+				<ul>
+				<% unless direct[:managers].empty? %>
+					<%= users_link_to_notification(direct[:managers]) %>
+				<% end %>
+				<% unless direct[:backups].empty? %>
+					(Backup: <%= users_link_to_notification(direct[:backups]) %>)
+				<% end %>
+				</ul>
+			<% end %>
+			</ul>
+		<% end %>
+
+		<% unless managed_users_backups[:indirectly].empty? %>
+			<ul>Indirectly:
+			<% managed_users_backups[:indirectly].each_with_index do |indirect, nesting| %>
+				<ul>
+				<% unless indirect[:managers].empty? %>
+					<%= users_link_to_notification(indirect[:managers]) %>
+				<% end %>
+				<% unless indirect[:backups].empty? %>
+					(Backup: <%= users_link_to_notification(indirect[:backups]) %>)
+				<% end %>
+
+				</ul>
+			<% end %>
+			</ul>
+		<% end %>
+
 	</ul>
+
+
+
+
 
 	<% unless consults_users.empty? %>
 		<ul><strong>User consults for his/her leave requests:</strong> <%= users_link_to_notification(consults_users) %></ul>

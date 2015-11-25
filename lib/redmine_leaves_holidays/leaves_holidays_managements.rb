@@ -89,24 +89,30 @@ module LeavesHolidaysManagements
     return leave_management_rules
   end
 
-  def self.management_rules_list_recursive(actor, acting_as, action, projects = [])
-    leave_management_rules_initial = self.management_rules_list(actor, acting_as, action, projects)
+  def self.management_rules_list_recursive(actor_initial, acting_as, action, projects = [])
+    leave_management_rules_initial = self.management_rules_list(actor_initial, acting_as, action, projects)
     
     projects_ref = Project.where(id: leave_management_rules_initial.pluck(:project_id).uniq).to_a
 
     to_check = leave_management_rules_initial.to_a
     checked = []
     i = 1
-    while !to_check.empty? && i < 10
+    while !to_check.empty? && i < 5
       to_check_next = []
       checked_loop = []
       to_check.each do |rule|
         actor = rule.send(self.acting_as_opposite(acting_as))
         exceptions = []
+
         unless rule.leave_exception_rules.empty?
           exceptions << rule.leave_exception_rules.where(actor_concerned: LeaveExceptionRule.actors_concerned[self.acting_as_opposite(acting_as)]).pluck(:user_id)
         end
-        to_check_next << self.management_rules_list(actor, acting_as, action, projects_ref & [rule.project], exceptions.flatten)
+
+        unless acting_as == 'receiver' && action == 'is_managed_by' && actor_initial.class == User && actor_initial.id.in?(rule.leave_exception_rules.where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver'], user_id: actor_initial.id).pluck(:user_id)) && !actor_initial.in?(rule.to_users[:user_receivers])
+
+          to_check_next << self.management_rules_list(actor, acting_as, action, projects_ref & [rule.project], exceptions.flatten)
+        end
+        
         checked_loop << rule
       end
       checked << checked_loop unless checked_loop.empty?

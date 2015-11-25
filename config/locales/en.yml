@@ -22,4 +22,4 @@ en:
   tab_leaves_calendar: "Calendar View"
   tab_user_leaves_preferences: "Users Preferences"
   tab_leaves_timeline: "Leave Timeline"
-  notice_failed_to_save_rules: "Some rules could not be created due to discrepancies. Please check the existing rules and retry.\nA User/Role cannot be self managed"
+  notice_failed_to_save_rules: "Some rules could not be created due to discrepancies. Please check the existing rules and retry.\nA Please note that User/Role cannot be directly/indirectly self managed."

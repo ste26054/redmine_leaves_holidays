@@ -7,7 +7,7 @@ class LeaveManagementRulesController < ApplicationController
   include LeaveManagementRulesHelper
 
   def edit
-    session[:management_form] = nil
+    session[:management_rule_ids] = nil
     unless params[:management_rule_ids]
       @sender_type = params[:sender_type] || LeavesHolidaysManagements.default_actor_type
       @sender_list_id ||= params[:sender_list_id]
@@ -46,7 +46,6 @@ class LeaveManagementRulesController < ApplicationController
     else
       if session[:management_rule_ids] && !session[:management_rule_ids].empty?
         LeaveManagementRule.destroy_all(id: session[:management_rule_ids].map(&:to_i), project: @project)
-        session[:management_rule_ids] = nil
       end
       if params[:sender_list_id] && params[:receiver_list_id]
         @leave_management_rule_errors = []
@@ -76,6 +75,7 @@ class LeaveManagementRulesController < ApplicationController
           end
         end
       end
+      session[:management_rule_ids] = nil
     end
     
 

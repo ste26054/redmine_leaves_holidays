@@ -12,6 +12,8 @@ Rails.configuration.to_prepare do
 
   require 'redmine_leaves_holidays/helpers/timeline'
 
+  require 'redmine_leaves_holidays/leaves_common_user_role'
+
   require 'redmine_leaves_holidays/patches/mailer_patch'
   require 'redmine_leaves_holidays/patches/projects_helper_patch'
   require 'redmine_leaves_holidays/patches/user_patch'
