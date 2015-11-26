@@ -84,6 +84,10 @@ class LeaveManagementRulesController < ApplicationController
 
   end
 
+  def show_metrics
+    render :layout => false
+  end
+
   def index
     respond_to do |format|
       format.html { head 406 }

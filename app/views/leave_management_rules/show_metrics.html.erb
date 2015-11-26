@@ -1,0 +1,23 @@
+  <% not_managed_people = @project.users_by_role_not_managed %>
+  <% unless not_managed_people.empty? %>
+    <br/>
+    <p><strong>Project members who are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</p></strong>
+    <% not_managed_people.each do |k,v| %>
+      <ul>
+        <li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
+      </ul>
+    <% end %>
+  <% end %>
+
+
+
+  <% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
+  <% unless no_create_people.empty? %>
+    <br/>
+    <p><strong>Project members who are unable to create leave requests (according to current rules, cross project):</strong></p>
+    <% no_create_people.each do |k,v| %>
+      <ul>
+        <li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
+      </ul>
+    <% end %>
+  <% end %>

@@ -5,97 +5,32 @@
 	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
   <p><%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %></p>
 
-<% if LeaveManagementRule.where(project: @project).count > 0 %>
-	<table id="table-content" class="list">
-	<thead>
-			<tr>
-				<th>Sender</th>
-				<th>Action</th>
-				<th>Receiver</th>
-				<th>Backup</th>
-				<th></th>
-			<tr>
-	</thead>
-	<tbody> 
-
-	
-	<% rules_grouped = LeavesHolidaysManagements.deep_group_management_rules(LeaveManagementRule.where(project: @project).to_a) %>
-
-	<% unless rules_grouped.empty? %>
-
-		<% rules_grouped.each do |rule_ids| %>
-			<% rule_group = LeaveManagementRule.where(id: rule_ids).includes(:sender,:receiver,:leave_exception_rules).to_a %>
-			<% exceptions = rule_group.first.leave_exception_rules.includes(:user) %>
-			<tr>
-				<td>
-					<%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
-					<% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
-					<% unless excp_sender.empty? %>
-						<% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
-						</br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
-					<% end %>
-				</td>
-
-				<td><%= rule_group.map{ |r| r.action.humanize }.uniq.join(", ") %></td>
-
-				<td>
-					<%= rule_group.map{ |r| r.receiver.name }.uniq.join(", ") %>
-					<% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
-					<% unless excp_receiver.empty? %>
-						<% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
-						</br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
-					<% end %>
-				</td>
-				<td>
-					<% backup_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver']) %>
-					<% unless backup_receiver.empty? %>
-						<% backup_receiver_users = backup_receiver.map(&:user).map(&:name).uniq %>
-						<%= backup_receiver_users.join(", ") %>
-					<% end %>
-				</td>
-				<td>
-					<%= #rule_ids 
-					%>
-						<%= link_to "Edit", project_leave_management_rules_edit_path(@project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
-						%>
-						<%= link_to "Delete", project_leave_management_rules_update_path(@project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
-						%>
-				</td>
-			</tr>
-
-		<% end %>
-	<% end %>
+<div id="table-content">
+<%= render partial: '/leave_management_rules/rules_table', locals: {project: @project} %>
+</div>
 
 
-	</tbody>			
-	</table>
-<% else %>
-	<p class="nodata"><%= l(:label_no_data) %></p>
+<div id="leave-rules-metrics">
+
+</div>
+
+<%= javascript_tag do %>
+$(document).ready(function(){
+	$.ajax({
+	    url: '<%= leave_rules_show_metrics_path(@project) %>',
+	    cache: false,
+	    beforeSend: function(){
+        $('#leave-rules-metrics').html('<%= escape_javascript(render :partial => '/leave_commons/loading') %>');
+      },
+	    success: function(data){
+	      $("#leave-rules-metrics").html(data);
+	    }
+
+	});
+
+	$('#ajax-indicator').hide();
+	});
 <% end %>
-
-	<% not_managed_people = @project.users_by_role_not_managed %>
-	<% unless not_managed_people.empty? %>
-		<br/>
-		<p><strong>Project members who are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</p></strong>
-		<% not_managed_people.each do |k,v| %>
-			<ul>
-				<li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
-			</ul>
-		<% end %>
-	<% end %>
-
-
-
-	<% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
-	<% unless no_create_people.empty? %>
-		<br/>
-		<p><strong>Project members who are unable to create leave requests (according to current rules, cross project):</strong></p>
-		<% no_create_people.each do |k,v| %>
-			<ul>
-				<li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
-			</ul>
-		<% end %>
-	<% end %>
 
 <% end %>
 
