@@ -2,10 +2,11 @@
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
 	<h3>Leave Management Rules</h3>
+	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
   <p><%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %></p>
 
 <% if LeaveManagementRule.where(project: @project).count > 0 %>
-	<table class="list">
+	<table id="table-content" class="list">
 	<thead>
 			<tr>
 				<th>Sender</th>
@@ -71,11 +72,25 @@
 <% else %>
 	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
-	<% not_assigned_people = @project.users_by_role_not_managed_anywhere %>
-	<% unless not_assigned_people.empty? %>
+
+	<% not_managed_people = @project.users_by_role_not_managed %>
+	<% unless not_managed_people.empty? %>
 		<br/>
-		<p><strong>Project members whose leave requests are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>), because no management rule is defined for them in any project:</p></strong>
-		<% not_assigned_people.each do |k,v| %>
+		<p><strong>Project members who are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</p></strong>
+		<% not_managed_people.each do |k,v| %>
+			<ul>
+				<li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
+			</ul>
+		<% end %>
+	<% end %>
+
+
+
+	<% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
+	<% unless no_create_people.empty? %>
+		<br/>
+		<p><strong>Project members who are unable to create leave requests (according to current rules, cross project):</strong></p>
+		<% no_create_people.each do |k,v| %>
 			<ul>
 				<li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
 			</ul>

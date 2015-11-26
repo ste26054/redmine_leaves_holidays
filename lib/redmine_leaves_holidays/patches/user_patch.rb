@@ -183,28 +183,40 @@ module RedmineLeavesHolidays
 				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
 			end
 
-			# Returns the list of rules where the user appears as a backup
-			def leave_backup_rules
+			# Set of "permissions" based on rules set in the different projects
+
+			def can_manage_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').empty?
 			end
 
+			def can_manage_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project).empty?
+			end
 
-		  def managed_backup_users_project(project)
-		    managed_rules = self.managed_rules_project(project)
-		    managed_users = {directly: [], indirectly: []}
+			def can_be_consulted_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults').empty?
+			end
 
+			def can_be_notified_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').empty?
+			end
 
-		    managed_rules.each_with_index do |rules, nesting| 
-		      users = rules.map(&:to_users).map{|r| r[:backup_list]}.flatten.uniq 
-		      if nesting == 0 
-		        managed_users[:directly] << users
-		      else
-		        managed_users[:indirectly] << users
-		      end 
-		    end
+			def can_be_notified_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).empty?
+			end
 
-		    return managed_users
-		  end
+			# TBC with permissions above
+			def can_create_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+			end
 
+			def can_create_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).empty? || can_manage_leave_requests_project(project) || can_be_notified_leave_requests_project(project) ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+			end
+
+			def has_leave_plugin_access
+				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
+			end
 
 		end
 	end

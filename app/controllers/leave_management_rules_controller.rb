@@ -4,6 +4,7 @@ class LeaveManagementRulesController < ApplicationController
   before_action :find_project
 
   helper :leave_management_rules
+  helper :leave_requests
   include LeaveManagementRulesHelper
 
   def edit

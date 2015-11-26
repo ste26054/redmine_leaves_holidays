@@ -35,6 +35,8 @@
 
 			<% end %>
 			</ul>
+		<% else %>
+			---
 		<% end %>
 
 		<% unless manage_users_backups[:indirectly].empty? %>
@@ -81,6 +83,8 @@
 				</ul>
 			<% end %>
 			</ul>
+		<% else %>
+			---
 		<% end %>
 
 		<% unless managed_users_backups[:indirectly].empty? %>
@@ -100,6 +104,8 @@
 		<% end %>
 
 	</ul>
+
+	<ul><strong>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>):</strong> <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
 
 
 

@@ -1,5 +1,5 @@
 module LeavesCommonUserRole
-
+# All results are returned according to the rules set, and does not vary depending on if a manager is on leave when the method is called.
   def manage_rules_project(project)
     return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'is_managed_by', project)
   end
@@ -124,6 +124,15 @@ module LeavesCommonUserRole
   def notified_users_project(project)
     notified_rules = self.notified_rules_project(project)
     return notified_rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq
+  end
+
+  # returns true if plugin admin should be notified anyway
+  def notify_plugin_admin(project)
+    return self.managed_rules_project(project).empty?
+  end
+
+  def notify_plugin_admin_wide
+    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by').empty?
   end
 
 end

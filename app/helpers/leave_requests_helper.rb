@@ -121,4 +121,8 @@ module LeaveRequestsHelper
  		users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe
  	end
 
+ 	def human_boolean(boolean)
+    boolean ? 'Yes' : 'No'
+	end
+
 end
