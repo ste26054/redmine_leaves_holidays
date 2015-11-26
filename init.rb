@@ -1,8 +1,5 @@
 require 'redmine'
-require 'LeavesHolidaysExtensions'
-require 'LeavesHolidaysLogic'
-require 'LeavesHolidaysDates'
-require 'LeavesHolidaysTriggers'
+require 'redmine_leaves_holidays'
 include CalendarsHelper
 
 Redmine::Plugin.register :redmine_leaves_holidays do
@@ -15,7 +12,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   settings :default => {:default_tracker_id => "1", :default_project_id => "1", :default_working_hours_week => "37",
   						:annual_leave_days_max => "25"}, :partial => "settings/leaves_holidays_settings"
 
-project_module :leave_timeline_view do
+project_module :leave_management do
   permission :view_all_leave_requests, { :leaves_requests => :view_all }
   permission :manage_leave_requests, { :leaves_requests => :manage }
   permission :consult_leave_requests, { :leaves_requests => :vote }
@@ -31,10 +28,13 @@ end
 
 end
 
-require_dependency 'redmine_leaves_holidays/hooks'
-Holidays.load_all
-
 Rails.configuration.to_prepare do
+
+  ActiveSupport::Inflector.inflections do |inflect|
+    inflect.irregular 'actor_concerned', 'actors_concerned'
+  end
+  
+  Holidays.load_all
   require 'rufus/scheduler'
 
   leave_job = Rufus::Scheduler.new(:lockfile => ".leave-scheduler.lock")
@@ -45,12 +45,5 @@ Rails.configuration.to_prepare do
         Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
 	end
   end
-
-  unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::MailerPatch)
-    Mailer.send(:include,RedmineLeavesHolidays::Patches::MailerPatch)
-  end
-
-  unless ApplicationController.included_modules.include?(RedmineLeavesHolidays::Patches::UserPatch)
-    User.send(:include,RedmineLeavesHolidays::Patches::UserPatch)
-  end
 end
+

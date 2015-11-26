@@ -22,7 +22,7 @@ class LeaveStatusesController < ApplicationController
     if @status.save
        @leave.update_attribute(:request_status, "processed")
 
-       redirect_to @leave
+       redirect_to leave_approvals_path
     else
        redirect_to new_leave_request_leave_status_path
     end

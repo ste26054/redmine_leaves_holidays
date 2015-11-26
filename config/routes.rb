@@ -25,9 +25,15 @@ RedmineApp::Application.routes.draw do
 		end
 	end
 
+	resources :projects do
+		match '/projects/:project_id/leave_management_rules/edit', :to => 'leave_management_rules#edit', :via => [:get, :post], as: :leave_management_rules_edit
+		match '/projects/:project_id/leave_management_rules/update', :to => 'leave_management_rules#update', :via => [:get, :post], as: :leave_management_rules_update
+	end
+
 	get '/leave_approvals', :to => 'leave_approvals#index'
 	get '/leave_calendars', :to => 'leave_calendars#show'
 	get '/leave_timeline', :to => 'leave_timelines#show'
 	get '/projects/:project_id/leave_timeline', :to => 'leave_timelines#show_project'
-
+	get '/leave_management_rules/:project_id/show_metrics', :to => 'leave_management_rules#show_metrics', as: :leave_rules_show_metrics
+	
 end

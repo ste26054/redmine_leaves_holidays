@@ -27,6 +27,7 @@ module LeavesHolidaysTriggers
 		# Get the leave period associated with the given date
 		period = LeavesHolidaysDates.get_leave_period(contract_start_date, renewal_date, date)
     previous_period = LeavesHolidaysDates.get_previous_leave_period(contract_start_date, renewal_date, date)
+
 		# If the given date is actually the start of the leave period calculated
 		# and if the last renewal date is different from the start period, return true
 		return period[:start] == date && period[:start] != last_renewal_date && previous_period != nil

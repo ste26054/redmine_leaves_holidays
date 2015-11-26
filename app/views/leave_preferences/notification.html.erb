@@ -1,45 +1,124 @@
-<% if !@manage_list.empty? %>
-		<h3>Users able to manage Leave Requests from <%= @user_pref.name %>:</h3>
+<h2>Leave Notifications regarding <%= @user_pref.name %>:</h2>
 
-		<% for entry in @manage_list -%>
+<% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
 
-			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
+<% leave_projects = @user_pref.leave_projects %>
 
-			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
-
-			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
-
-			</p>
-		<% end %>
-<% else %>
-	<h3>Nobody can manage Leave Requests from <%= @user_pref.name %></h3>
+<% if leave_projects.empty? %>
+	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
 
-<% if !@vote_list.empty? %>
-		<h3>Users able to Consult:</h3>
+<% leave_projects.each do |leave_project| %>
 
-		<% for entry in @vote_list -%>
+	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
 
-			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
+	<% manage_users_backups = @user_pref.manage_users_project_with_backup(leave_project) %>
+	<% managed_users_backups = @user_pref.managed_users_project_with_backup(leave_project) %>
 
-			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+	<% consulted_users = @user_pref.consulted_users_project(leave_project) %>
+	<% notified_users = @user_pref.notified_users_project(leave_project) %>
+	<% consults_users = @user_pref.consults_users_project(leave_project) %>
+	<% notify_users = @user_pref.notify_users_project(leave_project) %>
 
-			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+	
+	<ul><strong>User manages leave requests from:</strong>
 
-			</p>
+		<% unless manage_users_backups[:directly].empty? %>
+			<ul>Directly:
+			<% manage_users_backups[:directly].each do |direct| %>
+				<ul>
+					<%= users_link_to_notification(direct[:managed]) %>
+					<% if @user_pref.in?(direct[:backups]) %>
+						(As a backup of <%= users_link_to_notification(direct[:managers]) %>)
+					<% end %>
+				</ul>
+
+			<% end %>
+			</ul>
+		<% else %>
+			---
 		<% end %>
-<% else %>
-	<h3>Nobody can consult Leave Requests from <%= @user_pref.name %></h3>
-<% end %>
 
-<% notification =  (@vote_list.empty? && @manage_list.empty?) || LeavesHolidaysLogic.should_notify_plugin_admin(@user_pref, 3) ? true : false %>
+		<% unless manage_users_backups[:indirectly].empty? %>
+			<ul>Indirectly:
+			<% manage_users_backups[:indirectly].each do |indirect| %>
+				<ul>
+				<% unless indirect[:managed].empty? %>
+					<%= users_link_to_notification(indirect[:managed]) %>
+				<% end %>
 
-<% admins = LeavesHolidaysLogic.plugin_admins_users.map(&:login).join(', ')  %>
+				</ul>
+			<% end %>
+			</ul>
+		<% end %>
 
-<% if notification == true %>
-	<h3>Plugin admins (<%= admins %>) will be notified</h3>
-<% else %> 
-	<h3>Plugin admins (<%= admins %>) will not be notified</h3>
+	</ul>
+
+
+
+
+
+
+	<% unless consulted_users.empty? %>
+		<ul><strong>User is consulted for leave requests from:</strong> <%= users_link_to_notification(consulted_users) %></ul>
+	<% end %>
+
+	<% unless notified_users.empty? %>
+		<ul><strong>User is notified for leave requests from:</strong> <%= users_link_to_notification(notified_users) %></ul>
+	<% end %>
+
+
+	<ul><strong>User is managed by:</strong>
+
+		<% unless managed_users_backups[:directly].empty? %>
+			<ul>Directly:
+			<% managed_users_backups[:directly].each do |direct| %>
+				<ul>
+				<% unless direct[:managers].empty? %>
+					<%= users_link_to_notification(direct[:managers]) %>
+				<% end %>
+				<% unless direct[:backups].empty? %>
+					(Backup: <%= users_link_to_notification(direct[:backups]) %>)
+				<% end %>
+				</ul>
+			<% end %>
+			</ul>
+		<% else %>
+			---
+		<% end %>
+
+		<% unless managed_users_backups[:indirectly].empty? %>
+			<ul>Indirectly:
+			<% managed_users_backups[:indirectly].each_with_index do |indirect, nesting| %>
+				<ul>
+				<% unless indirect[:managers].empty? %>
+					<%= users_link_to_notification(indirect[:managers]) %>
+				<% end %>
+				<% unless indirect[:backups].empty? %>
+					(Backup: <%= users_link_to_notification(indirect[:backups]) %>)
+				<% end %>
+
+				</ul>
+			<% end %>
+			</ul>
+		<% end %>
+
+	</ul>
+
+	<ul><strong>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>):</strong> <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
+
+
+
+
+
+	<% unless consults_users.empty? %>
+		<ul><strong>User consults for his/her leave requests:</strong> <%= users_link_to_notification(consults_users) %></ul>
+	<% end %>
+
+	<% unless notify_users.empty? %>
+		<ul><strong>User notifies for his/her approved leave requests:</strong> <%= users_link_to_notification(notify_users) %></ul>
+	<% end %>
+
 <% end %>
 
 

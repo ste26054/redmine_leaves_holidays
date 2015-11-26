@@ -15,6 +15,7 @@ class LeaveRequest < ActiveRecord::Base
   before_validation :set_user
   before_validation :set_user_preferences
   before_validation :set_informational
+  before_save :validate_days_remaining
   before_update :validate_update
   after_save :send_notifications
 
@@ -76,6 +77,7 @@ class LeaveRequest < ActiveRecord::Base
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
 
+  # TO CHECK
   scope :processable_by, ->(user) {
     ids = []
 
@@ -88,6 +90,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :pending_or_accepted, -> { not_rejected.where.not(request_status: "0") }
 
+  # TO CHECK
   scope :viewable_by, ->(uid) {
     user = User.find(uid)
     processed_ids = processed.pluck(:id)
@@ -242,17 +245,20 @@ class LeaveRequest < ActiveRecord::Base
 
   # Triggers approval system
   def is_non_approval_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues) || []
+    return self.issue_id.to_s.in?(p)
   end
 
   # Triggers remaining days deducting
   def is_non_deduce_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_non_deduce_issues) || []
+    return self.issue_id.to_s.in?(p)
   end
 
   # Triggers reduced notifications to only view_all roles
   def is_quiet_leave
-    return self.issue_id.to_s.in?(RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues))
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_issues) || []
+    return self.issue_id.to_s.in?(p)
   end 
 
 
@@ -470,6 +476,7 @@ class LeaveRequest < ActiveRecord::Base
       return d
   end
 
+  # TO CHECK
   def send_notifications
 
     changes = self.changes

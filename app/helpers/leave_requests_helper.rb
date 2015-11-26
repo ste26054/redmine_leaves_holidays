@@ -65,16 +65,16 @@ module LeaveRequestsHelper
  	end
 
  	def user_projects(user)
+ 		leave_managed_projects = user.leave_managed_projects.map(&:id)
  		projects = user.memberships.collect{ |e| e.project }.uniq
 
 	 	s = ''.html_safe
 
 	    project_tree(projects) do |project, level|
 	      if level == 0
-		      name_prefix = ''.html_safe
-		      tag_options = {:value => project.id}
-
-		      s << content_tag('option', name_prefix + h(project), tag_options)
+		      check_img = "".html_safe
+		      check_img = " ".html_safe + checked_image.html_safe if project.id.in?(leave_managed_projects)
+		      s << content_tag('p', h(project) + check_img)
 		  end
 	    end
 	    s.html_safe
@@ -116,5 +116,13 @@ module LeaveRequestsHelper
  		end
 	    options_for_select(options, selected)
  	end
+
+ 	def users_link_to_notification(users)
+ 		users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe
+ 	end
+
+ 	def human_boolean(boolean)
+    boolean ? 'Yes' : 'No'
+	end
 
 end

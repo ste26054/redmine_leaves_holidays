@@ -1,0 +1,67 @@
+<% if LeaveManagementRule.where(project: project).count > 0 %>
+  <table class="list">
+  <thead>
+      <tr>
+        <th>Sender</th>
+        <th>Action</th>
+        <th>Receiver</th>
+        <th>Backup</th>
+        <th></th>
+      <tr>
+  </thead>
+  <tbody> 
+
+  
+  <% rules_grouped = LeavesHolidaysManagements.deep_group_management_rules(LeaveManagementRule.where(project: project).to_a) %>
+
+  <% unless rules_grouped.empty? %>
+
+    <% rules_grouped.each do |rule_ids| %>
+      <% rule_group = LeaveManagementRule.where(id: rule_ids).includes(:sender,:receiver,:leave_exception_rules).to_a %>
+      <% exceptions = rule_group.first.leave_exception_rules.includes(:user) %>
+      <tr>
+        <td>
+          <%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
+          <% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
+          <% unless excp_sender.empty? %>
+            <% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
+            </br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
+          <% end %>
+        </td>
+
+        <td><%= rule_group.map{ |r| r.action.humanize }.uniq.join(", ") %></td>
+
+        <td>
+          <%= rule_group.map{ |r| r.receiver.name }.uniq.join(", ") %>
+          <% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
+          <% unless excp_receiver.empty? %>
+            <% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
+            </br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
+          <% end %>
+        </td>
+        <td>
+          <% backup_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver']) %>
+          <% unless backup_receiver.empty? %>
+            <% backup_receiver_users = backup_receiver.map(&:user).map(&:name).uniq %>
+            <%= backup_receiver_users.join(", ") %>
+          <% end %>
+        </td>
+        <td>
+          <%= #rule_ids 
+          %>
+            <%= link_to "Edit", project_leave_management_rules_edit_path(project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
+            %>
+            <%= link_to "Delete", project_leave_management_rules_update_path(project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
+            %>
+        </td>
+      </tr>
+
+    <% end %>
+  <% end %>
+
+
+  </tbody>      
+  </table>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

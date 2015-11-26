@@ -8,6 +8,8 @@ module RedmineLeavesHolidays
 		        base.class_eval do
 		          unloadable # Send unloadable so it will not be unloaded in development
 		          has_one :leave_preference
+		          has_many :leave_management_rules, as: :sender, dependent: :destroy
+		          has_many :leave_management_rules, as: :receiver, dependent: :destroy
 
 		          scope :with_leave_region, lambda { |arg|
 		          	return nil if arg.blank?
@@ -58,6 +60,7 @@ module RedmineLeavesHolidays
 
 		module UserInstanceMethods
 			include LeavesHolidaysLogic
+			include LeavesCommonUserRole
 
 			def leave_preferences
 				LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.retrieve_leave_preferences(self)
@@ -79,6 +82,11 @@ module RedmineLeavesHolidays
 			def previous_leave_period(current_date = Date.today)
 				lp = self.leave_preferences
 				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
+			end
+
+			def previous_leave_period(current_date = Date.today)
+				lp = self.leave_preferences
+				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
 			def leave_period_to_date(current_date = Date.today)
@@ -142,20 +150,20 @@ module RedmineLeavesHolidays
 		    return "background: \##{hex}; color: #{font_color};"
 		  end
 
-		  # To optimize when include_bank_holidays = true
 		  def working_days_count(from_date, to_date, include_sat = false, include_sun = false, include_bank_holidays = false)
+		  	dates_interval = (from_date..to_date).to_a
+
 				user_region = LeavesHolidaysLogic.user_params(self, :region)
-				dates_interval = (from_date..to_date).to_a
-				
-				return dates_interval.count if include_sat && include_sun && include_bank_holidays
 
-    			dates_interval.delete_if {|i| i.wday == 6 && !include_sat || #delete date from array if day of week is a saturday (6)
-                			              i.wday == 0 && !include_sun || #delete date from array if day of week is a sunday (0)
-                            		      (!include_bank_holidays && i.holiday?(user_region.to_sym, :observed))
-    									 }
+				if !include_bank_holidays
+					bank_holidays_list = Holidays.between(from_date, to_date, user_region.to_sym, :observed).map{|k| k[:date]}
+					dates_interval -= bank_holidays_list
+				end
 
-    			return dates_interval.count
+  			dates_interval.delete_if {|i| i.wday == 6 && !include_sat || #delete date from array if day of week is a saturday (6)
+              			              i.wday == 0 && !include_sun } #delete date from array if day of week is a sunday (0)
 
+    		return dates_interval.count
 			end
 
 			def is_contractor
@@ -165,6 +173,51 @@ module RedmineLeavesHolidays
 			def contract_end_date
 				self.leave_preferences.contract_end_date
 			end
+
+			def leave_projects
+				return self.projects.active.where(id: LeaveManagementRule.distinct(:project_id).pluck(:project_id))
+			end
+
+			# returns the list of projects where the user has a direct leave management rule set 
+			def leave_managed_projects
+				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
+			end
+
+			# Set of "permissions" based on rules set in the different projects
+
+			def can_manage_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').empty?
+			end
+
+			def can_manage_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project).empty?
+			end
+
+			def can_be_consulted_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults').empty?
+			end
+
+			def can_be_notified_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').empty?
+			end
+
+			def can_be_notified_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).empty?
+			end
+
+			# TBC with permissions above
+			def can_create_leave_requests
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+			end
+
+			def can_create_leave_requests_project(project)
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).empty? || can_manage_leave_requests_project(project) || can_be_notified_leave_requests_project(project) ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+			end
+
+			def has_leave_plugin_access
+				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
+			end
+
 		end
 	end
 end

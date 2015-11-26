@@ -50,6 +50,7 @@ module LeavesHolidaysDates
 
 		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
 		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+
 		contract_end_date = user.contract_end_date
 
 		return 0.0 if to < contract_date #ok

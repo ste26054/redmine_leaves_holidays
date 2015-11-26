@@ -1,5 +1,5 @@
+using LeavesHolidaysExtensions #local patch of user methods 
 module LeavesHolidaysLogic
-	using LeavesHolidaysExtensions #local patch of user methods 
 	
 	def self.issues_list(user = nil)
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
@@ -14,7 +14,7 @@ module LeavesHolidaysLogic
 		end
 	end
 
-	def self.roles_list
+	def self.role_list
 		Role.find_all_givable.sort.collect{|t| [position: t.position, id: t.id, name: t.name] }
 	end
 
@@ -37,6 +37,10 @@ module LeavesHolidaysLogic
 
 	def self.has_create_rights(user)
 		return user.logged? && user.allowed_to?(:create_leave_requests, nil, :global => true)
+	end
+
+	def self.has_create_rights_project(user, project)
+		return user.logged? && user.allowed_to?(:create_leave_requests, project)
 	end
 
 	def self.has_view_all_rights(user)

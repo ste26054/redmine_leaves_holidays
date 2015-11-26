@@ -1,0 +1,24 @@
+$('#table-content').html('<%= escape_javascript(render :partial => '/leave_management_rules/rules_table', locals: {project: @project}) %>');
+
+<% if @leave_management_rule_errors.present? %>
+  <% errors = @leave_management_rule_errors.collect {|m| m.errors.full_messages}.flatten.uniq.join(', ') %>
+  alert('<%= raw(escape_javascript(l(:notice_failed_to_save_rules, :errors => errors))) %>');
+<% end %>
+
+if (typeof $overlay != "undefined") {
+  $overlay.hide();
+}
+
+$.ajax({
+      url: '<%= leave_rules_show_metrics_path(@project) %>',
+      cache: false,
+      beforeSend: function(){
+        $('#leave-rules-metrics').html('<%= escape_javascript(render :partial => '/leave_commons/loading') %>');
+      },
+      success: function(data){
+        $("#leave-rules-metrics").html(data);
+      }
+
+});
+
+$('#ajax-indicator').hide();

@@ -46,3 +46,8 @@ font-size: 0.8em;
 .gantt_hdr.holiday {background-color:#DADADA;}
 
 .icon-unchecked  { background-image: url(../images/false.png); }
+
+table.modal-table{
+  text-align: center;
+  padding:15px; 
+}
