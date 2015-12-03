@@ -218,6 +218,55 @@ module RedmineLeavesHolidays
 				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
 			end
 
+			def is_on_leave?(date = Date.today)
+				LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: self.id, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).any?
+			end
+
+			def is_managed_in_project?(project)
+				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).any?
+			end
+
+			def is_managed?
+				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').any?
+			end
+
+
+			# Returns who the leave requests will be sent to, taking into account actual date
+			def leave_notifications_for_management(date = Date.today)
+				users_managing_self_projects = self.managed_users_with_backup_leave(date)
+				
+				users_to_notify = []
+				#obj = {project: nil, users: []}
+				#obj = {}
+				# For each project where rules are defined for the user
+				
+				notify_plugin_admin = false
+
+				users_managing_self_projects.each do |project, user_arrays|
+					nesting = 0
+					user_arrays.each do |users|
+						size = users.size
+						on_leave = users.select{|u| u[:is_on_leave] == true }.size
+						users_to_notify << users.map{|u| u[:user] }
+						if size != on_leave
+							break
+						else
+							nesting += 1
+						end
+					end
+					if nesting == user_arrays.size
+						notify_plugin_admin = true
+					end
+				end
+				if notify_plugin_admin 
+					users_to_notify << LeavesHolidaysLogic.plugin_admins_users
+				end
+				# Should always send notification to users even if they are on leave. Additional users should be notified in such case.
+				return users_to_notify.flatten.uniq
+			end
+
+
+
 		end
 	end
 end

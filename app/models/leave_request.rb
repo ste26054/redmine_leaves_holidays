@@ -329,6 +329,13 @@ class LeaveRequest < ActiveRecord::Base
 
     return "background: \##{hex}; color: #{font_color};"
   end
+
+  def self.are_on_leave(user_ids, date = Date.today)
+    if !user_ids.is_a?(Array)
+      user_ids = [user_ids]
+    end
+    LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: user_ids, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).pluck(:user_id)
+  end
     
 	private
 
