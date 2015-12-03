@@ -121,6 +121,24 @@ module LeaveRequestsHelper
  		users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe
  	end
 
+ 	def user_link_to_checked_if_managed_in_project(user, project)
+ 		str = "".html_safe
+ 		str += user.name.html_safe
+ 		if user.is_managed_in_project?(project)
+ 			str +=  ' '.html_safe + checked_image.html_safe
+ 		elsif user.is_managed?
+ 			str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
+ 		else
+ 			str += ' '.html_safe + image_tag('false.png', :size => '11x11').html_safe
+ 		end
+
+ 		link_to str, notification_user_leave_preference_path(user)
+ 	end
+
+ 	def users_link_to_checked_if_managed_in_project(users, project)
+ 		users.map{|user| user_link_to_checked_if_managed_in_project(user, project)}.join(', ').html_safe
+ 	end
+
  	def human_boolean(boolean)
     boolean ? 'Yes' : 'No'
 	end

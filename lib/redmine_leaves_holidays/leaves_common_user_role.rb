@@ -8,6 +8,10 @@ module LeavesCommonUserRole
     return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by', project)
   end
 
+  def managed_rules
+    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by')
+  end
+
   def manage_users_project(project)
     manage_rules = self.manage_rules_project(project)
     manage_users = {directly: [], indirectly: []}
@@ -83,6 +87,47 @@ module LeavesCommonUserRole
           managed_users[:indirectly] << {managers: managers, backups: backups}
         end
       end
+    end
+
+    return managed_users
+  end
+
+  def managed_users_with_backup
+    rule_users_per_project= self.managed_rules.flatten.map(&:to_users).group_by{|r| r[:rule].project}
+    
+    managed_users = {}
+    rule_users_per_project.each do |project, rules|
+      managed_users[project] ||= []
+
+      rules.each do |rule|
+        managed_users[project] << rule[:user_receivers]
+        managed_users[project] << rule[:backup_list] if rule[:backup_list].any?
+      end
+      
+    end
+
+    return managed_users
+  end
+
+  # returns a list of project where the user is managed.
+  # for each project, returns arrays of objects, each object containing a user and a is_on_leave boolean (if the user is on leave at the date given.
+  # each array indicates a nesting level, the first array containing people that manages directly the object given
+  def managed_users_with_backup_leave(date = Date.today)
+    rule_users = self.managed_rules.flatten.map(&:to_users)
+
+    users_on_leave = LeaveRequest.are_on_leave(rule_users.map{|o| [o[:user_senders].map(&:id), o[:user_receivers].map(&:id), o[:backup_list].map(&:id)]}.flatten.uniq, date)
+
+    rule_users_per_project= rule_users.group_by{|r| r[:rule].project}
+    
+    managed_users = {}
+    rule_users_per_project.each do |project, rules|
+      managed_users[project] ||= []
+
+      rules.each do |rule|
+        managed_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}}
+        managed_users[project] << rule[:backup_list].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}} if rule[:backup_list].any?
+      end
+      
     end
 
     return managed_users

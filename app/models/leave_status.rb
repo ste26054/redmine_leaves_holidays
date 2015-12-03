@@ -9,7 +9,7 @@ class LeaveStatus < ActiveRecord::Base
 
   before_destroy :set_submitted
   before_validation :set_user
-  after_commit :update_log_time
+  after_save :update_log_time
   after_save :send_notifications
 
 
@@ -51,24 +51,22 @@ class LeaveStatus < ActiveRecord::Base
 
     request.real_leave_days.ceil.times do |i|
       unless (request.from_date + i).holiday?(request.region.to_sym, :observed) || non_working_week_days.include?((request.from_date + i).cwday)
-        begin
-          time_entry = TimeEntry.where(:issue_id => request.issue_id, 
-                                                :spent_on => request.from_date + i, 
-                                                :user => user).first
+        time_entry = TimeEntry.where(:issue_id => request.issue_id, 
+                                              :spent_on => request.from_date + i, 
+                                              :user => user).first
 
-          if time_entry != nil && (acceptance_status == "cancelled" || acceptance_status == "rejected")
-            time_entry.destroy!
-          end
+        if time_entry != nil && (acceptance_status == "cancelled" || acceptance_status == "rejected")
+          time_entry.destroy
+        end
 
-          if time_entry == nil && acceptance_status == "accepted"
-            time_entry = TimeEntry.new(:issue_id => request.issue_id, 
-                                                  :spent_on => request.from_date + i,
-                                                  :activity => TimeEntryActivity.find(RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)),
-                                                  :hours => hours_per_day,
-                                                  :comments => request.comments, 
-                                                  :user => user)
-            time_entry.save!
-          end
+        if time_entry == nil && acceptance_status == "accepted"
+          time_entry = TimeEntry.new(:issue_id => request.issue_id, 
+                                                :spent_on => request.from_date + i,
+                                                :activity => TimeEntryActivity.find(RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)),
+                                                :hours => hours_per_day,
+                                                :comments => request.comments, 
+                                                :user => user)
+          time_entry.save
         end
       end          
     end

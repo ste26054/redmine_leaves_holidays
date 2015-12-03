@@ -1,11 +1,11 @@
-  <% not_managed_people = @project.users_by_role_not_managed %>
+<% not_managed_people = @project.users_by_role_not_managed %>
+  
+<div class="splitcontentright">
+  <div class="members box">
   <% unless not_managed_people.empty? %>
-    <br/>
-    <p><strong>Project members who are managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</p></strong>
-    <% not_managed_people.each do |k,v| %>
-      <ul>
-        <li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
-      </ul>
+    <h4>Project members managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</h4>
+    <% not_managed_people.keys.sort.each do |role| %>
+      <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(not_managed_people[role].sort) %></p>
     <% end %>
   <% end %>
 
@@ -13,11 +13,29 @@
 
   <% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
   <% unless no_create_people.empty? %>
-    <br/>
-    <p><strong>Project members who are unable to create leave requests (according to current rules, cross project):</strong></p>
-    <% no_create_people.each do |k,v| %>
-      <ul>
-        <li><strong><%= k.name %>:</strong> <%= v.map(&:name).join(", ") %></li>
-      </ul>
+    <h4>Project members unable to create leave requests (according to current rules, cross project):</h4>
+    <% no_create_people.keys.sort.each do |role| %>
+      <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(no_create_people[role].sort) %></p>
     <% end %>
   <% end %>
+  </div>
+</div>
+
+
+<% users_by_role = @project.users_by_role %>
+
+<div class="splitcontentleft">
+  <% if users_by_role.any? %>
+  <div class="members box">
+    <h3>Project members details</h3>
+    <% users_by_role.keys.sort.each do |role| %>
+      <p><span class="label"><%= role %>:</span> <%= users_link_to_checked_if_managed_in_project(users_by_role[role].sort, @project) %>
+      </p>
+    <% end %>
+    <h4>Legend:</h4>
+    <p><span class="label"><%= checked_image %>:</span> The user has his leave managed in this project</p>
+    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %>:</span> The user has his leave managed in other projects</p>
+    <p><span class="label"><%= image_tag('false.png', :size => '11x11') %>:</span> The user is not currently managed (see right column for details)</p>
+  </div>
+<% end %>
+</div>
