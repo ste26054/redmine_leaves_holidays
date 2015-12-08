@@ -73,4 +73,5 @@ module LeaveManagementRulesHelper
     options = LeaveManagementRule.actions.to_a.map{|a| [a[0].humanize, a[1]]}.reverse
     options_for_select(options, selected)
   end
+
 end

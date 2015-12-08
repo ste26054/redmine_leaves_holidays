@@ -2,6 +2,7 @@ class LeaveManagementRulesController < ApplicationController
   unloadable
   include LeavesHolidaysManagements
   before_action :find_project
+  before_action :authorize
 
   helper :leave_management_rules
   helper :leave_requests
@@ -55,7 +56,8 @@ class LeaveManagementRulesController < ApplicationController
         params[:sender_list_id].each do |sender_id|
           params[:receiver_list_id].each do |receiver_id|
             @leave_management_rule = LeaveManagementRule.new(project: @project, sender: params[:sender_type].constantize.find(sender_id.to_i), receiver: params[:receiver_type].constantize.find(receiver_id.to_i), action: LeaveManagementRule.actions.select{|k,v| v == params[:action_rule].to_i}.keys.first)
-            if @leave_management_rule.save
+            #if @leave_management_rule.save
+
               if params[:sender_exception_id]
                 params[:sender_exception_id].each do |sender_excpt|
                   LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :sender, user: User.find(sender_excpt.to_i))
@@ -71,10 +73,15 @@ class LeaveManagementRulesController < ApplicationController
                   LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :backup_receiver, user: User.find(backup_receiver.to_i))
                 end
               end
+
+            #else
+            if @leave_management_rule.save
             else
               @leave_management_rule_errors << @leave_management_rule
               return
             end
+            #end
+
           end
         end
       end
