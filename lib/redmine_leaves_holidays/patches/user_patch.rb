@@ -29,6 +29,10 @@ module RedmineLeavesHolidays
 						    where(id: ids)
 		          }
 
+		          scope :contractor, lambda {
+		          	joins(:leave_preference).where(:leave_preferences => {is_contractor: 1}) 
+		          }
+
 		          scope :not_contractor, lambda {
 		          	ids = []
 		          	uids_total = pluck(:id)
@@ -207,7 +211,7 @@ module RedmineLeavesHolidays
 
 			# TBC with permissions above
 			def can_create_leave_requests
-				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || is_contractor || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
 			end
 
 			def can_create_leave_requests_project(project)
@@ -263,6 +267,11 @@ module RedmineLeavesHolidays
 				end
 				# Should always send notification to users even if they are on leave. Additional users should be notified in such case.
 				return users_to_notify.flatten.uniq
+			end
+
+			def notify_plugin_admin_contractor(project)
+				return false if !self.is_contractor
+				return self.managed_rules_project(project).empty? && self.notify_rules_project(project).empty?
 			end
 
 
