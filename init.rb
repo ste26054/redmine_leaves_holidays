@@ -34,6 +34,11 @@ Rails.configuration.to_prepare do
   ActiveSupport::Inflector.inflections do |inflect|
     inflect.irregular 'actor_concerned', 'actors_concerned'
   end
+
+  require 'holidays/core_extensions/date'
+  class Date
+    include Holidays::CoreExtensions::Date
+  end
   
   Holidays.load_all
   require 'rufus/scheduler'
