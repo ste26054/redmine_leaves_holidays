@@ -23,8 +23,13 @@
 
 
 		<p>
-			<label>Weekly Working Hours:</label>
+			<label>Reference Weekly Working Hours:</label>
 			<%= f.number_field :weekly_working_hours, in: 0.0..100.0, step: 0.1 %>
+		</p>
+
+		<p>
+			<label>Overall allocation:</label>
+			<%= f.number_field :overall_percent_alloc, in: 0..100, step: 10 %> % (Full time: 100%, part time: 50%...)
 		</p>
 
 		<p>
@@ -120,6 +125,7 @@
 			<th><%= "contract_end_date".humanize %></th>
 			<th><%= "leave_renewal_date".humanize %></th>
 			<th><%= "is_contractor".humanize %></th>
+			<th><%= "Overall % alloc".humanize %></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -140,6 +146,7 @@
 						<td><%= preference.contract_end_date %></td>
 						<td><%= preference.leave_renewal_date %></td>
 						<td><%= preference.is_contractor %></td>
+						<td><%= preference.overall_percent_alloc %></td>
 						</tr>
 					<% end %>
 				<% end -%>

@@ -6,7 +6,7 @@ class LeavePreference < ActiveRecord::Base
   # before_validation :set_user
 
   belongs_to :user
-  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count
+  attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count, :overall_percent_alloc
 
 
   validates :weekly_working_hours, presence: true, numericality: true, inclusion: { in: 0..80}
@@ -22,6 +22,7 @@ class LeavePreference < ActiveRecord::Base
   validates :user_id, presence: true
   validates :is_contractor, :inclusion => {:in => [true, false]}
 
+  validates :overall_percent_alloc, numericality: true, inclusion: { in: 0..100}
 
   validate :validate_region
   validate :validate_contract_end_date

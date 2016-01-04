@@ -67,7 +67,7 @@ module RedmineLeavesHolidays
 			include LeavesCommonUserRole
 
 			def leave_preferences
-				LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.retrieve_leave_preferences(self)
+				LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.get_default_leave_preferences(self)
 			end
 
 			def weekly_working_hours
