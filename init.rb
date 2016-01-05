@@ -18,6 +18,7 @@ project_module :leave_management do
   permission :consult_leave_requests, { :leaves_requests => :vote }
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
   permission :create_leave_requests, { :leaves_requests => :create, :leave_timelines => :show_project }
+  permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics], :leave_administrators => [:edit]}
 end
   menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current) || LeavesHolidaysLogic.has_view_all_rights(User.current) }
 

@@ -70,8 +70,9 @@ class LeaveManagementRule < ActiveRecord::Base
 
   def validate_rule_uniq
     rule_idtq =  LeaveManagementRule.where(sender: self.sender, receiver: self.receiver, project: self.project, action: LeaveManagementRule.actions[self.action])
-    if self.id
-      rule_idtq = rule_idtq.not(id: self.id)
+    Rails.logger.info "IN VALIDATE_RULE_UNIQ: #{rule_idtq}, ID: #{self.id}"
+    if self.id && rule_idtq.any?
+      rule_idtq = rule_idtq.where.not(id: self.id)
     end
     errors.add(:base, "cannot add duplicate rules") if rule_idtq.count > 0
   end
@@ -110,9 +111,11 @@ class LeaveManagementRule < ActiveRecord::Base
       rcv_manage_users = self.receiver.manage_users_project(self.project).values.flatten.uniq
       rcv_managed_users = self.receiver.managed_users_project(self.project).values.flatten.uniq
 
-      unless (snd_manage_users & snd_managed_users).empty? || (rcv_manage_users & rcv_managed_users).empty?
+      users = self.to_users
+      if (snd_manage_users & snd_managed_users).any? || (rcv_manage_users & rcv_managed_users).any? || (users[:user_senders] & users[:user_receivers]).any?
         errors.add(:base, "cannot add cyclic rules within project")
-      raise ActiveRecord::RecordInvalid.new(self)
+        raise ActiveRecord::RecordInvalid.new(self)
+        self.destroy
       end
     end
 

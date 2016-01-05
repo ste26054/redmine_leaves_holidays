@@ -8,6 +8,8 @@
 	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
 
+<h3>User is a contractor (self approves his leave requests): <%= @user_pref.is_contractor %></h3>
+
 <% leave_projects.each do |leave_project| %>
 
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
@@ -21,7 +23,7 @@
 	<% notify_users = @user_pref.notify_users_project(leave_project) %>
 
 	
-	<ul><strong>User manages leave requests from:</strong>
+	<ul>User manages leave requests from:
 
 		<% unless manage_users_backups[:directly].empty? %>
 			<ul>Directly:
@@ -60,15 +62,15 @@
 
 
 	<% unless consulted_users.empty? %>
-		<ul><strong>User is consulted for leave requests from:</strong> <%= users_link_to_notification(consulted_users) %></ul>
+		<ul>User is consulted for leave requests from: <%= users_link_to_notification(consulted_users) %></ul>
 	<% end %>
 
 	<% unless notified_users.empty? %>
-		<ul><strong>User is notified for leave requests from:</strong> <%= users_link_to_notification(notified_users) %></ul>
+		<ul>User is notified for leave requests from: <%= users_link_to_notification(notified_users) %></ul>
 	<% end %>
 
 
-	<ul><strong>User is managed by:</strong>
+	<ul>User is managed by:
 
 		<% unless managed_users_backups[:directly].empty? %>
 			<ul>Directly:
@@ -105,18 +107,18 @@
 
 	</ul>
 
-	<ul><strong>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>):</strong> <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
+	<ul>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>): <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
 
 
 
 
 
 	<% unless consults_users.empty? %>
-		<ul><strong>User consults for his/her leave requests:</strong> <%= users_link_to_notification(consults_users) %></ul>
+		<ul>User consults for his/her leave requests: <%= users_link_to_notification(consults_users) %></ul>
 	<% end %>
 
 	<% unless notify_users.empty? %>
-		<ul><strong>User notifies for his/her approved leave requests:</strong> <%= users_link_to_notification(notify_users) %></ul>
+		<ul>User notifies for his/her approved leave requests: <%= users_link_to_notification(notify_users) %></ul>
 	<% end %>
 
 <% end %>

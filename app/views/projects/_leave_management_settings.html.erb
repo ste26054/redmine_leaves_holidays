@@ -1,12 +1,25 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
 <% unless @project.module_enabled?(:leave_management) %>
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
 	<h3>Leave Management Rules</h3>
 	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
-  <p><%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %></p>
+
+
+<ul class="menu">
+<li>
+<%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
+</li>
+<li>
+<%= link_to "Edit leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-edit" %>
+</li>
+</ul>
 
 <div id="table-content">
-<%= render partial: '/leave_management_rules/rules_table', locals: {project: @project} %>
+  <%= render partial: '/leave_management_rules/rules_table', locals: {project: @project} %>
 </div>
 
 </br>

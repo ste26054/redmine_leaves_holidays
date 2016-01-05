@@ -22,4 +22,8 @@ en:
   tab_leaves_calendar: "Calendar View"
   tab_user_leaves_preferences: "Users Preferences"
   tab_leaves_timeline: "Leave Timeline"
-  notice_failed_to_save_rules: "Some rules could not be created due to discrepancies. Please check the existing rules and retry.\nA Please note that User/Role cannot be directly/indirectly self managed."
+  notice_failed_to_save_rules: "Some rules could not be created due to discrepancies. Please check the existing rules and retry.\nA Please note that User/Role cannot be directly/indirectly self managed. #{errors}"
+  label_snd_rcv_type_explain: "Select to display Roles/Users in this project"
+  label_sender_explain: "Senders are users/roles who sends leave requests. If roles are selected, it is possible to select users who should be excluded from the list (Sender list exception)"
+  label_action_to_perform_explain: "Action to perform determines what action a Receiver performs when a Sender submits a leave request.\n-Is manged by: Sender has his leave managed by Receiver\n-Consults: Sender consults Receiver for approval (indicative vote for the leave manager)\n-Notifies approved: Once a leave is approved for Sender, Receiver gets a notification"
+

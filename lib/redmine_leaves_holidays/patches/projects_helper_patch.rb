@@ -18,7 +18,7 @@ module RedmineLeavesHolidays
               tabs.push({ :name => 'leave_management',
                           :action => :view_leave_management,
                           :partial => 'projects/leave_management_settings',
-                          :label => :tab_leaves_approval}) if @project.module_enabled?(:leave_management)
+                          :label => :tab_leaves_approval}) if @project.module_enabled?(:leave_management) && User.current.allowed_to?(:manage_leave_management_rules, @project)
 
               tabs
             end

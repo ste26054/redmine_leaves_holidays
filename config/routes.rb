@@ -28,6 +28,9 @@ RedmineApp::Application.routes.draw do
 	resources :projects do
 		match '/projects/:project_id/leave_management_rules/edit', :to => 'leave_management_rules#edit', :via => [:get, :post], as: :leave_management_rules_edit
 		match '/projects/:project_id/leave_management_rules/update', :to => 'leave_management_rules#update', :via => [:get, :post], as: :leave_management_rules_update
+		
+		match '/projects/:project_id/leave_administrators/edit', :to => 'leave_administrators#edit', :via => [:get, :post], as: :leave_administrators_edit
+		match '/projects/:project_id/leave_administrators/update', :to => 'leave_administrators#update', :via => [:get, :post], as: :leave_administrators_update
 	end
 
 	get '/leave_approvals', :to => 'leave_approvals#index'

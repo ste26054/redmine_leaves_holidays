@@ -34,6 +34,16 @@ module RedmineLeavesHolidays
         return self.users.sort
       end
 
+
+      def users_managed_by_plugin_admin
+        users_role = self.users_by_role
+        users_role.each do |k,v|
+          v.keep_if{ |user| (user.can_create_leave_requests_project(self) || user.can_create_leave_requests) && !user.is_managed? && !user.is_contractor && !user.id.in?(LeavesHolidaysLogic.plugin_admins)}
+        end
+        users_role.delete_if{ |k,v| v.empty? }
+        return users_role
+      end
+
       def users_by_role_not_managed
         users_role = self.users_by_role
         users_role.each do |k,v|
@@ -41,6 +51,20 @@ module RedmineLeavesHolidays
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
+      end
+
+      def contractors_by_role_notifying_plugin_admin
+        contractors = self.contractor_list
+        contractors_role = self.users_by_role
+        contractors_role.each do |k,v|
+          v.keep_if{ |user| (user.in?(contractors) && user.notify_plugin_admin_contractor(self))}
+        end
+        contractors_role.delete_if{ |k,v| v.empty? }
+        return contractors_role
+      end
+
+      def contractor_list
+        return self.users.contractor.sort
       end
 
       def users_by_role_managed
