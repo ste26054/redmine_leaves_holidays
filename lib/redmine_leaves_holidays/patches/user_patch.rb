@@ -219,7 +219,7 @@ module RedmineLeavesHolidays
 			end
 
 			def can_create_leave_requests_project(project)
-				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).empty? || can_manage_leave_requests_project(project) || can_be_notified_leave_requests_project(project) ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).empty? || can_manage_leave_requests_project(project) || can_be_notified_leave_requests_project(project) || self.id.in?(LeavesHolidaysLogic.plugin_admins)
 			end
 
 			def has_leave_plugin_access

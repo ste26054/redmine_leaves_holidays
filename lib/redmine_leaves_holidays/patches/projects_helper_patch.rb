@@ -26,6 +26,16 @@ module RedmineLeavesHolidays
             def users_link_to_notification(users)
               users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe
             end
+
+            def project_link_to_manage_leave_administrators
+              administrators_set = @project.leave_administrators.any?
+
+              if administrators_set
+                link_to "Edit leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-edit"
+              else
+                link_to "Set leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-add"
+              end
+            end
         end
     end
   end

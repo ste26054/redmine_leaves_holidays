@@ -175,10 +175,10 @@ module RedmineLeavesHolidays
             roles_users_list(project).each do |role_users|
               
               # Check if leave requests are qssociated to the role
-              leave_count_role = role_users[1].map{|user| @leave_list.where(user_id: user.id).count }
+              #leave_count_role = role_users[1].map{|user| @leave_list.where(user_id: user.id).count }
 
               # If there are leave requests to show
-              if leave_count_role.inject(:+) > 0
+              #if leave_count_role.inject(:+) > 0
                 # Render role name
                 render_object_row(role_users[0], options)
                 # Indent
@@ -187,13 +187,13 @@ module RedmineLeavesHolidays
                 # Get users associated with the role and loop
                 role_users[1].each_with_index do |user, i|
                   # If given user has at least a leave request
-                  if leave_count_role[i] > 0
+                  #if leave_count_role[i] > 0
                     # render his leave
                     render_user(user, options)
-                  end
+                  #end
                 end
                 decrement_indent(options)
-            end
+            #end
           end
 
           decrement_indent(options)

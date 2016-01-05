@@ -3,7 +3,17 @@
 <div class="splitcontentright">
   <div class="members box">
   <% unless managed_by_plugin_admin_people.empty? %>
-    <h4>Project members managed by the plugin administrator (<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>):</h4>
+    <h4>Project members managed by the plugin administrator 
+
+    <% project_leave_admins = @project.leave_administrators.includes(:user).map{|l| l.user.name} %>
+
+    <% if project_leave_admins.empty? %>
+      <mark>(<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>)</mark>
+    <% else %>
+      (<%= project_leave_admins.join(", ") %>)
+    <% end %>
+
+    :</h4>
     <% managed_by_plugin_admin_people.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(managed_by_plugin_admin_people[role].sort) %></p>
     <% end %>
@@ -41,8 +51,8 @@
       </p>
     <% end %>
     <h4>Legend:</h4>
-    <p><span class="label"><%= checked_image %>:</span> The user has his leave managed in this project</p>
-    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %>:</span> The user has his leave managed in other projects</p>
+    <p><span class="label"><%= checked_image %>:</span> The user has his leave managed by people in this project</p>
+    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %>:</span> The user has his leave managed by people in other projects</p>
     <p><span class="label"><%= image_tag('false.png', :size => '11x11') %>:</span> The user is not currently managed (see upper right column for details)</p>
     <p><span class="label"><%= image_tag('hourglass.png', :size => '11x11') %>:</span> The user is a contractor, he is self managed (see lower right column for details)</p>
   </div>

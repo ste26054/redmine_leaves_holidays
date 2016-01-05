@@ -14,7 +14,9 @@
 <%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
 </li>
 <li>
-<%= link_to "Edit leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-edit" %>
+  <div id="leave-admins">
+    <%= render partial: '/leave_administrators/link_to_leave_administrators', locals: {project: @project} %>
+  </div>
 </li>
 </ul>
 

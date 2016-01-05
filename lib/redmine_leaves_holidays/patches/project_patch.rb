@@ -85,6 +85,23 @@ module RedmineLeavesHolidays
         return users_role
       end
 
+      def leave_administrators
+        return LeaveAdministrator.where(project: self)
+      end
+
+      def retrieve_leave_admins
+        project_leave_admins = LeaveAdministrator.where(project: self)
+        obj = {users: [], project_defined: false}
+        users = self.leave_administrators.includes(:user).map{|l| l.user}
+        if users.any?
+          obj[:users] = users
+          obj[:project_defined] = true
+        else
+          obj[:users] = LeavesHolidaysLogic.plugin_admins_users
+        end
+        return obj
+      end
+
     end
   end
 end

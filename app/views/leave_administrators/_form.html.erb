@@ -1,0 +1,8 @@
+<p><small>Leave Administrators can manage any leave within this project. They are notified for leave requests from people not managed (typically higher roles with no management rule set). When no leave administrator is explicitly set, the system leave administrator is designed.</small></p>
+<table align="center">
+  <tr>
+    <td>
+      <%= select_tag 'leave_administrator_ids', user_options_for_select(@leave_administrators), :multiple => true, :size => 7 %>
+    </td>
+  </tr>
+</table>
