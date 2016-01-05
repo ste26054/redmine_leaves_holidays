@@ -174,6 +174,10 @@ module RedmineLeavesHolidays
 				self.leave_preferences.is_contractor
 			end
 
+			def overall_percent_alloc
+				self.leave_preferences.overall_percent_alloc
+			end
+
 			def contract_end_date
 				self.leave_preferences.contract_end_date
 			end
