@@ -27,6 +27,7 @@
 				<th>Hours/week</th>
 				<th>Days max</th>
 				<th>Contract Start date</th>
+				<th>% Alloc</th>
 				<th>Contractor</th>
 				<th></th>
 			</tr>
@@ -53,6 +54,7 @@
 				<td><%= lp.weekly_working_hours %></td>
 				<td><%= lp.annual_leave_days_max %></td>
 				<td><%= format_date(lp.contract_start_date) %></td>
+				<td><%= lp.overall_percent_alloc %></td>
 				<td><%= checked_image lp.is_contractor %></td>
 				<td><%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => 'Check who can manage / consult this user\'s leave request' %></td>
 				</tr>
