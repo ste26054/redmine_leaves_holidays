@@ -1,7 +1,7 @@
 class LeaveAdministrator < ActiveRecord::Base
   unloadable
 
-  default_scope { joins(:user).where(users: {status: 1}) }
+  default_scope { joins(:user, :project).where(users: {status: 1}, projects: {status: 1}) }
 
   belongs_to :user
   belongs_to :project

@@ -176,10 +176,4 @@ module LeavesCommonUserRole
     return self.managed_rules_project(project).empty?
   end
 
-
-
-  def notify_plugin_admin_wide
-    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by').empty?
-  end
-
 end

@@ -3,17 +3,15 @@
 <div class="splitcontentright">
   <div class="members box">
   <% unless managed_by_plugin_admin_people.empty? %>
-    <h4>Project members managed by the plugin administrator 
 
-    <% project_leave_admins = @project.leave_administrators.includes(:user).map{|l| l.user.name} %>
+    <% leave_admins = @project.get_leave_administrators %>
 
-    <% if project_leave_admins.empty? %>
-      <mark>(<%= LeavesHolidaysLogic.plugin_admins_users.map(&:name).join(", ") %>)</mark>
+    <% unless leave_admins[:project_defined] %>
+       <h4 style="color: red">Project members managed by the system leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h4>
     <% else %>
-      (<%= project_leave_admins.join(", ") %>)
+       <h4>Project members managed by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h4>
     <% end %>
 
-    :</h4>
     <% managed_by_plugin_admin_people.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(managed_by_plugin_admin_people[role].sort) %></p>
     <% end %>
@@ -31,7 +29,7 @@
 
   <% contractors_list = @project.contractors_by_role_notifying_plugin_admin %>
   <% unless contractors_list.empty? %>
-    <h4>Contractors notifying the plugin administrator:</h4>
+    <h4>Contractors notifying the leave administrator:</h4>
     <% contractors_list.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(contractors_list[role].sort) %></p>
     <% end %>

@@ -248,7 +248,7 @@ module RedmineLeavesHolidays
 				#obj = {}
 				# For each project where rules are defined for the user
 				
-				notify_plugin_admin = false
+				#notify_plugin_admin = false
 
 				users_managing_self_projects.each do |project, user_arrays|
 					nesting = 0
@@ -263,22 +263,34 @@ module RedmineLeavesHolidays
 						end
 					end
 					if nesting == user_arrays.size
-						notify_plugin_admin = true
+						#notify_plugin_admin = true
+						users_to_notify << project.get_leave_administrators[:users]
 					end
 				end
-				if notify_plugin_admin 
-					users_to_notify << LeavesHolidaysLogic.plugin_admins_users
-				end
+				#if notify_plugin_admin 
+				#	users_to_notify << LeavesHolidaysLogic.plugin_admins_users
+				#end
+
 				# Should always send notification to users even if they are on leave. Additional users should be notified in such case.
 				return users_to_notify.flatten.uniq
 			end
 
-			def notify_plugin_admin_contractor(project)
-				return false if !self.is_contractor
-				return self.managed_rules_project(project).empty? && self.notify_rules_project(project).empty?
+			def is_leave_admin(project = nil)
+				return false if !self.active?
+				if project != nil
+					return self.in?(project.get_leave_administrators[:users])
+				else
+					return self.in?(LeavesHolidaysLogic.plugin_admins_users) || self.in?(LeaveAdministrator.all.includes(:user).map{|l| l.user})
+				end
 			end
 
-
+			def notify_leave_admin(project)
+				if self.is_contractor
+					return self.notify_rules_project(project).empty?
+				else
+					return self.managed_rules_project(project).empty? && self.notify_rules_project(project).empty?
+				end
+			end
 
 		end
 	end

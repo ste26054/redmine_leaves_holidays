@@ -3,16 +3,19 @@
 <% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
 
 <% leave_projects = @user_pref.leave_projects %>
+<% is_contractor = @user_pref.is_contractor %>
 
 <% if leave_projects.empty? %>
 	<p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>
 
-<h3>User is a contractor (self approves his leave requests): <%= @user_pref.is_contractor %></h3>
+<h3>User is a contractor (self approves his leave requests): <%= is_contractor %></h3>
 
 <% leave_projects.each do |leave_project| %>
 
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
+
+	<% leave_admins = leave_project.get_leave_administrators %>
 
 	<% manage_users_backups = @user_pref.manage_users_project_with_backup(leave_project) %>
 	<% managed_users_backups = @user_pref.managed_users_project_with_backup(leave_project) %>
@@ -107,8 +110,22 @@
 
 	</ul>
 
-	<ul>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>): <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
+	<ul>
+		<% if is_contractor %>
+			User notifies 
+		<% else %>
+			User is managed by 
+		<% end %>
 
+		<% unless leave_admins[:project_defined] %>
+      system
+    <% else %>
+      project
+    <% end %>
+		
+		leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %>
+
+	</ul>
 
 
 
