@@ -20,6 +20,11 @@ class LeaveAdministratorsController < ApplicationController
     end
   end
 
+  def clear
+    LeaveAdministrator.unscoped.destroy_all(project: @project)
+    render :update
+  end
+
 
   private
 

@@ -3,6 +3,11 @@
 <%= form_tag project_leave_administrators_update_path, :id => :leave_administrators, :remote => true, :method => :post do %>
   <%= render :partial => 'form' %>
   <p><small>Ctrl+click or Maj+click to select or deselect entries</small></p>
+
+  <% if @leave_administrators.any? %>
+    <p><small><%= link_to "Clear project leave administrators", project_leave_administrators_clear_path(@project.id), :remote => true, :class => "icon icon-del", :onclick => "hideModal(this);" %></small></p>
+  <% end %>
+
   <p class="buttons">
     <%= submit_tag l(:button_submit), :name => nil, :onclick => "hideModal(this);" %>
     <%= submit_tag l(:button_cancel), :name => nil, :onclick => "hideModal(this);", :type => 'button' %>

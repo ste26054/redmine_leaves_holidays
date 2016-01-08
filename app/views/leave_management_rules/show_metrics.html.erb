@@ -49,10 +49,12 @@
       </p>
     <% end %>
     <h4>Legend:</h4>
-    <p><span class="label"><%= checked_image %>:</span> The user has his leave managed by people in this project</p>
-    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %>:</span> The user has his leave managed by people in other projects</p>
-    <p><span class="label"><%= image_tag('false.png', :size => '11x11') %>:</span> The user is not currently managed (see upper right column for details)</p>
-    <p><span class="label"><%= image_tag('hourglass.png', :size => '11x11') %>:</span> The user is a contractor, he is self managed (see lower right column for details)</p>
+    <p><span class="label"><%= checked_image %></span> Member has his leave managed by people in this project</p>
+    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %></span> Member has his leave managed by people in other projects</p>
+    <p><span class="label"><%= image_tag('false.png', :size => '12x12') %></span> Member is not currently managed (see upper right column for details)</p>
+    <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> Member is a contractor, he is self managed (see lower right column for details)</p>
+    <p><span class="label"><%= image_tag('user.png') %></span> Member is a project leave administrator</p>
+    <p><span class="label"><%= image_tag('group.png') %></span> Member is a system leave administrator</p>
   </div>
 <% end %>
 </div>

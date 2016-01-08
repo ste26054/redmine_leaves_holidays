@@ -275,13 +275,22 @@ module RedmineLeavesHolidays
 				return users_to_notify.flatten.uniq
 			end
 
-			def is_leave_admin(project = nil)
+			def is_leave_admin?(project = nil)
 				return false if !self.active?
 				if project != nil
 					return self.in?(project.get_leave_administrators[:users])
 				else
 					return self.in?(LeavesHolidaysLogic.plugin_admins_users) || self.in?(LeaveAdministrator.all.includes(:user).map{|l| l.user})
 				end
+			end
+
+			def is_system_leave_admin?
+				return self.id.in?(LeavesHolidaysLogic.plugin_admins)
+			end
+
+			def is_project_leave_admin?(project)
+				return false if project == nil
+				return self.in?(project.get_leave_administrators[:users])
 			end
 
 			def notify_leave_admin(project)
