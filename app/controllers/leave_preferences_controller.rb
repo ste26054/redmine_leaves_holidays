@@ -181,7 +181,7 @@ class LeavePreferencesController < ApplicationController
 private
 
   def leave_preference_params
-  	params.require(:leave_preference).permit(:user_id, :weekly_working_hours, :annual_leave_days_max, :region, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor, :annual_max_comments, :leave_renewal_date, :overall_percent_alloc)
+  	params.require(:leave_preference).permit(:user_id, :weekly_working_hours, :annual_leave_days_max, :region, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor, :annual_max_comments, :leave_renewal_date, :overall_percent_alloc, :can_create_leave_requests)
   end
 
   def set_user

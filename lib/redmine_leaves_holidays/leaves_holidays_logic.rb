@@ -504,6 +504,7 @@ module LeavesHolidaysLogic
     p.annual_max_comments = ""
     p.leave_renewal_date = RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
     p.overall_percent_alloc = 100
+    p.can_create_leave_requests = true
     return p
   end
 

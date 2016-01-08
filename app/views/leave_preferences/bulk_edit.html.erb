@@ -54,6 +54,12 @@
 			<%= f.select :is_contractor, options, :include_blank => l(:label_no_change_option)  %>
 		</p>
 
+		<p>
+			<label>User can Create Leave Requests:</label>
+			<%- options = [['No', 0],['Yes',1]] -%>
+			<%= f.select :can_create_leave_requests, options, :include_blank => l(:label_no_change_option)  %>
+		</p>
+
 		<p><%= f.submit "Submit" %> | <a href="javascript:history.back()"><%= l(:button_back) %></a> </p>
 
 <% end %>

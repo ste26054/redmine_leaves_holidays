@@ -33,6 +33,10 @@ module RedmineLeavesHolidays
 		          	joins(:leave_preference).where(:leave_preferences => {is_contractor: 1}) 
 		          }
 
+		          scope :cannot_create_leave_request, lambda {
+		          	joins(:leave_preference).where(:leave_preferences => {can_create_leave_requests: 0}) 
+		          }
+
 		          scope :not_contractor, lambda {
 		          	ids = []
 		          	uids_total = pluck(:id)
@@ -215,7 +219,9 @@ module RedmineLeavesHolidays
 
 			# TBC with permissions above
 			def can_create_leave_requests
-				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || is_contractor || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+				#!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || is_contractor || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
+				lp = self.leave_preferences
+				return lp.can_create_leave_requests
 			end
 
 			def can_create_leave_requests_project(project)
