@@ -7,6 +7,16 @@ module LeavesHolidaysDates
 		return (date2.year - date1.year) * 12 + date2.month - date1.month - (date2.day >= date1.day ? 0 : 1)
 	end
 
+	# returns the floating number of months between two dates. Takes into account the fraction of month worked for the start / end dates
+	def self.float_months_between(start_date, end_date)
+		days_month_start = start_date.end_of_month.day
+		days_month_end = end_date.end_of_month.day
+
+		fraction_of_start_month = (days_month_start - start_date.day + 1).to_f / days_month_start.to_f
+		fraction_of_end_month = end_date.day.to_f / days_month_end.to_f
+		return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month + fraction_of_start_month + fraction_of_end_month - 1.0).round(2)
+	end
+
 	def self.average_days_per_year
 		return ((365 * 3 + 366) / 4.0)
 	end
@@ -39,8 +49,8 @@ module LeavesHolidaysDates
 
 		#total = 0.0
 		#total += prefs.extra_leave_days if prefs != nil
-		months = self.months_between(from, to) % 12
-		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
+		#months = self.months_between(from, to) % 12
+		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * self.float_months_between(from, to)#* months.to_f
 		return self.ceil_to_nearest_half_day(leave_days)# + total
 	end
 
@@ -74,6 +84,32 @@ module LeavesHolidaysDates
 		end
 
 	end
+
+	#Checked 07/01/2016 SEEMS OK
+	# def self.actual_days_max(user, from, to)
+
+	# 	annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
+	# 	contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+
+	# 	contract_end_date = user.contract_end_date
+
+	# 	return 0.0 if to < contract_date #ok
+	# 	from = contract_date if from < contract_date #ok
+	# 	to = contract_end_date if contract_end_date && to > contract_end_date #ok
+
+
+	# 	holidays_per_month = annual_days_max / 12.0 
+
+
+	# 	holiday_entitlement = holidays_per_month * self.float_months_between(from, to)#.ceil
+
+	# 	if holiday_entitlement < annual_days_max
+	# 		return self.ceil_to_nearest_half_day(holiday_entitlement)
+	# 	else
+	# 		return annual_days_max
+	# 	end
+
+	# end
 
 	def self.total_leave_days_remaining(user, from, to, include_pending = true)
 
