@@ -55,7 +55,7 @@ module LeavesHolidaysDates
 	end
 
 	# Gives the actual leave entitlement for the user if he does not work a full year (new comer, contract ended)
-	# Checked 22/10/2015 OK
+	#Checked 08/01/2016 OK
 	def self.actual_days_max(user, from, to)
 
 		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
@@ -67,15 +67,10 @@ module LeavesHolidaysDates
 		from = contract_date if from < contract_date #ok
 		to = contract_end_date if contract_end_date && to > contract_end_date #ok
 
-		# Get working days between 2 dates, excluding sat, sun and bank holidays
-		working_days_count = user.working_days_count(from, to, false, false, true) #ok
-
-		working_weeks_count = working_days_count / 5.0 # there are 5 working days per week
-
-		holidays_per_week = annual_days_max / 52.0 # 52 weeks a year
+		holidays_per_month = annual_days_max / 12.0 
 
 
-		holiday_entitlement = holidays_per_week * working_weeks_count
+		holiday_entitlement = holidays_per_month * self.float_months_between(from, to)#.ceil
 
 		if holiday_entitlement < annual_days_max
 			return self.ceil_to_nearest_half_day(holiday_entitlement)
@@ -84,32 +79,6 @@ module LeavesHolidaysDates
 		end
 
 	end
-
-	#Checked 07/01/2016 SEEMS OK
-	# def self.actual_days_max(user, from, to)
-
-	# 	annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
-	# 	contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-
-	# 	contract_end_date = user.contract_end_date
-
-	# 	return 0.0 if to < contract_date #ok
-	# 	from = contract_date if from < contract_date #ok
-	# 	to = contract_end_date if contract_end_date && to > contract_end_date #ok
-
-
-	# 	holidays_per_month = annual_days_max / 12.0 
-
-
-	# 	holiday_entitlement = holidays_per_month * self.float_months_between(from, to)#.ceil
-
-	# 	if holiday_entitlement < annual_days_max
-	# 		return self.ceil_to_nearest_half_day(holiday_entitlement)
-	# 	else
-	# 		return annual_days_max
-	# 	end
-
-	# end
 
 	def self.total_leave_days_remaining(user, from, to, include_pending = true)
 
