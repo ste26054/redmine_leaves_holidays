@@ -221,8 +221,8 @@ module LeavesCommonUserRole
     return notified_rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq
   end
 
-  # returns true if plugin admin should be notified anyway
-  def notify_plugin_admin(project)
+  # returns true if leave admin should be notified anyway
+  def notify_leave_admin(project)
     return self.managed_rules_project(project).empty?
   end
 

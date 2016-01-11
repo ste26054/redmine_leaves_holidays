@@ -129,6 +129,9 @@ module LeaveRequestsHelper
  			str += ' '.html_safe + image_tag('group.png').html_safe
  		elsif user.is_project_leave_admin?(project)
  			str += ' '.html_safe + image_tag('user.png').html_safe
+ 			if user.is_managed?
+ 				str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
+ 			end
  		elsif user.is_contractor
  			str += ' '.html_safe + image_tag('hourglass.png', :size => '12x12').html_safe
  		elsif user.is_managed_in_project?(project)

@@ -1,5 +1,10 @@
 using LeavesHolidaysExtensions #local patch of user methods 
 module LeavesHolidaysLogic
+
+	# returns projects where the leave_management module is activated.
+	def self.system_leave_projects
+		return Project.all.active.where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
+	end
 	
 	def self.issues_list(user = nil)
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)

@@ -188,7 +188,7 @@ module RedmineLeavesHolidays
 			end
 
 			def leave_projects
-				return self.projects.active.where(id: LeaveManagementRule.distinct(:project_id).pluck(:project_id))
+				return self.projects.active.system_leave_projects.where(id: LeaveManagementRule.distinct(:project_id).pluck(:project_id))
 			end
 
 			# returns the list of projects where the user has a direct leave management rule set 
@@ -271,7 +271,7 @@ module RedmineLeavesHolidays
 				#obj = {}
 				# For each project where rules are defined for the user
 				
-				#notify_plugin_admin = false
+				#notify_leave_admin = false
 
 				users_managing_self_projects.each do |project, user_arrays|
 					nesting = 0
@@ -286,11 +286,11 @@ module RedmineLeavesHolidays
 						end
 					end
 					if nesting == user_arrays.size
-						#notify_plugin_admin = true
+						#notify_leave_admin = true
 						users_to_notify << project.get_leave_administrators[:users]
 					end
 				end
-				#if notify_plugin_admin 
+				#if notify_leave_admin 
 				#	users_to_notify << LeavesHolidaysLogic.plugin_admins_users
 				#end
 
@@ -317,17 +317,19 @@ module RedmineLeavesHolidays
 				return self.in?(project.get_leave_administrators[:users])
 			end
 
-			def notify_leave_admin(project)
-				if self.is_contractor
-					return self.notify_rules_project(project).empty?
-				else
-					return self.managed_rules_project(project).empty? && self.notify_rules_project(project).empty?
-				end
-			end
-
 			# Returns true if given user acts as a backup on the given date
 			def is_actually_leave_backup?(date = Date.today)
 				#TODO
+			end
+
+			# A user who is a project leave administrator can self approve his own requests only if he is not managed anywhere
+			def can_self_approve_requests?
+				# return false anyway if user is not a leave admin
+				return false if !self.is_leave_admin?
+				leave_admin_projects = LeaveAdministrator.where(user: self).pluck(:project_id)
+				projects_managed = LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project_id)
+				return true if (projects_managed - leave_admin_projects).empty?
+				return false
 			end
 
 		end

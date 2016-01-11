@@ -128,7 +128,7 @@
       project
     <% end %>
 		
-		leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %>
+		leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.notify_leave_admin(leave_project)) %>
 
 	</ul>
 

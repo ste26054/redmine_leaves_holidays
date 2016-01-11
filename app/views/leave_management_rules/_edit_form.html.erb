@@ -4,29 +4,29 @@
   <table align="center">
     <tr>
       <td>
-       <span title="<%= l(:label_snd_rcv_type_explain) %>">Sender Type:</span> 
+       <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;">Sender Type:</span> 
         <p><%= select_tag 'sender_type', actor_type_options_for_select(@sender_type) %></p>
       </td>
       <td>
-      <span title="<%= l(:label_sender_explain) %>">Sender List:</span> 
+      <span title="<%= l(:label_sender_explain) %>" style="cursor: help;">Sender List:</span> 
         <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 10 %>
         </p>
       </td>
       <td>
-      <span title="<%= l(:label_action_to_perform_explain) %>">Action to perform:</span> 
+      <span title="<%= l(:label_action_to_perform_explain) %>" style="cursor: help;">Action to perform:</span> 
         <p><%= select_tag 'action_rule', action_sender_options_for_select(@action) %></p>
       </td>
       <td>
-        <span title="<%= l(:label_snd_rcv_type_explain) %>">Receiver Type:</span>
+        <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;">Receiver Type:</span>
         <p><%= select_tag 'receiver_type', actor_type_options_for_select(@receiver_type) %></p>
       </td>
       <td>
-        <span title="<%= l(:label_receiver_explain) %>">Receiver List:</span> 
+        <span title="<%= l(:label_receiver_explain) %>" style="cursor: help;">Receiver List:</span> 
         <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 10 %></p>
       </td>
       <% if @action.to_i == LeaveManagementRule.actions['is_managed_by'] %>
         <td>
-          <span title="<%= l(:label_backup_explain) %>">Backup List:</span>
+          <span title="<%= l(:label_backup_explain) %>" style="cursor: help;">Backup List:</span>
           <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options, :multiple => true, :size => 10 %></p>
         </td>
       <% end %>

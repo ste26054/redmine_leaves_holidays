@@ -6,10 +6,13 @@ module RedmineLeavesHolidays
 
             base.send(:include, ProjectInstanceMethods)
 
-            # base.class_eval do
-            #   unloadable # Send unloadable so it will not be unloaded in development
-              
-            # end
+            base.class_eval do
+              scope :system_leave_projects, lambda {
+                where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
+              }
+            end             
+
+
         end
     end
 
