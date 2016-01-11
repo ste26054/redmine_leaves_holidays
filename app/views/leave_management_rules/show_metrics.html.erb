@@ -1,19 +1,19 @@
 
-<% managed_by_plugin_admin_people = @project.users_managed_by_plugin_admin %>
+<% managed_by_leave_admin_people = @project.users_managed_by_leave_admin %>
 <div class="splitcontentright">
   <div class="members box">
-  <% unless managed_by_plugin_admin_people.empty? %>
+  <% unless managed_by_leave_admin_people.empty? %>
 
     <% leave_admins = @project.get_leave_administrators %>
 
     <% unless leave_admins[:project_defined] %>
-       <h4 style="color: red">Project members managed by the system leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h4>
+       <h3 style="color: red">Project members managed by the system leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% else %>
-       <h4>Project members managed by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h4>
+       <h3>Project members managed by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% end %>
 
-    <% managed_by_plugin_admin_people.keys.sort.each do |role| %>
-      <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(managed_by_plugin_admin_people[role].sort) %></p>
+    <% managed_by_leave_admin_people.keys.sort.each do |role| %>
+      <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(managed_by_leave_admin_people[role].sort) %></p>
     <% end %>
   <% end %>
 
@@ -21,7 +21,7 @@
 
   <% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
   <% unless no_create_people.empty? %>
-    <h4>Project members unable to create leave requests (according to current rules, cross project):</h4>
+    <h3>Project members not allowed to create leave requests (Set in User Preferences):</h3>
     <% no_create_people.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(no_create_people[role].sort) %></p>
     <% end %>
@@ -29,7 +29,7 @@
 
   <% contractors_list = @project.contractors_by_role_notifying_plugin_admin %>
   <% unless contractors_list.empty? %>
-    <h4>Contractors notifying the leave administrator:</h4>
+    <h3>Contractors notifying the leave administrator:</h3>
     <% contractors_list.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(contractors_list[role].sort) %></p>
     <% end %>
@@ -38,7 +38,7 @@
 </div>
 
 
-<% users_by_role = @project.users_by_role %>
+<% users_by_role = @project.users_by_role_who_can_create_leave_requests %>
 
 <div class="splitcontentleft">
   <% if users_by_role.any? %>
@@ -55,6 +55,7 @@
     <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> Member is a contractor, he is self managed (see lower right column for details)</p>
     <p><span class="label"><%= image_tag('user.png') %></span> Member is a project leave administrator</p>
     <p><span class="label"><%= image_tag('group.png') %></span> Member is a system leave administrator</p>
+    <p><small>Click on any user to check his cross project leave management rules</small></p>
   </div>
 <% end %>
 </div>

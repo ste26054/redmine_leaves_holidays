@@ -158,6 +158,7 @@ module RedmineLeavesHolidays
 		    return "background: \##{hex}; color: #{font_color};"
 		  end
 
+		  # used in redmine_workload_allocation plugin
 		  def working_days_count(from_date, to_date, include_sat = false, include_sun = false, include_bank_holidays = false)
 		  	dates_interval = (from_date..to_date).to_a
 
@@ -197,12 +198,13 @@ module RedmineLeavesHolidays
 
 			# Set of "permissions" based on rules set in the different projects
 
+			# A user can manage leave requests if he manages directly, is set as temporary backup, or is leave admin
 			def can_manage_leave_requests
-				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').empty?
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').any? || self.is_leave_admin?
 			end
 
 			def can_manage_leave_requests_project(project)
-				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project).empty?
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project).any? || self.is_leave_admin?(project)
 			end
 
 			def can_be_consulted_leave_requests
@@ -217,17 +219,12 @@ module RedmineLeavesHolidays
 				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).empty?
 			end
 
-			# TBC with permissions above
 			def can_create_leave_requests
-				#!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').empty? || is_contractor || can_manage_leave_requests || can_be_notified_leave_requests ||  self.id.in?(LeavesHolidaysLogic.plugin_admins)
 				lp = self.leave_preferences
 				return lp.can_create_leave_requests
 			end
 
-			def can_create_leave_requests_project(project)
-				!LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).empty? || can_manage_leave_requests_project(project) || can_be_notified_leave_requests_project(project) || self.id.in?(LeavesHolidaysLogic.plugin_admins)
-			end
-
+			# Used in init.rb to check whether user has a link to the plugin displayed
 			def has_leave_plugin_access
 				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
 			end
@@ -236,6 +233,8 @@ module RedmineLeavesHolidays
 				LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: self.id, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).any?
 			end
 
+
+			# If user is a leave admin, then he is managed
 			def is_managed_in_project?(project)
 				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).any?
 			end
@@ -244,6 +243,24 @@ module RedmineLeavesHolidays
 				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').any?
 			end
 
+			# Returns the list of project: managers for which the current user is a backup at a given date
+			def leave_management_backup_project_list(date = Date.today)
+				backup_rule_users = LeaveManagementRule.joins(:leave_exception_rules).where(action: LeaveManagementRule.actions["is_managed_by"], leave_exception_rules: {user_id: self.id, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]}).flatten.map(&:to_users)
+
+				users_on_leave = LeaveRequest.are_on_leave(backup_rule_users.map{|o| [o[:user_receivers].map(&:id)]}.flatten.uniq, date)
+
+				rule_users_per_project= backup_rule_users.group_by{|r| r[:rule].project}
+
+				managers = {}
+				rule_users_per_project.each do |project, rules|
+					managers[project] ||= []
+
+					rules.each do |rule|
+		        managers[project] << rule[:user_receivers] if rule[:user_receivers].map{|u| u.id.in?(users_on_leave)}.all?
+      		end
+				end
+				return managers.delete_if {|k,v| v == []}
+			end
 
 			# Returns who the leave requests will be sent to, taking into account actual date
 			def leave_notifications_for_management(date = Date.today)
@@ -281,6 +298,7 @@ module RedmineLeavesHolidays
 				return users_to_notify.flatten.uniq
 			end
 
+			# Returns if user is a leave admin. 
 			def is_leave_admin?(project = nil)
 				return false if !self.active?
 				if project != nil
@@ -305,6 +323,11 @@ module RedmineLeavesHolidays
 				else
 					return self.managed_rules_project(project).empty? && self.notify_rules_project(project).empty?
 				end
+			end
+
+			# Returns true if given user acts as a backup on the given date
+			def is_actually_leave_backup?(date = Date.today)
+				#TODO
 			end
 
 		end

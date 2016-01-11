@@ -63,7 +63,7 @@ module LeavesHolidaysManagements
       leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Principal', "#{acting_as}_id".to_sym => ([actor.id] - user_exceptions).flatten).pluck(:id)
 
       # If given user acts as a backup, and the following params match
-      if acting_as == 'receiver' && LeaveManagementRule.actions["is_managed_by"]
+      if acting_as == 'receiver'# && LeaveManagementRule.actions["is_managed_by"]
         leave_management_rules_ids << LeaveManagementRule.joins(:leave_exception_rules).where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action], leave_exception_rules: {user_id: actor.id, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]})
       end
 

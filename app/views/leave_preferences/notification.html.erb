@@ -1,15 +1,20 @@
-<h2>Leave Notifications regarding <%= @user_pref.name %>:</h2>
+<h3>Leave Approval Checks for User <%= @user_pref.name %> <small><%= link_to 'Edit user leave preferences', new_user_leave_preference_path(@user_pref), :class => "icon icon-edit" %></small></h3>
 
 <% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
 
 <% leave_projects = @user_pref.leave_projects %>
 <% is_contractor = @user_pref.is_contractor %>
+<% can_create_leave_requests = @user_pref.can_create_leave_requests %>
 
+<p>User is a contractor (self approves his leave requests): <%= is_contractor %></p>
+<p>User is allowed to create leave requests: <%= can_create_leave_requests %></p>
+
+<hr/>
 <% if leave_projects.empty? %>
-	<p class="nodata"><%= l(:label_no_data) %></p>
-<% end %>
+	<p class="nodata">There are no leave management rules actually set for the user</p>
+<% else %>
 
-<h3>User is a contractor (self approves his leave requests): <%= is_contractor %></h3>
+
 
 <% leave_projects.each do |leave_project| %>
 
@@ -139,6 +144,6 @@
 	<% end %>
 
 <% end %>
-
+<% end %>
 
 <a href="javascript:history.back()"><%= l(:button_back) %></a>

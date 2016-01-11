@@ -2,17 +2,11 @@
     <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 <% end %>
 
-<% if user_pref.can_create_leave_requests %>
-	<div id="leave_user_prefs">
-		<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
-	</div>
-<% end %>
-
 <h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
-<div class="box">
+
 <%= form_for [user_pref, preference], :url => user_leave_preference_path, :remote => false do |f| %>
-
-
+<div class="splitcontentleft">
+<div class="members box">
 		<% if preference.errors.any? %>
 			<div class="flash">
 				<ul>
@@ -101,8 +95,6 @@
 	<% end %>
 
 	
-
-
 <% end %>
 
 | <a href="javascript:history.back()"><%= l(:button_back) %></a> |
@@ -110,13 +102,19 @@
 <% if @exists && LeavesHolidaysLogic.has_right(user, user_pref, preference, :delete) %>
 <%= link_to 'Revert to Defaults', user_leave_preference_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
 <% end %>
-
+</div>
 </div>
 
 <% if user_pref.can_create_leave_requests %>
+	<div id="splitcontentright">
+		<%= render partial: '/leave_requests/details_metrics', locals: {user: user_pref} %>
+	</div>
+
 	<% events = LeaveEvent.unscoped.for_user(user_pref.id).order(created_at: :desc, id: :desc) %>
 
 	<% unless events.empty? %>
+	
+<hr/>
 	<h3>History:</h3>
 	<div class="autoscroll">
 			<table class="list">
@@ -164,6 +162,6 @@
 					<% end -%>
 				</tbody>
 			</table>
-	</div>
+			</div>
 	<% end %>
 <% end %>
