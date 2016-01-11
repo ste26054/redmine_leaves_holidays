@@ -7,6 +7,16 @@ module LeavesHolidaysDates
 		return (date2.year - date1.year) * 12 + date2.month - date1.month - (date2.day >= date1.day ? 0 : 1)
 	end
 
+	# returns the floating number of months between two dates. Takes into account the fraction of month worked for the start / end dates
+	def self.float_months_between(start_date, end_date)
+		days_month_start = start_date.end_of_month.day
+		days_month_end = end_date.end_of_month.day
+
+		fraction_of_start_month = (days_month_start - start_date.day + 1).to_f / days_month_start.to_f
+		fraction_of_end_month = end_date.day.to_f / days_month_end.to_f
+		return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month + fraction_of_start_month + fraction_of_end_month - 1.0).round(2)
+	end
+
 	def self.average_days_per_year
 		return ((365 * 3 + 366) / 4.0)
 	end
@@ -39,13 +49,13 @@ module LeavesHolidaysDates
 
 		#total = 0.0
 		#total += prefs.extra_leave_days if prefs != nil
-		months = self.months_between(from, to) % 12
-		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * months.to_f
+		#months = self.months_between(from, to) % 12
+		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * self.float_months_between(from, to)#* months.to_f
 		return self.ceil_to_nearest_half_day(leave_days)# + total
 	end
 
 	# Gives the actual leave entitlement for the user if he does not work a full year (new comer, contract ended)
-	# Checked 22/10/2015 OK
+	#Checked 08/01/2016 OK
 	def self.actual_days_max(user, from, to)
 
 		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
@@ -57,15 +67,10 @@ module LeavesHolidaysDates
 		from = contract_date if from < contract_date #ok
 		to = contract_end_date if contract_end_date && to > contract_end_date #ok
 
-		# Get working days between 2 dates, excluding sat, sun and bank holidays
-		working_days_count = user.working_days_count(from, to, false, false, true) #ok
-
-		working_weeks_count = working_days_count / 5.0 # there are 5 working days per week
-
-		holidays_per_week = annual_days_max / 52.0 # 52 weeks a year
+		holidays_per_month = annual_days_max / 12.0 
 
 
-		holiday_entitlement = holidays_per_week * working_weeks_count
+		holiday_entitlement = holidays_per_month * self.float_months_between(from, to)#.ceil
 
 		if holiday_entitlement < annual_days_max
 			return self.ceil_to_nearest_half_day(holiday_entitlement)
