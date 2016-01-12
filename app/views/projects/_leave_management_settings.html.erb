@@ -5,48 +5,54 @@
 <% unless @project.module_enabled?(:leave_management) %>
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
-	<h3>Leave Management Rules</h3>
-	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
+  <% if @project.leave_management_rules_enabled? %>
+  	<h3>Leave Management Rules <small><%= link_to "Disable", project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
+  	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
 
 
-<ul class="menu">
-<li>
-<%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
-</li>
-<li>
-  <div id="leave-admins">
-    <%= render partial: '/leave_administrators/link_to_leave_administrators', locals: {project: @project} %>
-  </div>
-</li>
-</ul>
+    <ul class="menu">
+    <li>
+    <%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
+    </li>
+    <li>
+      <div id="leave-admins">
+        <%= render partial: '/leave_administrators/link_to_leave_administrators', locals: {project: @project} %>
+      </div>
+    </li>
+    </ul>
 
-<div id="table-content">
-  <%= render partial: '/leave_management_rules/rules_table', locals: {project: @project} %>
-</div>
+    <div id="table-content">
+      <%= render partial: '/leave_management_rules/rules_table', locals: {project: @project} %>
+    </div>
 
-</br>
+    </br>
 
-<div id="leave-rules-metrics">
+    <% else %>
+    <h3>Leave Management Rules are not enabled for this Project. <%= link_to "Enable", project_leave_management_rules_enable_path(@project.id), :class => "icon icon-add" %></h3>
+    <% end %>
 
-</div>
+    <div id="leave-rules-metrics">
 
-<%= javascript_tag do %>
-$(document).ready(function(){
-	$.ajax({
-	    url: '<%= leave_rules_show_metrics_path(@project) %>',
-	    cache: false,
-	    beforeSend: function(){
-        $('#leave-rules-metrics').html('<%= escape_javascript(render :partial => '/leave_commons/loading') %>');
-      },
-	    success: function(data){
-	      $("#leave-rules-metrics").html(data);
-	    }
+    </div>
 
-	});
+    <%= javascript_tag do %>
+    $(document).ready(function(){
+    	$.ajax({
+    	    url: '<%= leave_rules_show_metrics_path(@project) %>',
+    	    cache: false,
+    	    beforeSend: function(){
+            $('#leave-rules-metrics').html('<%= escape_javascript(render :partial => '/leave_commons/loading') %>');
+          },
+    	    success: function(data){
+    	      $("#leave-rules-metrics").html(data);
+    	    }
 
-	$('#ajax-indicator').hide();
-	});
-<% end %>
+    	});
+
+    	$('#ajax-indicator').hide();
+    	});
+    <% end %>
+  
 
 <% end %>
 

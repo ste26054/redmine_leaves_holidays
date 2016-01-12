@@ -1,5 +1,5 @@
 
-<% managed_by_leave_admin_people = @project.users_managed_by_leave_admin %>
+<% managed_by_leave_admin_people = @project.users_roles_managed_by_leave_admin %>
 <div class="splitcontentright">
   <div class="members box">
   <% unless managed_by_leave_admin_people.empty? %>
@@ -56,7 +56,7 @@
     <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> Member is a contractor, he is self managed (see lower right column for details)</p>
     <p><span class="label"><%= image_tag('user.png') %></span> Member is a project leave administrator</p>
     <p><span class="label"><%= image_tag('group.png') %></span> Member is a system leave administrator</p>
-    <p><small>Click on any user to check his cross project leave management rules</small></p>
+    <p><small>Click on any user to check who the user manages / is managed by (cross project)</small></p>
   </div>
 <% end %>
 </div>

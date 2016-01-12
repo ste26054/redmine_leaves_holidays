@@ -1,6 +1,25 @@
 using LeavesHolidaysExtensions #local patch of user methods 
 module LeavesHolidaysLogic
 
+	def self.leave_administrators_for_projects(projects)
+		project_leave_administrators = LeaveAdministrator.includes(:user, :project).where(project: projects).group_by(&:project)
+		projects_with_administrators = project_leave_administrators.keys
+		projects_without_administrators = projects - projects_with_administrators
+		system_leave_admins = self.plugin_admins_users
+
+		out = {}
+
+		projects_with_administrators.each do |project|
+			out[project] = project_leave_administrators[project].map(&:user)
+		end
+
+		projects_without_administrators.each do |project|
+			out[project] = system_leave_admins
+		end
+
+		return out
+	end
+
 	# returns projects where the leave_management module is activated.
 	def self.system_leave_projects
 		return Project.all.active.where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
@@ -54,10 +73,6 @@ module LeavesHolidaysLogic
 
 	def self.has_manage_user_leave_preferences(user)
 		user.allowed_to?(:manage_user_leave_preferences, nil, :global => true) || self.plugin_admins.include?(user.id)
-	end
-
-	def self.leave_memberships(user)
-		user.memberships
 	end
 
 	def self.leave_projects

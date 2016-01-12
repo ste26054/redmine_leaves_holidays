@@ -37,6 +37,13 @@ module RedmineLeavesHolidays
 		          	joins(:leave_preference).where(:leave_preferences => {can_create_leave_requests: 0}) 
 		          }
 
+							scope :can_create_leave_request, lambda {
+								uids = pluck(:id)
+		          	cannot_create_request_ids = joins(:leave_preference).where(:leave_preferences => {can_create_leave_requests: 0}).pluck(:id)
+
+		          	where(id: uids - cannot_create_request_ids)
+		          }		         
+
 		          scope :not_contractor, lambda {
 		          	ids = []
 		          	uids_total = pluck(:id)
@@ -61,7 +68,6 @@ module RedmineLeavesHolidays
 		          	
 						    where(id: ids)
 		          }
-
 		        end
 		    end
 		end
@@ -77,10 +83,6 @@ module RedmineLeavesHolidays
 			def weekly_working_hours
 				return self.leave_preferences.weekly_working_hours
 			end
-			
-			def leave_memberships
-				return LeavesHolidaysLogic.leave_memberships(self)
-			end
 
 			def leave_period(current_date = Date.today)
 				lp = self.leave_preferences
@@ -90,11 +92,6 @@ module RedmineLeavesHolidays
 			def previous_leave_period(current_date = Date.today)
 				lp = self.leave_preferences
 				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
-			end
-
-			def previous_leave_period(current_date = Date.today)
-				lp = self.leave_preferences
-				return LeavesHolidaysDates.get_previous_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date)
 			end
 
 			def leave_period_to_date(current_date = Date.today)
@@ -187,10 +184,6 @@ module RedmineLeavesHolidays
 				self.leave_preferences.contract_end_date
 			end
 
-			def leave_projects
-				return self.projects.active.system_leave_projects.where(id: LeaveManagementRule.distinct(:project_id).pluck(:project_id))
-			end
-
 			# returns the list of projects where the user has a direct leave management rule set 
 			def leave_managed_projects
 				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
@@ -241,6 +234,26 @@ module RedmineLeavesHolidays
 
 			def is_managed?
 				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').any?
+			end
+
+			# A user is managed by a leave admin only if
+      # - He can create leave requests
+      # - He is not a contractor
+      # - He is not a leave admin for the project
+      # - He manages people in the project, and does not appear only as a leave backup
+      # - He is not managed by anybody in the project
+			def is_managed_by_leave_admin?(project)
+				return self.can_create_leave_requests && !self.is_managed_in_project?(project) && self.leave_manages_project?(project, false) && !self.is_contractor && !self.is_leave_admin?(project) && !self.is_system_leave_admin?
+			end
+
+
+			def contractor_notifies_leave_admin?(project)
+				return self.can_create_leave_requests && self.notify_rules_project(project).empty? && project.leave_management_rules_enabled?
+			end
+
+			# returns true if the user manages people on given project
+			def leave_manages_project?(project, include_backups = true)
+					return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project, [], include_backups).any?
 			end
 
 			# Returns the list of project: managers for which the current user is a backup at a given date
@@ -315,6 +328,17 @@ module RedmineLeavesHolidays
 			def is_project_leave_admin?(project)
 				return false if project == nil
 				return self.in?(project.get_leave_administrators[:users])
+			end
+
+			# Returns all leave projects regarding a user, where:
+			# The user is a leave admin OR is a member AND
+			# The plugin leave module is enabled AND Leave management rules are enabled.
+			def leave_projects
+				projects = Project.active.system_leave_projects
+				project_ids_leave_admin = LeavesHolidaysLogic.leave_administrators_for_projects(projects.to_a).select{|k,v| self.in?(v)}.keys.map(&:id)
+				project_ids_member = self.projects.active.system_leave_projects.pluck(:id)
+
+				return Project.where(id: project_ids_leave_admin | project_ids_member)
 			end
 
 			# Returns true if given user acts as a backup on the given date

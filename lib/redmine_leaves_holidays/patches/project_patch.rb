@@ -7,16 +7,29 @@ module RedmineLeavesHolidays
             base.send(:include, ProjectInstanceMethods)
 
             base.class_eval do
+              unloadable
+              
               scope :system_leave_projects, lambda {
-                where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
+                ids = pluck(:id)
+                system_leave_projects_ids = EnabledModule.where(name: "leave_management", project_id: ids).pluck(:project_id)
+                enabled_management_rules_project_ids = LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i)
+                where(id: system_leave_projects_ids & enabled_management_rules_project_ids)
               }
+
             end             
-
-
         end
     end
 
     module ProjectInstanceMethods
+
+      def leave_management_rules_enabled?
+        return self.id.in?(LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i))
+      end
+
+      def is_system_leave_project?
+        Project.where(id: self.id).active.system_leave_projects.any?
+      end
+
       def role_list
         return self.users_by_role.keys.sort
       end
@@ -37,21 +50,24 @@ module RedmineLeavesHolidays
         return self.users.sort
       end
 
-
-      def users_managed_by_leave_admin
+      def users_roles_managed_by_leave_admin
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| user.can_create_leave_requests && !user.is_managed? && !user.is_contractor && !user.is_leave_admin?(self) && !user.is_system_leave_admin?}
+          v.keep_if{ |user| user.is_managed_by_leave_admin?(self)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
+      end
+
+      def users_managed_by_leave_admin
+        return self.users.to_a.keep_if{ |user| user.is_managed_by_leave_admin?(self) }
       end
 
       def contractors_by_role_notifying_plugin_admin
         contractors = self.contractor_list
         contractors_role = self.users_by_role
         contractors_role.each do |k,v|
-          v.keep_if{ |user| (user.in?(contractors) && user.notify_rules_project(project).empty?)}
+          v.keep_if{ |user| (user.in?(contractors) && user.contractor_notifies_leave_admin?(self))}
         end
         contractors_role.delete_if{ |k,v| v.empty? }
         return contractors_role

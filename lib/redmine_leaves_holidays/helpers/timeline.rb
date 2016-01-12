@@ -117,8 +117,6 @@ module RedmineLeavesHolidays
 
       def projects_list_tree
         if @projects
-          # return @user.leave_memberships.map {|m| m.project}
-          #projects_user = @user.memberships.map {|m| m.project}
           plist = []
           Project.project_tree(projects) do |p, l|
             plist << [p, l]

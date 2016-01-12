@@ -5,6 +5,9 @@ class LeavePreference < ActiveRecord::Base
 
   # before_validation :set_user
 
+  default_scope { 
+    joins(:user).where(users: {status: 1}) }
+
   belongs_to :user
   attr_accessible :weekly_working_hours, :annual_leave_days_max, :region, :user_id, :contract_start_date, :contract_end_date, :extra_leave_days, :is_contractor,:annual_max_comments,:leave_renewal_date, :pending_day_count, :overall_percent_alloc, :can_create_leave_requests
 

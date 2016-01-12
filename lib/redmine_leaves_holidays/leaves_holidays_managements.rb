@@ -21,7 +21,8 @@ module LeavesHolidaysManagements
     return (self.acting_as_list - [acting_as]).first
   end
 
-  def self.management_rules_list(actor, acting_as, action, projects = [], user_exceptions = [])
+  # returns the list of management rules regarding the actor given. Projects are filtered based on inputs & system leave projects
+  def self.management_rules_list(actor, acting_as, action, projects = [], user_exceptions = [], include_backups = true)
     if actor == nil || acting_as == nil || action == nil
       return []
     end
@@ -41,10 +42,10 @@ module LeavesHolidaysManagements
       # If no project list provided
       if projects.empty?
         # Get active actor projects where management rules are set
-        project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.to_a
+        project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.system_leave_projects.to_a
       else
         # get given project list
-        project_list = projects
+        project_list = projects & Project.active.system_leave_projects.to_a
       end
       # Get associated memberhips of the User for given project list
       memberships = Member.where(user: actor, project: project_list)
@@ -63,7 +64,7 @@ module LeavesHolidaysManagements
       leave_management_rules_ids << LeaveManagementRule.where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action]).where("#{acting_as}_type".to_sym => 'Principal', "#{acting_as}_id".to_sym => ([actor.id] - user_exceptions).flatten).pluck(:id)
 
       # If given user acts as a backup, and the following params match
-      if acting_as == 'receiver'# && LeaveManagementRule.actions["is_managed_by"]
+      if acting_as == 'receiver' && include_backups && action == LeaveManagementRule.actions["is_managed_by"]
         leave_management_rules_ids << LeaveManagementRule.joins(:leave_exception_rules).where(project: roles_for_project.keys, action: LeaveManagementRule.actions[action], leave_exception_rules: {user_id: actor.id, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]})
       end
 
@@ -144,38 +145,6 @@ module LeavesHolidaysManagements
       out << array_of_arrays.map{|a| a.slice(i)}.compact
     end
     return out
-  end
-
-  def self.management_users_list_recursive(actor, acting_as, action, projects = [])
-    leave_management_rules_initial = self.management_rules_list(actor, acting_as, action, projects)
-    
-    projects_ref = Project.where(id: leave_management_rules_initial.pluck(:project_id).uniq).to_a
-
-    to_check = leave_management_rules_initial.to_a
-    checked = []
-    user_rules = []
-    i = 1
-    while !to_check.empty? && i < 10
-      to_check_next = []
-      checked_loop = []
-      user_rules_loop = {nesting_level: i, user_rules: []}
-      to_check.each do |rule|
-        actor = rule.send(self.acting_as_opposite(acting_as))
-        exceptions = []
-        unless rule.leave_exception_rules.empty?
-          exceptions << rule.leave_exception_rules.where(actor_concerned: LeaveExceptionRule.actors_concerned[self.acting_as_opposite(acting_as)]).pluck(:user_id)
-        end
-        to_check_next << self.management_rules_list(actor, acting_as, action, projects_ref & [rule.project], exceptions.flatten)
-        checked_loop << rule
-        user_rules_loop[:user_rules] << rule.to_users
-      end
-      checked << checked_loop unless checked_loop.empty?
-      user_rules << user_rules_loop
-      to_check = to_check_next.flatten.uniq - checked.flatten.uniq
-      i += 1
-
-    end
-    return user_rules
   end
 
   def self.check_discrepancies_for(actor, acting_as, action, projects = [])
