@@ -124,14 +124,22 @@ module LeaveRequestsHelper
  	def user_link_to_checked_if_managed_in_project(user, project)
  		str = "".html_safe
  		str += user.name.html_safe
- 		if user.is_contractor
- 			str += ' '.html_safe + image_tag('hourglass.png', :size => '11x11').html_safe
+
+ 		if user.is_system_leave_admin?
+ 			str += ' '.html_safe + image_tag('group.png').html_safe
+ 		elsif user.is_project_leave_admin?(project)
+ 			str += ' '.html_safe + image_tag('user.png').html_safe
+ 			if user.is_managed?
+ 				str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
+ 			end
+ 		elsif user.is_contractor
+ 			str += ' '.html_safe + image_tag('hourglass.png', :size => '12x12').html_safe
  		elsif user.is_managed_in_project?(project)
  			str +=  ' '.html_safe + checked_image.html_safe
  		elsif user.is_managed?
  			str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  		else
- 			str += ' '.html_safe + image_tag('false.png', :size => '11x11').html_safe
+ 			str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
  		end
 
  		link_to str, notification_user_leave_preference_path(user)

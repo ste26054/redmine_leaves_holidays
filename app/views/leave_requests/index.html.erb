@@ -13,7 +13,7 @@
 	<h3>Total days remaining for current Leave Period from <%= format_date(leave_period[:start]) %> to <%= format_date(leave_period[:end]) %>: <%= remaining_pending %> (Indicative, includes requests submitted, processing, accepted)</h3>
 <% end %>
 
-  <!--<h3>People who will be notified for leave requests submitted: <%= @user.leave_notifications_for_management.map(&:name).join(", ") %></h3>-->
+<h3>People who will be notified for leave requests submitted: <%= @user.leave_notifications_for_management.map(&:name).join(", ") %></h3>
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
 	<%= form_tag leave_requests_path, :method => :get do %>

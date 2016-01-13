@@ -101,6 +101,16 @@ class LeaveManagementRulesController < ApplicationController
     end
   end
 
+  def enable
+    LeavesHolidaysManagementsModules.enable_leave_management_rules_project(@project)
+    redirect_to settings_project_path(@project, 'leave_management')
+  end
+
+  def disable
+    LeavesHolidaysManagementsModules.disable_leave_management_rules_project(@project)
+    redirect_to settings_project_path(@project, 'leave_management')
+  end
+
   private
 
   def find_project

@@ -1,18 +1,26 @@
-<h2>Leave Notifications regarding <%= @user_pref.name %>:</h2>
+<h3>Leave Approval Checks for User <%= @user_pref.name %> <small><%= link_to 'Edit user leave preferences', new_user_leave_preference_path(@user_pref), :class => "icon icon-edit" %></small></h3>
 
 <% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
 
 <% leave_projects = @user_pref.leave_projects %>
+<% is_contractor = @user_pref.is_contractor %>
+<% can_create_leave_requests = @user_pref.can_create_leave_requests %>
 
+<p>User is a contractor (self approves his leave requests): <%= human_boolean(is_contractor) %></p>
+<p>User is allowed to create leave requests: <%= human_boolean(can_create_leave_requests) %></p>
+
+<hr/>
 <% if leave_projects.empty? %>
-	<p class="nodata"><%= l(:label_no_data) %></p>
-<% end %>
+	<p class="nodata">There are no leave management rules actually set for the user</p>
+<% else %>
 
-<h3>User is a contractor (self approves his leave requests): <%= @user_pref.is_contractor %></h3>
+
 
 <% leave_projects.each do |leave_project| %>
 
 	<h3><%= link_to leave_project.name, settings_project_path(leave_project, 'leave_management') %> (<%= leave_project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
+
+	<% leave_admins = leave_project.get_leave_administrators %>
 
 	<% manage_users_backups = @user_pref.manage_users_project_with_backup(leave_project) %>
 	<% managed_users_backups = @user_pref.managed_users_project_with_backup(leave_project) %>
@@ -25,35 +33,44 @@
 	
 	<ul>User manages leave requests from:
 
-		<% unless manage_users_backups[:directly].empty? %>
-			<ul>Directly:
-			<% manage_users_backups[:directly].each do |direct| %>
-				<ul>
-					<%= users_link_to_notification(direct[:managed]) %>
-					<% if @user_pref.in?(direct[:backups]) %>
-						(As a backup of <%= users_link_to_notification(direct[:managers]) %>)
-					<% end %>
-				</ul>
+	
 
-			<% end %>
+		<% if @user_pref.in?(leave_admins[:users]) %>
+			<ul>
+				<%= users_link_to_notification(leave_project.users_managed_by_leave_admin) %>
+				
 			</ul>
 		<% else %>
-			---
-		<% end %>
 
-		<% unless manage_users_backups[:indirectly].empty? %>
-			<ul>Indirectly:
-			<% manage_users_backups[:indirectly].each do |indirect| %>
-				<ul>
-				<% unless indirect[:managed].empty? %>
-					<%= users_link_to_notification(indirect[:managed]) %>
+			<% unless manage_users_backups[:directly].empty? %>
+				<ul>Directly:
+				<% manage_users_backups[:directly].each do |direct| %>
+					<ul>
+						<%= users_link_to_notification(direct[:managed]) %>
+						<% if @user_pref.in?(direct[:backups]) %>
+							(As a backup of <%= users_link_to_notification(direct[:managers]) %>)
+						<% end %>
+					</ul>
+
 				<% end %>
+				</ul>
+			<% else %>
+				---
+			<% end %>
 
+			<% unless manage_users_backups[:indirectly].empty? %>
+				<ul>Indirectly:
+				<% manage_users_backups[:indirectly].each do |indirect| %>
+					<ul>
+					<% unless indirect[:managed].empty? %>
+						<%= users_link_to_notification(indirect[:managed]) %>
+					<% end %>
+
+					</ul>
+				<% end %>
 				</ul>
 			<% end %>
-			</ul>
 		<% end %>
-
 	</ul>
 
 
@@ -70,45 +87,69 @@
 	<% end %>
 
 
-	<ul>User is managed by:
-
-		<% unless managed_users_backups[:directly].empty? %>
-			<ul>Directly:
-			<% managed_users_backups[:directly].each do |direct| %>
-				<ul>
-				<% unless direct[:managers].empty? %>
-					<%= users_link_to_notification(direct[:managers]) %>
-				<% end %>
-				<% unless direct[:backups].empty? %>
-					(Backup: <%= users_link_to_notification(direct[:backups]) %>)
-				<% end %>
-				</ul>
-			<% end %>
-			</ul>
+	<% if can_create_leave_requests %>
+		<% if @user_pref.in?(leave_admins[:users]) %>
+			<ul>User is part of leave administrators, who are: <%= users_link_to_notification(leave_admins[:users]) %></ul>
 		<% else %>
-			---
-		<% end %>
+			<ul>User is managed by:
 
-		<% unless managed_users_backups[:indirectly].empty? %>
-			<ul>Indirectly:
-			<% managed_users_backups[:indirectly].each_with_index do |indirect, nesting| %>
-				<ul>
-				<% unless indirect[:managers].empty? %>
-					<%= users_link_to_notification(indirect[:managers]) %>
-				<% end %>
-				<% unless indirect[:backups].empty? %>
-					(Backup: <%= users_link_to_notification(indirect[:backups]) %>)
+				<% unless managed_users_backups[:directly].empty? %>
+					<ul>Directly:
+					<% managed_users_backups[:directly].each do |direct| %>
+						<ul>
+						<% unless direct[:managers].empty? %>
+							<%= users_link_to_notification(direct[:managers]) %>
+						<% end %>
+						<% unless direct[:backups].empty? %>
+							(Backup: <%= users_link_to_notification(direct[:backups]) %>)
+						<% end %>
+						</ul>
+					<% end %>
+					</ul>
+				<% else %>
+					---
 				<% end %>
 
-				</ul>
-			<% end %>
+				<% unless managed_users_backups[:indirectly].empty? %>
+					<ul>Indirectly:
+					<% managed_users_backups[:indirectly].each_with_index do |indirect, nesting| %>
+						<ul>
+						<% unless indirect[:managers].empty? %>
+							<%= users_link_to_notification(indirect[:managers]) %>
+						<% end %>
+						<% unless indirect[:backups].empty? %>
+							(Backup: <%= users_link_to_notification(indirect[:backups]) %>)
+						<% end %>
+
+						</ul>
+					<% end %>
+					</ul>
+				<% end %>
+
+			</ul>
+
+			<ul>
+				<% if is_contractor %>
+					User notifies 
+				<% else %>
+					User is managed by 
+				<% end %>
+
+				<% unless leave_admins[:project_defined] %>
+		      system
+		    <% else %>
+		      project
+		    <% end %>
+
+
+		    <% if is_contractor %>
+		    	leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.contractor_notifies_leave_admin?(leave_project)) %>
+				<% else %>
+					leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.is_managed_by_leave_admin?(leave_project)) %>
+				<% end %>
 			</ul>
 		<% end %>
-
-	</ul>
-
-	<ul>User is managed by plugin administrator (<%= users_link_to_notification(LeavesHolidaysLogic.plugin_admins_users) %>): <%= human_boolean(@user_pref.notify_plugin_admin(leave_project)) %></ul>
-
+	<% end %>
 
 
 
@@ -122,6 +163,6 @@
 	<% end %>
 
 <% end %>
-
+<% end %>
 
 <a href="javascript:history.back()"><%= l(:button_back) %></a>

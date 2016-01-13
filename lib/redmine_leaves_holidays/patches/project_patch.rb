@@ -6,14 +6,30 @@ module RedmineLeavesHolidays
 
             base.send(:include, ProjectInstanceMethods)
 
-            # base.class_eval do
-            #   unloadable # Send unloadable so it will not be unloaded in development
+            base.class_eval do
+              unloadable
               
-            # end
+              scope :system_leave_projects, lambda {
+                ids = pluck(:id)
+                system_leave_projects_ids = EnabledModule.where(name: "leave_management", project_id: ids).pluck(:project_id)
+                enabled_management_rules_project_ids = LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i)
+                where(id: system_leave_projects_ids & enabled_management_rules_project_ids)
+              }
+
+            end             
         end
     end
 
     module ProjectInstanceMethods
+
+      def leave_management_rules_enabled?
+        return self.id.in?(LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i))
+      end
+
+      def is_system_leave_project?
+        Project.where(id: self.id).active.system_leave_projects.any?
+      end
+
       def role_list
         return self.users_by_role.keys.sort
       end
@@ -34,30 +50,24 @@ module RedmineLeavesHolidays
         return self.users.sort
       end
 
-
-      def users_managed_by_plugin_admin
+      def users_roles_managed_by_leave_admin
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| (user.can_create_leave_requests_project(self) || user.can_create_leave_requests) && !user.is_managed? && !user.is_contractor && !user.id.in?(LeavesHolidaysLogic.plugin_admins)}
+          v.keep_if{ |user| user.is_managed_by_leave_admin?(self)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
       end
 
-      def users_by_role_not_managed
-        users_role = self.users_by_role
-        users_role.each do |k,v|
-          v.keep_if{ |user| (user.can_create_leave_requests_project(self) || user.can_create_leave_requests) && user.notify_plugin_admin_wide && !user.id.in?(LeavesHolidaysLogic.plugin_admins)}
-        end
-        users_role.delete_if{ |k,v| v.empty? }
-        return users_role
+      def users_managed_by_leave_admin
+        return self.users.to_a.keep_if{ |user| user.is_managed_by_leave_admin?(self) }
       end
 
       def contractors_by_role_notifying_plugin_admin
         contractors = self.contractor_list
         contractors_role = self.users_by_role
         contractors_role.each do |k,v|
-          v.keep_if{ |user| (user.in?(contractors) && user.notify_plugin_admin_contractor(self))}
+          v.keep_if{ |user| (user.in?(contractors) && user.contractor_notifies_leave_admin?(self))}
         end
         contractors_role.delete_if{ |k,v| v.empty? }
         return contractors_role
@@ -76,6 +86,15 @@ module RedmineLeavesHolidays
         return users_role
       end
 
+      def users_by_role_who_can_create_leave_requests
+        users_role = self.users_by_role
+        users_role.each do |k,v|
+          v.keep_if{ |user| user.can_create_leave_requests}
+        end
+        users_role.delete_if{ |k,v| v.empty? }
+        return users_role
+      end
+
       def users_by_role_who_cant_create_leave_requests
         users_role = self.users_by_role
         users_role.each do |k,v|
@@ -83,6 +102,23 @@ module RedmineLeavesHolidays
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
+      end
+
+      def leave_administrators
+        return LeaveAdministrator.where(project: self)
+      end
+
+      # Returns leave administrators for current project. If no leave administrator explicitly set, returns system leave administrators
+      def get_leave_administrators
+        obj = {users: [], project_defined: false}
+        users = self.leave_administrators.includes(:user).map{|l| l.user}
+        if users.any?
+          obj[:users] = users
+          obj[:project_defined] = true
+        else
+          obj[:users] = LeavesHolidaysLogic.plugin_admins_users
+        end
+        return obj
       end
 
     end

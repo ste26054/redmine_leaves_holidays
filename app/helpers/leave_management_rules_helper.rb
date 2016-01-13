@@ -74,4 +74,9 @@ module LeaveManagementRulesHelper
     options_for_select(options, selected)
   end
 
+  def user_not_contractor_options_for_select(selected)
+    options = User.all.active.not_contractor.sort_by(&:name).map{|l| [l.name, l.id]}
+    return options_for_select(options, selected)
+  end
+
 end

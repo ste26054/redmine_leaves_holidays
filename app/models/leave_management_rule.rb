@@ -17,11 +17,10 @@ class LeaveManagementRule < ActiveRecord::Base
   validates :action, presence: true
 
   validate :validate_sender_not_receiver
-  validate :validate_rule_uniq
-  validate :validate_no_cyclic_rule
+  after_save :validate_rule_uniq
+  #validate :validate_no_cyclic_rule
 
   after_save :validate_no_discrepancies
-  #validate :validate_no_discrepancies
 
   scope :sender_role, lambda { where(sender_type: "Role") }
   scope :receiver_role, lambda { where(receiver_type: "Role") }
@@ -29,7 +28,7 @@ class LeaveManagementRule < ActiveRecord::Base
   scope :receiver_user, lambda { where(receiver_type: "Principal") }
 
   def self.projects
-    Project.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id)).active
+    Project.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id)).active.system_leave_projects
   end
 
   def sender_list
@@ -70,7 +69,6 @@ class LeaveManagementRule < ActiveRecord::Base
 
   def validate_rule_uniq
     rule_idtq =  LeaveManagementRule.where(sender: self.sender, receiver: self.receiver, project: self.project, action: LeaveManagementRule.actions[self.action])
-    Rails.logger.info "IN VALIDATE_RULE_UNIQ: #{rule_idtq}, ID: #{self.id}"
     if self.id && rule_idtq.any?
       rule_idtq = rule_idtq.where.not(id: self.id)
     end
@@ -97,13 +95,6 @@ class LeaveManagementRule < ActiveRecord::Base
   end
 
   def validate_no_discrepancies
-    # snd = LeavesHolidaysManagements.check_discrepancies_for(self.sender, 'sender', self.action, self.project)
-    # recv = LeavesHolidaysManagements.check_discrepancies_for(self.receiver, 'receiver', self.action, self.project)
-    # unless ((snd + recv).uniq - [self]).empty?
-    #   errors.add(:base, "cannot add cyclic rules within project")
-    #   raise ActiveRecord::RecordInvalid.new(self)
-    # end
-
     if self.action == "is_managed_by"
       snd_manage_users = self.sender.manage_users_project(self.project).values.flatten.uniq
       snd_managed_users = self.sender.managed_users_project(self.project).values.flatten.uniq

@@ -12,6 +12,10 @@ module LeavesCommonUserRole
     return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by')
   end
 
+  def manage_rules
+    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'is_managed_by')
+  end
+
   def manage_users_project(project)
     manage_rules = self.manage_rules_project(project)
     manage_users = {directly: [], indirectly: []}
@@ -31,6 +35,29 @@ module LeavesCommonUserRole
 
   def manage_users_project_with_backup(project)
     manage_rules = self.manage_rules_project(project)
+    managed_users = {directly: [], indirectly: []}
+
+
+    manage_rules.each_with_index do |rules, nesting| 
+      rules_users_objects_by_backups = rules.map(&:to_users).group_by{|r| r[:backup_list]}.values
+
+      rules_users_objects_by_backups.each do |rules_backup|
+        backups = rules_backup.map{|r| r[:backup_list]}.flatten.uniq
+        managed = rules_backup.map{|r| r[:user_senders]}.flatten.uniq
+        managers = rules_backup.map{|r| r[:user_receivers]}.flatten.uniq
+        if nesting == 0
+          managed_users[:directly] << {managed: managed, managers: managers, backups: backups}
+        else
+          managed_users[:indirectly] << {managed: managed, managers: managers, backups: backups}
+        end
+      end
+    end
+
+    return managed_users
+  end
+
+  def manage_users_with_backup
+    manage_rules = self.manage_rules
     managed_users = {directly: [], indirectly: []}
 
 
@@ -133,6 +160,29 @@ module LeavesCommonUserRole
     return managed_users
   end
 
+  # Returns a list of project: users. each group of user is being backed up when on leave by the given user.
+  def manage_users_with_backup_leave(date = Date.today)
+    rule_users = self.manage_rules.flatten.map(&:to_users)
+
+    users_on_leave = LeaveRequest.are_on_leave(rule_users.map{|o| [o[:user_senders].map(&:id), o[:user_receivers].map(&:id), o[:backup_list].map(&:id)]}.flatten.uniq, date)
+
+    rule_users_per_project= rule_users.group_by{|r| r[:rule].project}
+    
+    manage_users = {}
+    rule_users_per_project.each do |project, rules|
+      manage_users[project] ||= []
+
+      rules.each do |rule|
+        manage_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}}
+      end
+
+      manage_users[project] = manage_users[project].inject(&:&)
+      
+    end
+
+    return manage_users
+  end
+
 
   def consults_rules_project(project)
     return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'consults', project)
@@ -170,16 +220,4 @@ module LeavesCommonUserRole
     notified_rules = self.notified_rules_project(project)
     return notified_rules.map(&:to_users).map{|r| r[:user_senders]}.flatten.uniq
   end
-
-  # returns true if plugin admin should be notified anyway
-  def notify_plugin_admin(project)
-    return self.managed_rules_project(project).empty?
-  end
-
-
-
-  def notify_plugin_admin_wide
-    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'sender', 'is_managed_by').empty?
-  end
-
 end

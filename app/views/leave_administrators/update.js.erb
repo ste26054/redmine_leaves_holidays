@@ -1,0 +1,13 @@
+$("#leave-admins").html('<%= escape_javascript(render :partial => '/leave_administrators/link_to_leave_administrators', locals: {project: @project}) %>')
+
+$.ajax({
+      url: '<%= leave_rules_show_metrics_path(@project) %>',
+      cache: false,
+      beforeSend: function(){
+        $('#leave-rules-metrics').html('<%= escape_javascript(render :partial => '/leave_commons/loading') %>');
+      },
+      success: function(data){
+        $("#leave-rules-metrics").html(data);
+      }
+
+});

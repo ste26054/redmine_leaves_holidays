@@ -4,7 +4,7 @@ module LeavesHolidaysTriggers
 
 	# Checks renewal for any active user
 	def self.check_perform_users_renewal(date = Date.today)
-		users = User.all.active.under_contract.not_contractor
+		users = User.all.active.under_contract.not_contractor.can_create_leave_request
 		users.each do |user|
 			if self.user_renew_contract?(user, date)
       			self.trigger_renew_contract_user(user, date)
