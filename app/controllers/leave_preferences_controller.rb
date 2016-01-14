@@ -42,7 +42,7 @@ class LeavePreferencesController < ApplicationController
     
     user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
     
-    @users = User.where(id: user_ids).order(:login)
+    @users = User.where(id: user_ids).order(:lastname)
 
     @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys + [RedmineLeavesHolidays::Setting.defaults_settings(:region)]
     @regions_initial = @regions_initial.uniq

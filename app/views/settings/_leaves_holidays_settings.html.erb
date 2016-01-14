@@ -1,20 +1,20 @@
 <fieldset>
 	<legend><%= "Plugin parameters" %></legend>
-	<%- trackers = Tracker.all.collect{|t| [t.name, t.id]} -%>
+	<%- trackers = Tracker.all.sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label>Tracker for Leave Reasons:</label>
 		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)) -%>
 		<%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
 	</p>
 
-	<%- projects = Project.active.collect{|t| [t.name, t.id]} -%>
+	<%- projects = Project.active.sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label>Project for Logging Time of Leave Requests:</label>
 		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)) -%>
 		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
 	</p>
 
-		<%- activities = TimeEntryActivity.where(:active => true).collect{|t| [t.name, t.id]} -%>
+		<%- activities = TimeEntryActivity.where(:active => true).sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label>Default Activity to log time:</label>
 		<%- options = options_for_select(activities, RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)) -%>
@@ -31,7 +31,7 @@
 		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), in: 0.0..100.0, step: 0.5 %>
 	</p>
 
-	<%- users = User.where(status: 1).collect{|t| [t.name, t.id]} -%>
+	<%- users = User.where(status: 1).sort_by(&:lastname).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:label_plugin_admins) %></label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins)) -%>
@@ -60,7 +60,7 @@
 		<%= check_box_tag "settings[email_notification]",1, RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1 %>
 	</p>
 
-	<%- issues = LeavesHolidaysLogic.issues_list.collect{|t| [t.subject, t.id]} -%>
+	<%- issues = LeavesHolidaysLogic.issues_list.sort_by(&:subject).collect{|t| [t.subject, t.id]} -%>
 	<p>
 		<label>Disable approval system for reasons:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues)) -%>

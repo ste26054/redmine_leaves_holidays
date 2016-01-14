@@ -186,16 +186,7 @@ class LeaveRequest < ActiveRecord::Base
 
   def actual_leave_days
     return 0.5 if half_day?
-
-    working_days = (to_date + 1 - from_date).to_i
-
-    real_leave_days.times do |i|
-      if (from_date + i).holiday?(region.to_sym, :observed) || non_working_week_days.include?((from_date + i).cwday)
-        working_days -= 1
-      end          
-    end
-
-    return working_days
+    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region)
   end
 
   def leave_days_within(from, to)
@@ -213,34 +204,6 @@ class LeaveRequest < ActiveRecord::Base
     inters = leave_interval.to_a & range_interval.to_a
 
     return (inters.max + 1 - inters.min).to_i
-  end
-
-  # Restricts the actual leave days to a given period
-  def actual_leave_days_within(from, to)
-    if half_day?
-      if (from_date <= to && from <= to_date)
-        return 0.5
-      else
-        return 0.0
-      end
-    end
-
-    working_days = (to_date + 1 - from_date).to_i
-
-    real_leave_days.times do |i|
-      end_bound = from_date + i
-      # If Not working day
-      if (end_bound).holiday?(region.to_sym, :observed) || non_working_week_days.include?((end_bound).cwday)
-        # Decrement working days count
-        working_days -= 1
-      else # If working day
-        # Remove day anyway if it is not in [from : to range]
-        if !(from_date <= to && from <= end_bound) || !(end_bound <= to && from <= to_date)
-          working_days -= 1
-        end 
-      end
-    end
-    return working_days
   end
 
   # Triggers approval system

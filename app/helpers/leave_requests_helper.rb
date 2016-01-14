@@ -104,7 +104,7 @@ module LeaveRequestsHelper
  	end
 
  	def roles_options_for_select(selected)
- 		options = Role.all.givable.map{|k| [k.name, k.id]}
+ 		options = Role.all.givable.sort_by(&:name).map{|k| [k.name, k.id]}
  		options_for_select(options, selected)
  	end
 

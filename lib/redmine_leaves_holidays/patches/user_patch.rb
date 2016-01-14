@@ -30,16 +30,16 @@ module RedmineLeavesHolidays
 		          }
 
 		          scope :contractor, lambda {
-		          	joins(:leave_preference).where(:leave_preferences => {is_contractor: 1}) 
+		          	joins(:leave_preference).where.not(leave_preferences: { id: nil }).where(:leave_preferences => {is_contractor: 1}) 
 		          }
 
 		          scope :cannot_create_leave_request, lambda {
-		          	joins(:leave_preference).where(:leave_preferences => {can_create_leave_requests: 0}) 
+		          	joins(:leave_preference).where.not(leave_preferences: { id: nil }).where(:leave_preferences => {can_create_leave_requests: 0}) 
 		          }
 
 							scope :can_create_leave_request, lambda {
 								uids = pluck(:id)
-		          	cannot_create_request_ids = joins(:leave_preference).where(:leave_preferences => {can_create_leave_requests: 0}).pluck(:id)
+		          	cannot_create_request_ids = joins(:leave_preference).where.not(leave_preferences: { id: nil }).where(leave_preferences: {can_create_leave_requests: 0}).pluck(:id)
 
 		          	where(id: uids - cannot_create_request_ids)
 		          }		         
@@ -68,6 +68,7 @@ module RedmineLeavesHolidays
 		          	
 						    where(id: ids)
 		          }
+		          
 		        end
 		    end
 		end
@@ -77,7 +78,9 @@ module RedmineLeavesHolidays
 			include LeavesCommonUserRole
 
 			def leave_preferences
-				LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.get_default_leave_preferences(self)
+				#return @leave_preferences if @leave_preferences
+				#return @leave_preferences = 
+				return LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.get_default_leave_preferences(self)
 			end
 
 			def weekly_working_hours
@@ -112,12 +115,14 @@ module RedmineLeavesHolidays
 
 			def actual_days_max(current_date = Date.today)
 				period = self.leave_period(current_date)
-				return LeavesHolidaysDates.actual_days_max(self, period[:start], period[:end])
+				lp = self.leave_preferences
+				return LeavesHolidaysDates.actual_days_max(period[:start], period[:end], lp.annual_leave_days_max, lp.contract_start_date, lp.contract_end_date)
 			end
 
 			def days_remaining(current_date = Date.today)
 				period = self.leave_period(current_date)
-				return LeavesHolidaysDates.total_leave_days_remaining(self, period[:start], period[:end])
+				lp = self.leave_preferences
+				return LeavesHolidaysDates.total_leave_days_remaining(self, period[:start], period[:end], self.actual_days_max(current_date), lp.extra_leave_days)
 			end
 
 			def days_taken_accepted(current_date = Date.today)
@@ -132,7 +137,8 @@ module RedmineLeavesHolidays
 
 			def days_accumulated(current_date = Date.today)
 				period = self.leave_period_to_date(current_date)
-				return LeavesHolidaysDates.total_leave_days_accumulated(self, period[:start], period[:end])
+				lp = self.leave_preferences
+				return LeavesHolidaysDates.total_leave_days_accumulated(period[:start], period[:end], lp.annual_leave_days_max, lp.contract_start_date, lp.contract_end_date)
 			end
 
 			def days_extra
@@ -187,6 +193,10 @@ module RedmineLeavesHolidays
 			# returns the list of projects where the user has a direct leave management rule set 
 			def leave_managed_projects
 				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
+			end			
+
+			def leave_managed_projects_new
+				return LeavesHolidaysManagements.management_rules_list_new(self, 'sender', 'is_managed_by').map(&:project).uniq
 			end
 
 			# Set of "permissions" based on rules set in the different projects
