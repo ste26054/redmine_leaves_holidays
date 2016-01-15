@@ -33,8 +33,9 @@
 			</tr>
 		</thead>
 		<tbody>
-			<% for u in users %>
-				<% lp = u.leave_preferences %>
+			<% lm = LeavesHolidaysLogic.leave_metrics_for_users(users) %>
+			<% lm.each do |u, v| %>
+				<% lp = v[:leave_preferences] %>
 				<tr class="hascontextmenu <%= cycle("odd", "even") %> <%= lp.css_classes %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
@@ -42,22 +43,24 @@
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
 				<td><div style="min-width: 120px" ><%= leave_period(u) %></div></td>
-				<% unless u.is_contractor %>
-					<td><%= u.days_remaining %></td>
+				<% unless lp.is_contractor %>
+					<td><%= v[:days_remaining] %></td>
 				<% else %>
 					<td>-</td>
 				<% end %>
-				<td><%= u.days_accumulated %></td>
-				<td><%= u.days_taken_accepted %></td>
+				<td><%= v[:days_accumulated] %></td>
+				<td><%= v[:days_taken] %></td>
 				<td><%= lp.extra_leave_days %></td>
 				<td><%= lp.annual_max_comments %></td>
 				<td><%= lp.weekly_working_hours %></td>
-				<td><%= lp.annual_leave_days_max %></td>
+				<td><%= v[:actual_days_max] %></td>
 				<td><%= format_date(lp.contract_start_date) %></td>
 				<td><%= lp.overall_percent_alloc %></td>
 				<td><%= checked_image lp.is_contractor %></td>
 				<td><%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => 'Check who can manage / consult this user\'s leave request' %></td>
 				</tr>
+
+
 			<% end %>
 		
 		</tbody>

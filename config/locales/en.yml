@@ -15,7 +15,7 @@ en:
   label_leave_reason: "Reason"
   label_leave_comments: "Leave Comments"
   label_leaves_default_days_year: "Default Number of Leave Days / Year"
-  label_plugin_admins: "System Leave Administrators (Able to approve any leave request):"
+  label_plugin_admins: "System Leave Administrators (Able to approve any leave request incl their own):"
   label_leave_approve_reject: "Approve or Reject the Leave Request:"
   tab_my_leaves: "My Leave"
   tab_leaves_approval: "Leave Management"

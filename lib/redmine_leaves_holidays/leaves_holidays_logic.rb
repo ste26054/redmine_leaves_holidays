@@ -1,5 +1,54 @@
 using LeavesHolidaysExtensions #local patch of user methods 
 module LeavesHolidaysLogic
+# def self.total_leave_days_remaining(user, from, to, actual_days_max, extra_leave_days, include_pending = true)
+	def self.leave_metrics_for_users(users, current_date = Date.today)
+		user_ids = users.map(&:id)
+		leave_preferences = LeavePreference.where(user_id: user_ids).includes(:user)#.to_a
+		default_lp = self.get_default_leave_preferences
+
+		users_with_lp = leave_preferences.map(&:user)
+		users_without_lp = users - users_with_lp
+
+		users = {}
+
+		leave_preferences.find_each do |lp|
+			user = {}
+			leave_period = LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
+			leave_period_to_date = LeavesHolidaysDates.get_leave_period_to_date(leave_period[:start], leave_period[:end], current_date)
+
+			user[:date] = current_date
+			user[:leave_preferences] = lp
+			user[:leave_period] = leave_period
+			user[:leave_period_to_date] = leave_period_to_date
+			user[:actual_days_max] = LeavesHolidaysDates.actual_days_max(leave_period[:start], leave_period[:end], lp.annual_leave_days_max, lp.contract_start_date, lp.contract_end_date)
+			user[:days_accumulated] = LeavesHolidaysDates.total_leave_days_accumulated(leave_period_to_date[:start], leave_period_to_date[:end], lp.annual_leave_days_max, lp.contract_start_date, lp.contract_end_date)
+			user[:days_remaining] = LeavesHolidaysDates.total_leave_days_remaining(lp.user, leave_period[:start], leave_period[:end], user[:actual_days_max], lp.extra_leave_days)
+			user[:days_taken] = user[:actual_days_max] + lp.extra_leave_days - user[:days_remaining]
+			users[lp.user] = user
+		end
+
+		default_leave_period = LeavesHolidaysDates.get_leave_period(default_lp.contract_start_date, default_lp.leave_renewal_date, current_date, false)
+		default_leave_period_to_date = LeavesHolidaysDates.get_leave_period_to_date(default_leave_period[:start], default_leave_period[:end], current_date)
+		
+		default_actual_days_max = LeavesHolidaysDates.actual_days_max(default_leave_period[:start], default_leave_period[:end], default_lp.annual_leave_days_max, default_lp.contract_start_date)
+		
+		default_days_accumulated = LeavesHolidaysDates.total_leave_days_accumulated(default_leave_period_to_date[:start], default_leave_period_to_date[:end], default_lp.annual_leave_days_max, default_lp.contract_start_date, default_lp.contract_end_date)
+
+		users_without_lp.each do |usr|
+			user = {}
+			user[:date] = current_date
+			user[:leave_preferences] = default_lp
+			user[:leave_period] = default_leave_period
+			user[:leave_period_to_date] = default_leave_period_to_date
+			user[:actual_days_max] = default_actual_days_max
+			user[:days_accumulated] = default_days_accumulated
+			user[:days_remaining] = LeavesHolidaysDates.total_leave_days_remaining(usr, default_leave_period[:start], default_leave_period[:end], user[:actual_days_max], 0)
+			user[:days_taken] = user[:actual_days_max] - user[:days_remaining]
+			users[usr] = user
+		end
+
+		return users
+	end
 
 	def self.leave_administrators_for_projects(projects)
 		project_leave_administrators = LeaveAdministrator.includes(:user, :project).where(project: projects).group_by(&:project)
@@ -18,6 +67,20 @@ module LeavesHolidaysLogic
 		end
 
 		return out
+	end
+
+  def self.get_working_days_count(from_date, to_date, region, include_sat = false, include_sun = false, include_bank_holidays = false)
+		dates_interval = (from_date..to_date).to_a
+
+		if !include_bank_holidays
+			bank_holidays_list = Holidays.between(from_date, to_date, region.to_sym, :observed).map{|k| k[:date]}
+			dates_interval -= bank_holidays_list
+		end
+
+		dates_interval.delete_if {|i| i.wday == 6 && !include_sat || #delete date from array if day of week is a saturday (6)
+	        			              i.wday == 0 && !include_sun } #delete date from array if day of week is a sunday (0)
+
+		return dates_interval.count
 	end
 
 	# returns projects where the leave_management module is activated.
@@ -512,7 +575,7 @@ module LeavesHolidaysLogic
 		return LeavesHolidaysLogic.users_allowed_common_project_level(user, 3)
 	end
 
-	def self.get_default_leave_preferences(user)
+	def self.get_default_leave_preferences(user = nil)
     p = LeavePreference.new
     p.weekly_working_hours = RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
     p.annual_leave_days_max = RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
@@ -520,7 +583,7 @@ module LeavesHolidaysLogic
     p.contract_start_date = RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
     p.extra_leave_days = 0.0
     p.is_contractor = RedmineLeavesHolidays::Setting.defaults_settings(:is_contractor)
-    p.user_id = user.id
+    p.user_id = user.id if user
     p.annual_max_comments = ""
     p.leave_renewal_date = RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
     p.overall_percent_alloc = 100

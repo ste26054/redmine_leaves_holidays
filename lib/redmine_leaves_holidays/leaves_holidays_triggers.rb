@@ -46,7 +46,10 @@ module LeavesHolidaysTriggers
 			period = LeavesHolidaysDates.get_previous_leave_period(contract_start_date, renewal_date, date)
 		end
 
-    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
+    # remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end])
+    actual_days_max = user.actual_days_max(date)
+    extra_leave_days = user.leave_preferences.extra_leave_days
+    remaining = LeavesHolidaysDates.total_leave_days_remaining(user, period[:start], period[:end], actual_days_max, extra_leave_days)
 
     if remaining <= 0
     	user.leave_preferences.update(extra_leave_days: remaining)

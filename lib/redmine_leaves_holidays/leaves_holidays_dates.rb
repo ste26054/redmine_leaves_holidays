@@ -39,53 +39,47 @@ module LeavesHolidaysDates
 
 	# Leave days accumulated for the year starting with the user's contract day and month, ignoring leaves taken
 	# Checked 22/10/2015 OK
-	def self.total_leave_days_accumulated(user, from, to)
-		contract_start_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-		contract_end_date = user.contract_end_date
+	def self.total_leave_days_accumulated(from, to, annual_leave_days_max, contract_start_date, contract_end_date = nil)
+		#contract_start_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
+		#contract_end_date = user.contract_end_date
 
 		return 0.0 if to < contract_start_date #ok
 		from = contract_start_date if from < contract_start_date #ok
 		to = contract_end_date if contract_end_date && to > contract_end_date #ok
 
-		#total = 0.0
-		#total += prefs.extra_leave_days if prefs != nil
-		#months = self.months_between(from, to) % 12
-		leave_days = LeavesHolidaysLogic.user_params(user, :default_days_leaves_months) * self.float_months_between(from, to)#* months.to_f
-		return self.ceil_to_nearest_half_day(leave_days)# + total
+		leave_days = (annual_leave_days_max.to_f / 12.0) * self.float_months_between(from, to)
+		return self.ceil_to_nearest_half_day(leave_days)
 	end
 
 	# Gives the actual leave entitlement for the user if he does not work a full year (new comer, contract ended)
 	#Checked 08/01/2016 OK
-	def self.actual_days_max(user, from, to)
+	def self.actual_days_max(from, to, annual_leave_days_max, contract_start_date, contract_end_date = nil)
 
-		annual_days_max = LeavesHolidaysLogic.user_params(user, :annual_leave_days_max).to_f
-		contract_date = LeavesHolidaysLogic.user_params(user, :contract_start_date).to_date
-
-		contract_end_date = user.contract_end_date
-
-		return 0.0 if to < contract_date #ok
-		from = contract_date if from < contract_date #ok
+		return 0.0 if to < contract_start_date #ok
+		from = contract_start_date if from < contract_start_date #ok
 		to = contract_end_date if contract_end_date && to > contract_end_date #ok
 
-		holidays_per_month = annual_days_max / 12.0 
+		holidays_per_month = annual_leave_days_max / 12.0 
 
 
 		holiday_entitlement = holidays_per_month * self.float_months_between(from, to)#.ceil
 
-		if holiday_entitlement < annual_days_max
+		if holiday_entitlement < annual_leave_days_max
 			return self.ceil_to_nearest_half_day(holiday_entitlement)
 		else
-			return annual_days_max
+			return annual_leave_days_max
 		end
 
 	end
 
-	def self.total_leave_days_remaining(user, from, to, include_pending = true)
-
-		remaining = self.actual_days_max(user, from, to)
+	def self.total_leave_days_remaining(user, from, to, actual_days_max, extra_leave_days, include_pending = true)
+		# lp = user.leave_preferences
+		# remaining = self.actual_days_max(from, to, lp.annual_leave_days_max, lp.contract_start_date, lp.contract_end_date)
+		remaining = actual_days_max
 
 		# Add (or remove) extra leave days if there are
-		remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
+		# remaining += LeavesHolidaysLogic.user_params(user, :extra_leave_days).to_f
+		remaining += extra_leave_days
 
 		if include_pending
 			leaves_list = LeaveRequest.for_user(user.id).pending_or_accepted.overlaps(from, to).not_informational
@@ -97,8 +91,6 @@ module LeavesHolidaysDates
 			unless l.from_date < from
 				#If a leave overlaps the period, take all of the leave days in the current period
 				remaining -= l.actual_leave_days
-				#If a leace overlaps the period, take only the part inside the period
-				#remaining -= l.actual_leave_days_within(from, to)
 			end
 		end
 		return remaining
@@ -170,6 +162,25 @@ module LeavesHolidaysDates
 		current_leave_period = self.get_leave_period(contract_start_date, leave_renewal_date, current_date, force_full_year, contract_end_date)
 		return nil if current_leave_period[:start] - 1.day < contract_start_date
 		return self.get_leave_period(contract_start_date, leave_renewal_date, current_leave_period[:start] - 1.day, force_full_year)
+	end
+
+	def self.get_leave_period_to_date(start_date, end_date, current_date = Date.today)
+		period = {}
+
+		period[:start] = start_date
+		period[:end] = end_date
+
+		if current_date >= start_date && current_date <= period[:end]
+			period[:end] = current_date
+			return period
+		end
+		if current_date < start_date
+			period[:end] = start_date
+			return period
+		end
+		if current_date > period[:end]
+			return period
+		end
 	end
 
 end

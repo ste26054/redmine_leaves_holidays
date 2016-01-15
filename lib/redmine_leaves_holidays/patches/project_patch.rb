@@ -22,6 +22,7 @@ module RedmineLeavesHolidays
 
     module ProjectInstanceMethods
 
+      # Returns if leave management rules are enabled for the project
       def leave_management_rules_enabled?
         return self.id.in?(LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i))
       end
@@ -35,7 +36,7 @@ module RedmineLeavesHolidays
       end
 
       def roles_for_user(user)
-        return self.users_by_role.select{|k,v| user.in?(v)}.keys
+        return members.includes(:roles).where(user_id: user.id).map(&:roles).flatten.uniq
       end
 
       def users_for_roles(roles)
@@ -43,7 +44,8 @@ module RedmineLeavesHolidays
           roles = [roles]
         end
 
-        return self.users_by_role.select{|role, users| role.in?(roles)}.values.flatten.uniq
+        role_ids = roles.map(&:id)
+        return members.includes(:user, :roles).where(roles: {id: role_ids}).map(&:user)
       end
 
       def user_list
