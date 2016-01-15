@@ -28,7 +28,7 @@ class LeaveManagementRule < ActiveRecord::Base
   scope :receiver_user, lambda { where(receiver_type: "Principal") }
 
   def self.projects
-    Project.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id)).active.system_leave_projects
+    Project.system_leave_projects.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id))
   end
 
   def sender_list

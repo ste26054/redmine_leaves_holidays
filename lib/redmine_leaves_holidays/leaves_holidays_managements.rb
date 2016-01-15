@@ -43,11 +43,11 @@ module LeavesHolidaysManagements
       # If no project list provided
       if projects.empty?
         # Get active actor projects where management rules are set
-        # project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.system_leave_projects.to_a
+        # project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).system_leave_projects.to_a
         project_list = actor.projects & LeaveManagementRule.projects
       else
         # get given project list
-        project_list = projects & Project.active.system_leave_projects.to_a
+        project_list = projects & Project.system_leave_projects.to_a
       end
       # Get associated memberhips of the User for given project list
       memberships = Member.where(user: actor, project: project_list)
@@ -116,11 +116,11 @@ module LeavesHolidaysManagements
       # If no project list provided
       if projects.empty?
         # Get active actor projects where management rules are set
-        # project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).active.system_leave_projects.to_a
+        # project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).system_leave_projects.to_a
         project_list = actor.projects & LeaveManagementRule.projects
       else
         # get given project list
-        project_list = projects & Project.active.system_leave_projects.to_a
+        project_list = projects & Project.system_leave_projects.to_a
       end
       # Get associated memberhips of the User for given project list
       memberships = Member.where(user: actor, project: project_list)

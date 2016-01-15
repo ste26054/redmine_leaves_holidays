@@ -87,6 +87,11 @@ module RedmineLeavesHolidays
 				return self.leave_preferences.weekly_working_hours
 			end
 
+			def actual_weekly_working_hours
+				lp = self.leave_preferences
+				return (lp.weekly_working_hours * lp.overall_percent_alloc) / 100.0 
+			end
+
 			def leave_period(current_date = Date.today)
 				lp = self.leave_preferences
 				return LeavesHolidaysDates.get_leave_period(lp.contract_start_date, lp.leave_renewal_date, current_date, false, lp.contract_end_date)
@@ -344,9 +349,9 @@ module RedmineLeavesHolidays
 			# The user is a leave admin OR is a member AND
 			# The plugin leave module is enabled AND Leave management rules are enabled.
 			def leave_projects
-				projects = Project.active.system_leave_projects
+				projects = Project.system_leave_projects
 				project_ids_leave_admin = LeavesHolidaysLogic.leave_administrators_for_projects(projects.to_a).select{|k,v| self.in?(v)}.keys.map(&:id)
-				project_ids_member = self.projects.active.system_leave_projects.pluck(:id)
+				project_ids_member = self.projects.system_leave_projects.pluck(:id)
 
 				return Project.where(id: project_ids_leave_admin | project_ids_member)
 			end

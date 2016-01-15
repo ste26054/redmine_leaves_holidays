@@ -8,12 +8,12 @@ module RedmineLeavesHolidays
 
             base.class_eval do
               unloadable
+
+              has_one :leave_managed_project
               
+              # system_leave_projects are active projects where leave_management module is enabled and leave_management rules are enabled as well
               scope :system_leave_projects, lambda {
-                ids = pluck(:id)
-                system_leave_projects_ids = EnabledModule.where(name: "leave_management", project_id: ids).pluck(:project_id)
-                enabled_management_rules_project_ids = LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i)
-                where(id: system_leave_projects_ids & enabled_management_rules_project_ids)
+                active.joins(:enabled_modules, :leave_managed_project).where(enabled_modules: {name: 'leave_management'})
               }
 
             end             
@@ -24,11 +24,11 @@ module RedmineLeavesHolidays
 
       # Returns if leave management rules are enabled for the project
       def leave_management_rules_enabled?
-        return self.id.in?(LeavesHolidaysManagementsModules.leave_management_rules_enabled_projects.map(&:to_i))
+        return self.leave_managed_project != nil
       end
 
       def is_system_leave_project?
-        Project.where(id: self.id).active.system_leave_projects.any?
+        Project.where(id: self.id).system_leave_projects.any?
       end
 
       def role_list

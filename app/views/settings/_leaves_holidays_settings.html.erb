@@ -103,12 +103,4 @@
 		<%- options = options_for_select(projects.sort_by {|l| l[0]}, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)) -%>
 		<%= select_tag "settings[default_quiet_projects]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
-	
-	<div style="display:none;">
-		<p>
-			<label>Enable leave management rules for projects:</label>
-			<%- options = options_for_select(projects.sort_by {|l| l[0]}, RedmineLeavesHolidays::Setting.defaults_settings(:enabled_lvm_projects)) -%>
-			<%= select_tag "settings[enabled_lvm_projects]", options, :multiple => true, :include_blank => true, :size => 10 %>
-		</p>
-	</div>	
 </fieldset>
