@@ -143,7 +143,7 @@ module LeavesHolidaysManagements
       end
 
       # Get management rules directly associated to the given user
-      selected = lmr_project_ids.values.flatten.select{|lmrs| lmrs.send("#{acting_as}_type") == 'Principal' && lmrs.send("#{acting_as}_id") == ([actor.id] - user_exceptions).flatten}.map(&:id)
+      selected = lmr_project_ids.values.flatten.select{|lmrs| lmrs.send("#{acting_as}_type") == 'Principal' && lmrs.send("#{acting_as}_id").in?(([actor.id] - user_exceptions).flatten)}.map(&:id)
       leave_management_rules_ids << selected if selected.any?
 
       # Get management rules where the user acts as a backup
@@ -151,7 +151,7 @@ module LeavesHolidaysManagements
         leave_management_rules_ids << leave_management_rules.joins(:leave_exception_rules).where(leave_exception_rules: {user_id: actor.id, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]}).pluck(:id)
       end
 
-
+      # If we found rules where the user acts as a role, but there are exceptions on these rules excluding the user, then ignore the rules associated
       exceptions = LeaveExceptionRule.where(actor_concerned: LeaveExceptionRule.actors_concerned[acting_as], user_id: actor.id).pluck(:leave_management_rule_id).uniq
 
       return leave_management_rules.where(id: leave_management_rules_ids.flatten.uniq - exceptions)
