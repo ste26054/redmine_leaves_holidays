@@ -47,8 +47,6 @@
           <% end %>
         </td>
         <td>
-          <%= #rule_ids 
-          %>
             <%= link_to "Edit", project_leave_management_rules_edit_path(project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
             %>
             <%= link_to "Delete", project_leave_management_rules_update_path(project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 

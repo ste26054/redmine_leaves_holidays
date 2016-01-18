@@ -122,6 +122,7 @@ module LeavesHolidaysManagements
         # get given project list
         project_list = projects & Project.system_leave_projects.to_a
       end
+
       # Get associated memberhips of the User for given project list
       memberships = Member.where(user: actor, project: project_list)
       # and associated roles 
@@ -130,15 +131,14 @@ module LeavesHolidaysManagements
       #get a hash [:project => [roles]] for the user
       role_ids_for_project_id = member_roles_ids.group_by{|mr| mr.member.project_id}.map{|k,v|  [k, v.map(&:role_id).uniq]}.to_h
 
-
-
       # After improvement
       leave_management_rules = LeaveManagementRule.where(project: project_list, action: leave_management_rules_action)
       lmr_project_ids = leave_management_rules.group_by(&:project_id)
 
       # Get management rules associated to the roles the user appears in for the given projects
       lmr_project_ids.each do |project_id, lmrs|
-       selected = lmrs.select{|lm| lm.send("#{acting_as}_type") == 'Role' && lm.send("#{acting_as}_id").in?(role_ids_for_project_id[project_id])}.map(&:id)
+        selected = []
+       selected = lmrs.select{|lm| lm.send("#{acting_as}_type") == 'Role' && lm.send("#{acting_as}_id").in?(role_ids_for_project_id[project_id])}.map(&:id) if role_ids_for_project_id.any?
        leave_management_rules_ids << selected if selected.any?
       end
 
