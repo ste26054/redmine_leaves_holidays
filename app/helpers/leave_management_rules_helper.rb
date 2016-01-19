@@ -25,7 +25,8 @@ module LeaveManagementRulesHelper
 
     # Get the list of ids already selected previously for the other actor
     list_opposite_ids = actor_opposite == 'sender' ? @sender_list_id : @receiver_list_id
-    
+    list_opposite_exception_ids = actor_opposite == 'sender' ? @sender_exception_id : @receiver_exception_id
+    list_opposite_exception_ids ||= []
     # if the list is not empty
     if list_opposite_ids
       list_opposite = list_opposite_ids.map{|e| e.to_i}
@@ -36,7 +37,7 @@ module LeaveManagementRulesHelper
         if actor_opposite_type == 'Role' && actor_type == 'User'
           actor_opposite_roles_selected = Role.where(id: list_opposite).to_a
           actor_opposite_associated_user_ids = project.users_for_roles(actor_opposite_roles_selected).map(&:id)
-          list.delete_if {|l| l.id.in?(actor_opposite_associated_user_ids)}
+          list.delete_if {|l| l.id.in?(actor_opposite_associated_user_ids - list_opposite_exception_ids.map(&:to_i))}
           return list.map{|l| [l.name, l.id]}
         end
       end
@@ -47,26 +48,51 @@ module LeaveManagementRulesHelper
 
   def sender_exception_collection_for_select_options(project)
     return [] if @sender_type != "Role" || !@sender_list_id || @sender_list_id.empty?
+
+    receiver_selected = []
+    if @receiver_type == "User" && @receiver_list_id
+      receiver_selected_ids = @receiver_list_id.map(&:to_i)
+      receiver_selected = User.where(id: receiver_selected_ids)
+    end
     sender_roles_selected = Role.where(id: @sender_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(sender_roles_selected)
     #return [] if users_associated_with_roles_selected.count == 1
-    return users_associated_with_roles_selected.sort_by(&:name).map{|l| [l.name, l.id]}
+    return (users_associated_with_roles_selected + receiver_selected).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
   end
 
   def receiver_exception_collection_for_select_options(project)
     return [] if @receiver_type != "Role" || !@receiver_list_id || @receiver_list_id.empty?
+
+    sender_selected = []
+    if @sender_type == "User" && @sender_list_id
+      sender_selected_ids = @sender_list_id.map(&:to_i)
+      sender_selected = User.where(id: sender_selected_ids)
+    end
     receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
     #return [] if users_associated_with_roles_selected.count == 1
-    return users_associated_with_roles_selected.sort_by(&:name).map{|l| [l.name, l.id]}
+    return (users_associated_with_roles_selected + sender_selected).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
   end
 
-  def backup_receiver_collection_for_select_options#(project)
+  def backup_receiver_collection_for_select_options(project)
     return [] if @action.to_i != LeaveManagementRule.actions['is_managed_by']
-    #receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
-    #users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
-    #return [] if users_associated_with_roles_selected.count == 1
-    return User.all.active.sort_by(&:name).map{|l| [l.name, l.id]}
+
+    sender_selected_ids = []
+    if @sender_type == "User" && @sender_list_id
+      sender_selected_ids = @sender_list_id.map(&:to_i)
+    end
+
+    if @sender_type == "Role" && @sender_list_id
+      sender_roles_selected = Role.where(id: @sender_list_id.map(&:to_i)).to_a
+      users_associated_with_roles_selected = project.users_for_roles(sender_roles_selected)
+      if @sender_exception_id
+        sender_exception_ids = @sender_exception_id.map(&:to_i)
+        users_associated_with_roles_selected.delete_if{|u| u.id.in?(sender_exception_ids)}
+      end
+      sender_selected_ids = users_associated_with_roles_selected.map(&:id)
+    end
+
+    return User.all.active.where.not(id: sender_selected_ids).sort_by(&:name).map{|l| [l.name, l.id]}
   end
 
   def action_sender_options_for_select(selected)

@@ -36,7 +36,7 @@ class LeaveStatusesController < ApplicationController
 
   def update
     if @status.update(leave_status_params)
-       redirect_to @leave
+       redirect_to leave_approvals_path
     else
        redirect_to @status
     end

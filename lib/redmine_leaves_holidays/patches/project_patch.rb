@@ -10,6 +10,8 @@ module RedmineLeavesHolidays
               unloadable
 
               has_one :leave_managed_project
+              has_many :leave_administrators, dependent: :destroy
+              has_many :leave_management_rules, dependent: :destroy
               
               # system_leave_projects are active projects where leave_management module is enabled and leave_management rules are enabled as well
               scope :system_leave_projects, lambda {
