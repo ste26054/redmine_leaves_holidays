@@ -27,14 +27,14 @@
       <% if @action.to_i == LeaveManagementRule.actions['is_managed_by'] %>
         <td>
           <span title="<%= l(:label_backup_explain) %>" style="cursor: help;">Backup List:</span>
-          <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options, :multiple => true, :size => 10 %></p>
+          <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options(@project), :multiple => true, :size => 10 %></p>
         </td>
       <% end %>
     </tr>
     <tr>
       <td></td>
       <td>
-        <% if @sender_type == "Role" && @sender_list_id && !@sender_list_id.empty? %>
+        <% if @sender_type == "Role" && @sender_list_id && @sender_list_id.uniq.size == 1 %>
           <% @sender_options = sender_exception_collection_for_select_options(@project) %>
           <% unless @sender_options.empty? %>
             <div id="sender_exception_div">
@@ -48,7 +48,7 @@
       <td></td>
       <td></td>
       <td>
-        <% if @receiver_type == "Role" && @receiver_list_id && !@receiver_list_id.empty? %>
+        <% if @receiver_type == "Role" && @receiver_list_id && @receiver_list_id.uniq.size == 1 %>
           <% @receiver_options = receiver_exception_collection_for_select_options(@project) %>
           <% unless @receiver_options.empty? %>
             <div id="receiver_exception_div">
@@ -71,7 +71,7 @@
   $(document).ready(function(){
 
 
-    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule').change(function(){
+    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule, #sender_exception_id, #receiver_exception_id').change(function(){
       $.ajax({
         url: '<%= escape_javascript project_leave_management_rules_edit_path(:format => 'js', :edit => params["edit"]) %>',
         type: 'post',
