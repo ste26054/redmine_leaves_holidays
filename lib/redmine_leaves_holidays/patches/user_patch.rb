@@ -359,14 +359,15 @@ module RedmineLeavesHolidays
 			end
 
 			# Returns all leave projects regarding a user, where:
-			# The user is a leave admin OR is a member AND
+			# The user is a leave admin OR is a member OR is a leave backup AND
 			# The plugin leave module is enabled AND Leave management rules are enabled.
 			def leave_projects
 				projects = Project.system_leave_projects
 				project_ids_leave_admin = LeavesHolidaysLogic.leave_administrators_for_projects(projects.to_a).select{|k,v| self.in?(v)}.keys.map(&:id)
 				project_ids_member = self.projects.system_leave_projects.pluck(:id)
+				project_ids_leave_backup = LeaveExceptionRule.includes(:leave_management_rule).where(user: self, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]).map{|e| e.leave_management_rule.project_id}
 
-				return Project.where(id: project_ids_leave_admin | project_ids_member)
+				return Project.where(id: project_ids_leave_admin | project_ids_member | project_ids_leave_backup)
 			end
 
 			# Returns true if given user acts as a backup on the given date
