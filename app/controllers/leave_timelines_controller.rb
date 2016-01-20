@@ -14,49 +14,82 @@ class LeaveTimelinesController < ApplicationController
 
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
-
-    user_projects = @user.memberships.pluck(:project_id) - [RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id).to_i]
-
-    @projects = Project.where(id: user_projects)
-    if params[:projects].present?
-      @projects = Project.where(id: params[:projects])
-      @user.pref[:timeline_projects_filters] = params[:projects]
-      @user.preference.save
-    else
-      @projects = Project.where(id: @user.pref[:timeline_projects_filters]) if @user.pref[:timeline_projects_filters].present?
-    end
-
-    projects_user_ids = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
-    
-    users = User.where(id: projects_user_ids)
-    
-    @users_initial =  users.order(:firstname).map {|u| [u.name, u.id]}
-    @user_ids = params[:users] || users.order(:firstname).pluck(:id)
-
-    @scope_initial = leave_requests_initial_users(@user_ids)
-
-    set_region_filter
-
-    roles = Role.all.givable
-    @roles = roles.to_a.sort
-    if params[:roles].present?
-      roles = role_list.where(id: params[:roles])
-      @user.pref[:timeline_role_filters] = params[:roles]
-      @user.preference.save
-    else
-      roles = role_list.where(id: @user.pref[:timeline_role_filters]) if @user.pref[:timeline_role_filters].present?
-    end
-    @role_ids = roles.pluck(:id)
-    @timeline.role_ids = @role_ids
-
-
-
-    scope = @scope_initial.where(region: @region)
-    
-
     @timeline.user = @user
-    @timeline.projects = @projects.to_a
-    @timeline.leave_list = scope
+
+    @projects_initial = LeavesHolidaysLogic.system_leave_projects & @user.projects
+
+    @leave_requests_initial = LeaveRequest.viewable_by(@user.id).not_rejected
+    @regions_initial = @leave_requests_initial.group('region').distinct.count.keys.sort
+
+    @roles_initial = @projects_initial.map{|p| p.role_list}.flatten.uniq
+    @users_initial = LeavesHolidaysLogic.users_for_projects(@projects_initial)
+
+    @region_selected = params[:region] if params[:region].present?
+
+    @roles_selected = params[:roles] if params[:roles].present?
+    roles = Role.where(id: @roles_selected) if @roles_selected
+
+    @projects_selected = nil
+    @projects_selected = @projects_initial.select{|p| p.id.in?(params[:projects].map(&:to_i))} if params[:projects].present?
+
+    @timeline.projects = @projects_initial.to_a
+    @timeline.projects = @projects_selected.to_a if @projects_selected
+
+
+    @users_selected = @users_initial
+    @users_selected = @users_initial.like(params[:name]) if params[:name].present?
+    @users_selected = @users_selected.with_leave_region(@region_selected) if @region_selected
+    @users_selected = LeavesHolidaysLogic.users_with_roles_for_projects(roles, @timeline.projects) & @users_selected if roles
+    @timeline.users = @users_selected.to_a
+
+    # @projects = @user.leave_projects
+    # if params[:projects].present?
+    #   @projects = Project.where(id: params[:projects])
+    #   @user.pref[:timeline_projects_filters] = params[:projects]
+    #   @user.preference.save
+    # else
+    #   @projects = Project.where(id: @user.pref[:timeline_projects_filters]) if @user.pref[:timeline_projects_filters].present?
+    # end
+
+    # projects_user_ids = Member.includes(:project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id)).pluck(:user_id).uniq
+    
+    # users = User.where(id: projects_user_ids)
+
+    # users = users.like(params[:name]) if params[:name].present?
+
+    # @users_initial =  users.order(:firstname).map {|u| [u.name, u.id]}
+    
+    # @user_ids = users.order(:firstname).pluck(:id)
+
+    # @scope_initial = leave_requests_initial_users(@user_ids)
+
+    # set_region_filter
+
+    # roles = Role.all.givable
+    # @roles = roles.to_a.sort
+    # if params[:roles].present?
+    #   roles = role_list.where(id: params[:roles])
+    #   @user.pref[:timeline_role_filters] = params[:roles]
+    #   @user.preference.save
+    # else
+    #   roles = role_list.where(id: @user.pref[:timeline_role_filters]) if @user.pref[:timeline_role_filters].present?
+    # end
+    # @role_ids = roles.pluck(:id)
+    # @timeline.role_ids = @role_ids
+
+
+
+    # scope = @scope_initial.where(region: @region)
+    
+
+    
+
+
+    
+
+    @timeline.leave_list = @leave_requests_initial
+    
+    @timeline.leave_list = @leave_requests_initial.where(user: @users_initial.like(params[:name])) if params[:name].present?
 
     respond_to do |format|
       format.html { render :action => "show", :layout => !request.xhr? }

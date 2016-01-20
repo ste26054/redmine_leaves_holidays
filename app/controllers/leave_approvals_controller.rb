@@ -35,7 +35,7 @@ class LeaveApprovalsController < ApplicationController
     @limit = per_page_option
 
     @scope_initial ||= LeaveRequest.processable_by(@user)
-
+    @leave_requests_initial = @scope_initial
     @status_count = @scope_initial.group('request_status').count.to_hash
     scope = @scope_initial.status(@status)
 

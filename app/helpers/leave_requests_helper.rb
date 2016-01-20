@@ -39,13 +39,8 @@ module LeaveRequestsHelper
 	                        ["processed (#{status_count[2].to_i})".html_safe, '2']], selected)
  	end
 
- 	def leaves_regions_options_for_select(selected, show_count=true)
- 		if show_count
- 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
- 		else
- 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k}".html_safe, k]}.sort
- 		end
-	    options_for_select(options, selected)
+ 	def leaves_regions_options_for_select(selected)
+	    options_for_select(@regions_initial, selected)
  	end
 
  	def leaves_dates_options_for_select(selected)
@@ -80,10 +75,10 @@ module LeaveRequestsHelper
 	    s.html_safe
  	end
 
- 	def leave_projects_options_for_select(selected)
- 		projects = Project.all.active
- 		project_tree_options_for_select(projects, :selected => selected)
- 	end
+ 	# def leave_projects_options_for_select(selected)
+ 	# 	projects = Project.all.active
+ 	# 	project_tree_options_for_select(projects, :selected => selected)
+ 	# end
 
  	def leave_period(user)
  		period = user.leave_period

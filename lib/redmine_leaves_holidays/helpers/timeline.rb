@@ -16,6 +16,7 @@ module RedmineLeavesHolidays
       attr_accessor :project
       attr_accessor :projects
       attr_accessor :user
+      attr_accessor :users
       attr_accessor :role_ids
 
       def initialize(options={})
@@ -43,7 +44,7 @@ module RedmineLeavesHolidays
         end
         @date_from = Date.civil(@year_from, @month_from, 1)
         @date_to = (@date_from >> @months) - 1
-        @users = ''
+        @subjects = ''
         @lines = ''
         @number_of_rows = nil
         @truncated = false
@@ -85,7 +86,7 @@ module RedmineLeavesHolidays
                    :indent_increment => 20, :render => :subject,
                    :format => :html}.merge(options)
         indent = options[:indent] || 4
-        @users = '' unless options[:only] == :lines
+        @subjects = '' unless options[:only] == :lines
         @lines = '' unless options[:only] == :users
         @number_of_rows = 0
         begin
@@ -102,7 +103,7 @@ module RedmineLeavesHolidays
         rescue MaxLinesLimitReached
           @truncated = true
         end
-        @users_rendered = true unless options[:only] == :lines
+        @subjects_rendered = true unless options[:only] == :lines
         @lines_rendered = true unless options[:only] == :users
       end
 
@@ -112,7 +113,7 @@ module RedmineLeavesHolidays
       end
 
       def users_list
-        return @leave_list.includes(:user).map(&:user).uniq
+        return @users#@leave_list.includes(:user).map(&:user).uniq
       end
 
       def projects_list_tree
@@ -149,9 +150,9 @@ module RedmineLeavesHolidays
         return @leave_list.where(user_id: user.id).to_a
       end
 
-      def users(options={})
-        render(options.merge(:only => :users)) unless @users_rendered
-        @users
+      def subjects(options={})
+        render(options.merge(:only => :users)) unless @subjects_rendered
+        @subjects
       end
 
       def lines(options={})
@@ -187,7 +188,9 @@ module RedmineLeavesHolidays
                   # If given user has at least a leave request
                   #if leave_count_role[i] > 0
                     # render his leave
-                    render_user(user, options)
+                    if user.in?(users_list)
+                      render_user(user, options)
+                    end
                   #end
                 end
                 decrement_indent(options)
@@ -347,7 +350,7 @@ module RedmineLeavesHolidays
         end 
 
         output = view.content_tag(:div, content, tag_options)
-        @users << output
+        @subjects << output
         output
       end
 
