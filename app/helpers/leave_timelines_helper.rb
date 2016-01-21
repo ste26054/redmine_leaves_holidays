@@ -62,15 +62,6 @@ module LeaveTimelinesHelper
     project_tree_options_for_select(projects, :selected => selected)
   end
 
-  def leave_projects_options_for_select(selected)
-    project_tree_options_for_select(@projects_initial, :selected => selected)
-  end
-
-  def leave_roles_options_for_select(selected)
-    options = @roles_initial.sort_by(&:name).map{|k| [k.name, k.id]}
-    options_for_select(options, selected)
-  end
-
   def roles_options_for_select_list(selected, roles, project = nil)
     if project
       options = project.users_by_role.keys.uniq.map{|k| [k.name, k.id]}

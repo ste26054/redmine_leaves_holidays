@@ -98,10 +98,15 @@ module LeaveRequestsHelper
  		options_for_select(options, selected)
  	end
 
- 	def roles_options_for_select(selected)
- 		options = Role.all.givable.sort_by(&:name).map{|k| [k.name, k.id]}
- 		options_for_select(options, selected)
- 	end
+ 	# def roles_options_for_select(selected)
+ 	# 	options = Role.all.givable.sort_by(&:name).map{|k| [k.name, k.id]}
+ 	# 	options_for_select(options, selected)
+ 	# end
+
+ 	def leave_roles_options_for_select(selected)
+    options = @roles_initial.sort_by(&:name).map{|k| [k.name, k.id]}
+    options_for_select(options, selected)
+  end
 
 	def users_regions_options_for_select(selected, show_count=true)
  		if show_count
@@ -147,5 +152,9 @@ module LeaveRequestsHelper
  	def human_boolean(boolean)
     boolean ? 'Yes' : 'No'
 	end
+
+	def leave_projects_options_for_select(selected)
+    project_tree_options_for_select(@projects_initial, :selected => selected)
+  end
 
 end

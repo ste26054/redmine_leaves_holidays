@@ -72,7 +72,7 @@ module LeavesHolidaysLogic
 	def self.users_for_projects(project_list)
 		project_ids = project_list.map(&:id)
 		user_ids = Member.select(:user_id).distinct.joins(:user).where(project_id: project_ids).where.not(users: {id: nil}).pluck(:user_id)
-		return User.where(id: user_ids)
+		return User.where(id: user_ids, status: 1)
 	end
 
 	def self.users_with_roles_for_projects(role_list, project_list)

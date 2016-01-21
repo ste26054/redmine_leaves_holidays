@@ -20,27 +20,34 @@ class LeavePreferencesController < ApplicationController
   end
 
   def index
-    @projects = Project.all.active
+    @projects_initial = Project.all.active
+
     if params[:projects].present?
-      @projects = @projects.where(id: params[:projects])
-      session[:leave_preference_filters] = params[:projects]
+      @projects_selected = @projects_initial.where(id: params[:projects])
+      @user.pref[:leave_preference_filters] = params[:projects]
     else
-      @projects = @projects.where(id: session[:leave_preference_filters]) if session[:leave_preference_filters].present?
+      @projects_selected = @projects_initial.where(id: @user.pref[:leave_preference_filters]) if @user.pref[:leave_preference_filters].present?
     end
 
-    roles = Role.all.givable
+    @roles_initial = Role.all.givable
     if params[:roles].present?
-      roles = roles.where(id: params[:roles])
-      session[:leave_preference_filters_roles] = params[:roles]
+      @roles_selected = params[:roles]
+      @user.pref[:leave_preference_filters_roles] = params[:roles]
     else
-      roles = roles.where(id: session[:leave_preference_filters_roles]) if session[:leave_preference_filters_roles].present?
+      @roles_selected = @user.pref[:leave_preference_filters_roles] if @user.pref[:leave_preference_filters_roles].present?
     end
 
-    @role_ids = roles.pluck(:id)
+    role_ids = @roles_initial
+    role_ids = @roles_selected if @roles_selected
 
-    member_role_ids = MemberRole.where(role_id: @role_ids).pluck(:id)
+    member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
     
-    user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
+    project_ids = @projects_initial.pluck(:id)
+    project_ids = @projects_selected.pluck(:id) if @projects_selected
+
+
+
+    user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: project_ids, member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
     
     @users = User.where(id: user_ids).order(:lastname)
 
@@ -59,6 +66,8 @@ class LeavePreferencesController < ApplicationController
 
     @users_initial =  @users.order(:firstname).map {|u| [u.name, u.id]}
     @user_ids = params[:users] || @users.order(:firstname).pluck(:id)
+
+    
     if params[:users].present?
       @user_ids = params[:users]
       @user.pref[:leave_preference_filters_users] = params[:users]

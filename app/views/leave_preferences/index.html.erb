@@ -10,15 +10,15 @@
 	<%= form_tag leave_preferences_path, :method => :get do %>
 
 		<label for='projects'>Project:</label>
-		<%= select_tag 'projects', leave_projects_options_for_select(@projects), :class => "small", :multiple => true  %>
+		<%= select_tag 'projects', leave_projects_options_for_select(@projects_selected), :class => "small", :multiple => true  %>
 		<label for='Roles'>Roles:</label>
-		<%= select_tag 'roles', roles_options_for_select(@role_ids), :class => "small", :multiple => true  %>
+		<%= select_tag 'roles', leave_roles_options_for_select(@roles_selected), :class => "small", :multiple => true  %>
 
     <label for='region'>Region:</label>
     <%= select_tag 'region', options_for_select(@regions_initial, @region), :class => "small", :multiple => true  %>
 
-    <label for='users'>User:</label>
-    <%= select_tag 'users', options_for_select(@users_initial, @user_ids), :class => "small", :multiple => true  %>
+    <label for='name'><%= l(:label_user) %>:</label>
+    <%= text_field_tag 'name', params[:name], :size => 30 %>
 
 		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
 		<%= link_to l(:button_clear), clear_filters_leave_preferences_path, :class => 'icon icon-reload' %>
