@@ -11,7 +11,7 @@
              :method => :get, :id => 'query_form') do %>
 
   <label for='region'>Region:</label>
-    <%= select_tag 'region', leaves_regions_options_for_select(@region_selected), :class => "small", :multiple => true  %>
+    <%= select_tag 'region', leaves_regions_options_for_select(@regions_selected), :class => "small", :multiple => true  %>
 
   <% if action_name == "show" %>
     <label for='projects'>Project:</label>
@@ -37,14 +37,14 @@
   <%= select_month(timeline.month_from, :prefix => "month", :discard_type => true) %>
   <%= select_year(timeline.year_from, :prefix => "year", :discard_type => true) %>
   <% if action_name == "show" %>
-    show projects <%= check_box_tag 'show_projects', 1, params[:show_projects] %>
+    show projects <%= check_box_tag 'show_projects', 1, @timeline.show_projects == true %>
   <% end %>
-    show roles <%= check_box_tag 'show_roles', 1, params[:show_roles] %>
+    show roles <%= check_box_tag 'show_roles', 1, @timeline.show_roles == true %>
   
   <%= hidden_field_tag 'zoom', timeline.zoom %>
-
-  <%= link_to_function l(:button_apply), '$("#query_form").submit()',
-                       :class => 'icon icon-checked' %>
+  <%= hidden_field_tag(:apply_form, 0) %>
+  
+  <%= link_to_function l(:button_apply), '$("#apply_form").val(1); $("#query_form").submit();', { :value => "apply", :class => 'icon icon-checked'}%>
   <%= link_to l(:button_clear), { :clear_filters => 1 }, :class => 'icon icon-reload' %>
 
   </p>

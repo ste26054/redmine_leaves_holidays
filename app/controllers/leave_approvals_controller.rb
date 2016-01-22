@@ -36,6 +36,7 @@ class LeaveApprovalsController < ApplicationController
 
     @scope_initial ||= LeaveRequest.processable_by(@user)
     @leave_requests_initial = @scope_initial
+
     @status_count = @scope_initial.group('request_status').count.to_hash
     scope = @scope_initial.status(@status)
 
@@ -74,7 +75,7 @@ class LeaveApprovalsController < ApplicationController
       scope = scope.not_from_contractors
     end
 
-
+    @regions_initial = @scope_initial.group('region').count.to_hash.keys
     @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
     if params[:region].present?
       @region = params[:region]
