@@ -11,63 +11,59 @@ class LeavePreferencesController < ApplicationController
   before_action :set_holidays, only: [:new, :create, :edit, :bulk_edit, :update, :bulk_update]
 
   def clear_filters
-      @user.pref[:leave_preference_filters] = nil
-      @user.pref[:leave_preference_filters_roles] = nil
-      @user.pref[:leave_preference_filters_regions] = nil
-      @user.pref[:leave_preference_filters_users] = nil
-      @user.preference.save
-    redirect_to leave_preferences_path
+      remove_filters
+      redirect_to leave_preferences_path
   end
 
   def index
-    @projects = Project.all.active
+    if params[:commit] && params[:commit] == "apply"
+      remove_filters
+    end
+
+    @projects_initial = Project.all.active    
     if params[:projects].present?
-      @projects = @projects.where(id: params[:projects])
-      session[:leave_preference_filters] = params[:projects]
+      @projects_selected = @projects_initial.where(id: params[:projects])
+      @user.pref[:leave_preference_filters_projects] = params[:projects]
+      @user.preference.save
     else
-      @projects = @projects.where(id: session[:leave_preference_filters]) if session[:leave_preference_filters].present?
+      @projects_selected = @projects_initial.where(id: @user.pref[:leave_preference_filters_projects]) if @user.pref[:leave_preference_filters_projects].present?
     end
 
-    roles = Role.all.givable
+    projects = @projects_initial
+    projects = @projects_selected if @projects_selected
+
+
+    @roles_initial = Role.all.givable
     if params[:roles].present?
-      roles = roles.where(id: params[:roles])
-      session[:leave_preference_filters_roles] = params[:roles]
+      @roles_selected = params[:roles]
+      @user.pref[:leave_preference_filters_roles] = params[:roles]
+      @user.preference.save
     else
-      roles = roles.where(id: session[:leave_preference_filters_roles]) if session[:leave_preference_filters_roles].present?
+      @roles_selected = @user.pref[:leave_preference_filters_roles] if @user.pref[:leave_preference_filters_roles].present?
     end
 
-    @role_ids = roles.pluck(:id)
-
-    member_role_ids = MemberRole.where(role_id: @role_ids).pluck(:id)
+    roles = @roles_initial
+    roles = Role.where(id: @roles_selected) if @roles_selected
     
-    user_ids = Member.includes(:member_roles, :project, :user).where(users: {status: 1}, project_id: @projects.pluck(:id), member_roles: {id: member_role_ids}).pluck(:user_id).sort.uniq
-    
-    @users = User.where(id: user_ids).order(:lastname)
 
-    @regions_initial = @users.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys + [RedmineLeavesHolidays::Setting.defaults_settings(:region)]
+    @users_initial = LeavesHolidaysLogic.users_for_projects(@projects_initial)
+
+    @regions_initial = @users_initial.joins(:leave_preference).group("leave_preferences.region").count.to_hash.keys + [RedmineLeavesHolidays::Setting.defaults_settings(:region)]
     @regions_initial = @regions_initial.uniq
-    @region = params[:region] || @regions_initial
+    
     if params[:region].present?
-      @region = params[:region]
+      @regions_selected = params[:region]
       @user.pref[:leave_preference_filters_regions] = params[:region]
       @user.preference.save
     else
-      @region = @user.pref[:leave_preference_filters_regions] if @user.pref[:leave_preference_filters_regions].present?
+      @regions_selected = @user.pref[:leave_preference_filters_regions] if @user.pref[:leave_preference_filters_regions].present?
     end
 
-    @users = @users.with_leave_region(@region)
 
-    @users_initial =  @users.order(:firstname).map {|u| [u.name, u.id]}
-    @user_ids = params[:users] || @users.order(:firstname).pluck(:id)
-    if params[:users].present?
-      @user_ids = params[:users]
-      @user.pref[:leave_preference_filters_users] = params[:users]
-      @user.preference.save
-    else
-      @user_ids = @user.pref[:leave_preference_filters_users] if @user.pref[:leave_preference_filters_users].present?
-    end
-
-    @users = @users.where(id: @user_ids).order(:firstname)
+    @users_selected = @users_initial
+    @users_selected = @users_initial.like(params[:name]) if params[:name].present?
+    @users_selected = @users_selected.with_leave_region(@regions_selected) if @regions_selected
+    @users_selected = LeavesHolidaysLogic.users_with_roles_for_projects(roles, projects) & @users_selected
   end
 
   def new
@@ -196,6 +192,14 @@ private
 
   def set_holidays
 	  @regions = LeavesHolidaysLogic.get_region_list
+  end
+
+  def remove_filters
+    @user.pref[:leave_preference_filters_projects] = nil
+    @user.pref[:leave_preference_filters_roles] = nil
+    @user.pref[:leave_preference_filters_regions] = nil
+    @user.pref[:leave_preference_filters_users] = nil
+    @user.preference.save
   end
 
   def authenticate

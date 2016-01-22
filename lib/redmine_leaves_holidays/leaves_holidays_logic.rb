@@ -69,6 +69,25 @@ module LeavesHolidaysLogic
 		return out
 	end
 
+	def self.users_for_projects(project_list)
+		project_ids = project_list.map(&:id)
+		user_ids = Member.select(:user_id).distinct.joins(:user).where(project_id: project_ids).where.not(users: {id: nil}).pluck(:user_id)
+		return User.where(id: user_ids, status: 1)
+	end
+
+	def self.users_with_roles_for_projects(role_list, project_list)
+		project_ids = project_list.map(&:id)
+		role_ids = role_list.map(&:id)
+		user_ids = Member.joins(:roles, :user).where(member_roles: {role_id: role_ids}, project_id: project_ids).where.not(users: {id: nil}).pluck(:user_id).uniq
+		return User.where(id: user_ids)
+	end
+
+	def self.projects_for_users(user_list)
+		user_ids = user_list.map(&:id)
+		project_ids = Member.select(:project_id).distinct.joins(:project).where(user_id: user_ids).where(projects: {status: 1}).pluck(:project_id)
+		return Project.where(id: project_ids)
+	end
+
   def self.get_working_days_count(from_date, to_date, region, include_sat = false, include_sun = false, include_bank_holidays = false)
 		dates_interval = (from_date..to_date).to_a
 

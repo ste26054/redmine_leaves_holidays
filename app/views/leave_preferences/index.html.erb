@@ -6,23 +6,23 @@
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
-<fieldset><legend><%= l(:label_filter_plural) %></legend>
+<fieldset><legend>Filters <small>(Ctrl+click or Maj+click to select or deselect entries)</small></legend>
 	<%= form_tag leave_preferences_path, :method => :get do %>
 
 		<label for='projects'>Project:</label>
-		<%= select_tag 'projects', leave_projects_options_for_select(@projects), :class => "small", :multiple => true  %>
+		<%= select_tag 'projects', leave_projects_options_for_select(@projects_selected), :class => "small", :multiple => true %>
 		<label for='Roles'>Roles:</label>
-		<%= select_tag 'roles', roles_options_for_select(@role_ids), :class => "small", :multiple => true  %>
+		<%= select_tag 'roles', leave_roles_options_for_select(@roles_selected), :class => "small", :multiple => true  %>
 
     <label for='region'>Region:</label>
-    <%= select_tag 'region', options_for_select(@regions_initial, @region), :class => "small", :multiple => true  %>
+    <%= select_tag 'region', options_for_select(@regions_initial, @regions_selected), :class => "small", :multiple => true  %>
 
-    <label for='users'>User:</label>
-    <%= select_tag 'users', options_for_select(@users_initial, @user_ids), :class => "small", :multiple => true  %>
+    <label for='name'><%= l(:label_user) %>:</label>
+    <%= text_field_tag 'name', params[:name], :size => 30 %>
 
-		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>
+		<%= submit_tag l(:button_apply), :class => "small", :value => "apply" %>
 		<%= link_to l(:button_clear), clear_filters_leave_preferences_path, :class => 'icon icon-reload' %>
 	<% end %>
 </fieldset>
 <br/>
-<%= render 'tab_preferences', :users => @users %>
+<%= render 'tab_preferences', :users => @users_selected %>

@@ -7,7 +7,7 @@
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
 <%= form_tag(leave_approvals_path, :method => :get, :id => 'query_form') do %>
-<fieldset><legend><%= l(:label_filter_plural) %></legend>
+<fieldset><legend>Filters <small>(Ctrl+click or Maj+click to select or deselect entries)</small></legend>
 	<label for='status'><%= l(:field_status) %>:</label>
 	<%= select_tag 'status', leaves_status_options_for_select(@status_count, @status), :class => "small", :multiple => true  %>
 
