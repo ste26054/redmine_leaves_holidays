@@ -17,6 +17,7 @@ module RedmineLeavesHolidays
       attr_accessor :projects
       attr_accessor :user
       attr_accessor :users
+      attr_accessor :regions
       attr_accessor :role_ids
       attr_accessor :roles
       attr_accessor :show_roles
@@ -323,8 +324,9 @@ module RedmineLeavesHolidays
       end
 
       def countries
-        user_ids = @leave_list.distinct.pluck(:user_id)
-        LeavePreference.where(user_id: user_ids).distinct.pluck(:region)
+        #user_ids = @leave_list.distinct.pluck(:user_id)
+        #LeavePreference.where(user_id: user_ids).distinct.pluck(:region)
+        return @regions || []
       end
 
       # Optimise for date_from - date_to period
@@ -333,7 +335,7 @@ module RedmineLeavesHolidays
       end
 
       def country_holiday_list(date)
-        countries.delete_if {|c| !date.holiday?(c.to_sym, :observed)}
+        countries.dup.delete_if {|c| !date.holiday?(c.to_sym, :observed)}
       end
 
       def increment_indent(options, factor=1)
