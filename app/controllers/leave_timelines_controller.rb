@@ -29,6 +29,9 @@ class LeaveTimelinesController < ApplicationController
     fetch_regions
     fetch_roles
 
+    @timeline.regions = @regions_initial
+    @timeline.regions = @regions_selected if @regions_selected
+
     roles = Role.where(id: @roles_selected) if @roles_selected
     @timeline.roles = roles || @roles_initial
 
@@ -77,6 +80,9 @@ class LeaveTimelinesController < ApplicationController
     
     fetch_regions
     fetch_roles
+
+    @timeline.regions = @regions_initial
+    @timeline.regions = @regions_selected if @regions_selected
 
     roles = Role.where(id: @roles_selected) if @roles_selected
     @timeline.roles = roles || @roles_initial

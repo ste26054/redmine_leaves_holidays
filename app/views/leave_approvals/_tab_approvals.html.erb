@@ -52,8 +52,8 @@
 						<td   title="from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>"><%= req.user.days_accumulated.round(1) %>d</td>
 					<% else %>
 						<% tdata = "Data is not available because the leave associated is not within the user current leave period" %>
-						<td title="<%= tdata %>">-</td>
-						<td title="<%= tdata %>">-</td>
+						<td title="<%= tdata %>" style="cursor: help;">-</td>
+						<td title="<%= tdata %>" style="cursor: help;">-</td>
 					<% end %>
 					
 					<td class="buttons">
