@@ -39,14 +39,41 @@ module LeaveRequestsHelper
 	                        ["processed (#{status_count[2].to_i})".html_safe, '2']], selected)
  	end
 
+ 	def leaves_status_options_for_select_count(selected)
+ 		 # options = @scope_initial.group('request_status').count.to_hash.collect {|k, v| ["#{LeaveRequest.request_statuses.key(k)} (#{v})".html_safe, k]}
+ 		 # options_for_select(options, selected)
+
+ 		submitted_count = @scope_initial.submitted_or_processing.count
+ 		processed_count = @scope_initial.processed.count
+
+ 		options = []
+ 		options << ["Submitted (#{submitted_count})".html_safe, 'submitted_or_processing']
+ 		options << ["Processed (#{processed_count})".html_safe, 'processed']
+
+ 		options_for_select(options, selected)
+ 	end
+
  	def leaves_regions_options_for_select(selected)
+ 			# @scope_initial.group('region').count.to_hash.keys
 	    options_for_select(@regions_initial, selected)
+ 	end 	
+
+ 	def leaves_regions_options_for_select_count(selected)
+ 			options = @scope_initial.group('region').count.to_hash.collect {|k, v| ["#{k} (#{v})".html_safe, k]}
+	    options_for_select(options, selected)
  	end
 
  	def leaves_dates_options_for_select(selected)
-	    options_for_select([['Past', 'finished'],
-	                        ['Present', 'ongoing'],
-	                        ['Future', 'coming']], selected)
+ 			hsh = { finished: 'Past', ongoing: 'Present', coming: 'Future'}
+ 			options = []
+ 			hsh.each do |k,v|
+ 				option = []
+ 				count = 0
+ 				count = @scope_initial.when(k.to_s).count
+ 				options << ["#{v} (#{count})".html_safe, k.to_s]
+ 			end
+	    # options_for_select([['Past', 'finished'], ['Present', 'ongoing'], ['Future', 'coming']], selected)
+	    options_for_select(options, selected)
  	end
 
  	def leaves_reason_options_for_select(selected)
@@ -55,7 +82,8 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_users_options_for_select(selected)
- 		options = @scope_initial.group('user').count.to_hash.collect {|k, v| ["#{k.name} (#{v})".html_safe, k.id]}.sort
+ 		options = @scope_initial.group('user').count.to_hash.collect {|k, v| [k.lastname, "#{k.name} (#{v})".html_safe, k.id]}.sort_by{|a| a.first}.map{|a| a.drop(1)}
+
  		options_for_select(options, selected)
  	end
 
@@ -75,11 +103,6 @@ module LeaveRequestsHelper
 	    s.html_safe
  	end
 
- 	# def leave_projects_options_for_select(selected)
- 	# 	projects = Project.all.active
- 	# 	project_tree_options_for_select(projects, :selected => selected)
- 	# end
-
  	def leave_period(user)
  		period = user.leave_period
  		output = "".html_safe
@@ -87,35 +110,10 @@ module LeaveRequestsHelper
  		output << "To: #{format_date(period[:end])}<br/>".html_safe
  	end
 
- 	def months_options_for_select(selected)
- 		options = Date::MONTHNAMES[1..-1].map.with_index(1).to_a
- 		options_for_select(options, selected)
- 	end
-
- 	def years_options_for_select(selected)
- 		year = Date.today.year
- 		options = [*(year-5)..(year+5)].map{|k| [k.to_s.html_safe,k]}
- 		options_for_select(options, selected)
- 	end
-
- 	# def roles_options_for_select(selected)
- 	# 	options = Role.all.givable.sort_by(&:name).map{|k| [k.name, k.id]}
- 	# 	options_for_select(options, selected)
- 	# end
-
  	def leave_roles_options_for_select(selected)
     options = @roles_initial.sort_by(&:name).map{|k| [k.name, k.id]}
     options_for_select(options, selected)
   end
-
-	def users_regions_options_for_select(selected, show_count=true)
- 		if show_count
- 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k} (#{v})".html_safe, k]}.sort
- 		else
- 			options = @scope_initial.group('region').count.to_hash.map {|k, v| ["#{k}".html_safe, k]}.sort
- 		end
-	    options_for_select(options, selected)
- 	end
 
  	def users_link_to_notification(users)
  		users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe

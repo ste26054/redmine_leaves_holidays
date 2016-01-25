@@ -9,20 +9,21 @@
 <%= form_tag(leave_approvals_path, :method => :get, :id => 'query_form') do %>
 <fieldset><legend>Filters <small>(Ctrl+click or Maj+click to select or deselect entries)</small></legend>
 	<label for='status'><%= l(:field_status) %>:</label>
-	<%= select_tag 'status', leaves_status_options_for_select(@status_count, @status), :class => "small", :multiple => true  %>
+	<%= select_tag 'status', leaves_status_options_for_select_count(@status_selected), :class => "small", :multiple => true  %>
 
 	<label for='when'>When:</label>
-	<%= select_tag 'when', leaves_dates_options_for_select(@when), :class => "small", :multiple => true  %>
+	<%= select_tag 'when', leaves_dates_options_for_select(@when_selected), :class => "small", :multiple => true  %>
 
 	<label for='reason'>Reason:</label>
-	<%= select_tag 'reason', leaves_reason_options_for_select(@reason), :class => "small", :multiple => true  %>
+	<%= select_tag 'reason', leaves_reason_options_for_select(@reason_selected), :class => "small", :multiple => true  %>
 
 	<label for='region'>Region:</label>
-	<%= select_tag 'region', leaves_regions_options_for_select(@region), :class => "small", :multiple => true  %>
+	<%= select_tag 'region', leaves_regions_options_for_select_count(@region_selected), :class => "small", :multiple => true  %>
 
 	<label for='users'>User:</label>
-	<%= select_tag 'users', leaves_users_options_for_select(@users), :class => "small", :multiple => true  %>
+	<%= select_tag 'users', leaves_users_options_for_select(@users_selected), :class => "small", :multiple => true  %>
 
+	<p class="buttons">
 	<label for='show_rejected'>Include Rejected:</label>
 	<%= check_box_tag 'show_rejected', true, @show_rejected == "true" %>
 
@@ -32,6 +33,7 @@
 	<%= link_to_function l(:button_apply), '$("#query_form").submit()',
                      :class => 'icon icon-checked' %>
 	<%= link_to l(:button_clear), { :clear_filters => 1 }, :class => 'icon icon-reload' %>
+	</p>
 </fieldset>
 <% end %>
 <br/>

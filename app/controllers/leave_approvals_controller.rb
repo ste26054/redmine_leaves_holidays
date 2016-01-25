@@ -22,52 +22,16 @@ class LeaveApprovalsController < ApplicationController
                 'created_at' => "#{LeaveRequest.table_name}.created_at",
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
-    @status = params[:status] || ['1','4']
-    if params[:status].present?
-      @status = params[:status]
-      @user.pref[:approval_status_filters] = params[:status]
-      @user.preference.save
-    else
-      @status = @user.pref[:approval_status_filters] if @user.pref[:approval_status_filters].present?
-    end
 
-    manage = true
     @limit = per_page_option
 
-    @scope_initial ||= LeaveRequest.processable_by(@user)
-    @leave_requests_initial = @scope_initial
-
-    @status_count = @scope_initial.group('request_status').count.to_hash
-    scope = @scope_initial.status(@status)
-
-    @when = params[:when] || ['ongoing', 'coming', 'finished']
-    if params[:when].present?
-      @when = params[:when]
-      @user.pref[:approval_when_filters] = params[:when]
-      @user.preference.save
-    else
-      @when = @user.pref[:approval_when_filters] if @user.pref[:approval_when_filters].present?
-    end
-
-    scope = scope.when(@when)
-
-    @reason = params[:reason] || @scope_initial.pluck(:issue_id).uniq
-    if params[:reason].present?
-      @reason = params[:reason]
-      @user.pref[:approval_reason_filters] = params[:reason]
-      @user.preference.save
-    else
-      @reason = @user.pref[:approval_reason_filters] if @user.pref[:approval_reason_filters].present?
-    end
-
-    scope = scope.reason(@reason)
+    @scope_initial = LeaveRequest.processable_by(@user)
+    scope = @scope_initial
 
     @show_rejected = params[:show_rejected] || "false"
-
     @show_contractor = params[:show_contractor] || "false"
 
     if @show_rejected == "false"
-      # Do not show rejected
       scope = scope.not_rejected
     end
 
@@ -75,28 +39,76 @@ class LeaveApprovalsController < ApplicationController
       scope = scope.not_from_contractors
     end
 
+    @scope_initial = scope
+
+    @status_initial = ['1','2','4']
+    if params[:status].present?
+      @status_selected = params[:status]
+      @user.pref[:approval_status_filters] = params[:status]
+      @user.preference.save
+    else
+      @status_selected = @user.pref[:approval_status_filters] if @user.pref[:approval_status_filters].present?
+    end
+
+    @status = []
+    if @status_selected
+      if 'submitted_or_processing'.in?(@status_selected)
+        @status << ['1', '4']
+      end
+      if 'processed'.in?(@status_selected)
+        @status << ['2']
+      end
+      @status = @status.flatten
+    end
+    
+    if @status.any?
+      scope = @scope_initial.status(@status)
+    end
+
+    @when_initial = ['ongoing', 'coming', 'finished']
+    if params[:when].present?
+      @when_selected = params[:when]
+      @user.pref[:approval_when_filters] = params[:when]
+      @user.preference.save
+    else
+      @when_selected = @user.pref[:approval_when_filters] if @user.pref[:approval_when_filters].present?
+    end
+
+    scope = scope.when(@when_selected) if @when_selected
+
+    @reason_initial = @scope_initial.pluck(:issue_id).uniq
+    if params[:reason].present?
+      @reason_selected = params[:reason]
+      @user.pref[:approval_reason_filters] = params[:reason]
+      @user.preference.save
+    else
+      @reason_selected = @user.pref[:approval_reason_filters] if @user.pref[:approval_reason_filters].present?
+    end
+
+    scope = scope.reason(@reason_selected) if @reason_selected
+
     @regions_initial = @scope_initial.group('region').count.to_hash.keys
-    @region = params[:region] || @scope_initial.group('region').count.to_hash.keys
     if params[:region].present?
-      @region = params[:region]
+      @region_selected = params[:region]
       @user.pref[:approval_region_filters] = params[:region]
       @user.preference.save
     else
-      @region = @user.pref[:approval_region_filters] if @user.pref[:approval_region_filters].present?
+      @region_selected = @user.pref[:approval_region_filters] if @user.pref[:approval_region_filters].present?
     end
 
-    scope = scope.where(region: @region)
+    scope = scope.where(region: @region_selected) if @region_selected
 
-    @users = params[:users] || @scope_initial.pluck(:user_id).uniq
+    #@users = params[:users] || @scope_initial.pluck(:user_id).uniq
+
     if params[:users].present?
-      @users = params[:users]
-      @user.pref[:approval_users_filters] = params[:users]
+      @users_selected = params[:users]
+      @user.pref[:approval_users_selected_filters] = params[:users]
       @user.preference.save
     else
-      @users = @user.pref[:approval_users_filters] if @user.pref[:approval_users_filters].present?
+      @users_selected = @user.pref[:approval_users_selected_filters] if @user.pref[:approval_users_selected_filters].present?
     end
 
-    scope = scope.where(user: @users)
+    scope = scope.where(user: @users_selected) if @users_selected
 
 
 
@@ -124,7 +136,7 @@ class LeaveApprovalsController < ApplicationController
       @user.pref[:approval_when_filters] = nil
       @user.pref[:approval_reason_filters] = nil
       @user.pref[:approval_region_filters] = nil
-      @user.pref[:approval_users_filters] = nil
+      @user.pref[:approval_users_selected_filters] = nil
       @user.preference.save
       params.delete :clear_filters
     end

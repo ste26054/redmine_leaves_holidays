@@ -107,7 +107,7 @@ class LeaveRequestsController < ApplicationController
 
     if leave_relations.processed.exists?
       if leave_relations.accepted.ongoing_or_finished.exists?
-        flash[:error] = "You cannot cancel this leave as it has already been approved and is in the past"
+        flash[:error] = "You cannot cancel this leave as it has already been approved and is in the past. Please ask your line manager to reject it if necessary."
         redirect_to leave_requests_path
         return
       end
