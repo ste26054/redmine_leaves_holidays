@@ -57,6 +57,8 @@ class LeaveRequest < ActiveRecord::Base
   scope :submitted, -> { where(request_status: "1") }
 
   scope :processing, -> { where(request_status: "4") }
+  
+  scope :submitted_or_processing, -> { where(request_status: ["1", "4"]) }
 
   scope :processed, -> { where(request_status: "2") }
 
@@ -309,7 +311,7 @@ class LeaveRequest < ActiveRecord::Base
   		end
 
       if half_day? && (to_date - from_date).to_i > 0
-        errors.add(:base,"Half day leaves cannot be more than 1 day")
+        errors.add(:base,"Half day leave requests must be submitted separately (1.5 day = 1 full day and 0.5 day requests)")
       end
 
       # Forbid the leave creation if it's in the past
