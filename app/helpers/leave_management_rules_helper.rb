@@ -105,4 +105,17 @@ module LeaveManagementRulesHelper
     return options_for_select(options, selected)
   end
 
+  def leave_reasons_rules_specifics(selected)
+    issues_ids = []
+    issues_ids <<RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)
+    issues_ids <<RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)
+    issues = Issue.where(id: issues_ids.flatten.uniq)
+    options = issues.map {|a| [a.subject, a.id]}
+    return options_for_select(options, selected)
+  end
+
+  def leave_reasons_select(selected)
+    options_for_select([['All leave reasons', 0], ['Specific Leave Reasons:', 1]], selected)
+  end
+
 end

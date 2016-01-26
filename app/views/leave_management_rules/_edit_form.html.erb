@@ -30,6 +30,21 @@
           <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options(@project), :multiple => true, :size => 10 %></p>
         </td>
       <% end %>
+      
+      <td>
+      <div style="display: none"><!-- Logic behind this control is not ready yet so do not display it -->
+          <span>Leave Reasons concerned:</span>
+          <p><%= select_tag 'reasons_selected', leave_reasons_select(@reason_selected), disabled: true %></p>
+          <% if @reason_selected == 1 %>
+            <div id="reasons_div">
+          <% else %>
+            <div id="reasons_div" style="display: none">
+          <% end %>
+          <p><%= select_tag 'reasons_concerned_id', leave_reasons_rules_specifics(@reasons_concerned_ids), :multiple => true, :size => 8 %></p>
+          </div>
+      </div>
+      </td>
+      
     </tr>
     <tr>
       <td></td>
@@ -71,7 +86,7 @@
   $(document).ready(function(){
 
 
-    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule, #sender_exception_id, #receiver_exception_id').change(function(){
+    $('#sender_type, #receiver_type, #sender_list_id, #receiver_list_id, #action_rule, #sender_exception_id, #receiver_exception_id, #reasons_selected').change(function(){
       $.ajax({
         url: '<%= escape_javascript project_leave_management_rules_edit_path(:format => 'js', :edit => params["edit"]) %>',
         type: 'post',

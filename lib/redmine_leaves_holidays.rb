@@ -20,5 +20,6 @@ Rails.configuration.to_prepare do
   require 'redmine_leaves_holidays/patches/user_patch'
   require 'redmine_leaves_holidays/patches/project_patch'
   require 'redmine_leaves_holidays/patches/role_patch'
+  require 'redmine_leaves_holidays/patches/issue_patch'
 
 end

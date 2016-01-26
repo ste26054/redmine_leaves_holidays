@@ -6,3 +6,12 @@ $('#sender_exception_id').html('<%= escape_javascript options_for_select(sender_
 $('#receiver_exception_id').html('<%= escape_javascript options_for_select(receiver_exception_collection_for_select_options(@project), @receiver_exception_id) %>');
 $('#backup_receiver_id').html('<%= escape_javascript options_for_select(backup_receiver_collection_for_select_options(@project), @backup_receiver_id) %>');
 
+ if($('#reasons_selected').val() == "1")
+ {
+   $('#reasons_div').show();
+ }
+ else
+ {
+   $('#reasons_div').hide();
+ }
+ 
