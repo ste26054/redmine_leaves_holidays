@@ -12,6 +12,7 @@ class LeaveManagementRulesController < ApplicationController
     unless params[:edit] && params[:edit] == "true"
       session[:management_rule_ids] = nil
     end
+
     unless params[:management_rule_ids]
       @sender_type = params[:sender_type] || LeavesHolidaysManagements.default_actor_type
       @sender_list_id ||= params[:sender_list_id]
@@ -23,12 +24,19 @@ class LeaveManagementRulesController < ApplicationController
       @receiver_list_id ||= params[:receiver_list_id]
       @receiver_exception_id ||= params[:receiver_exception_id]
       @backup_receiver_id ||= params[:backup_receiver_id]
+      
+      @reason_selected = 0
+      @reason_selected = params[:reasons_selected] if params[:reasons_selected]
+
+      @reasons_concerned_ids ||= params[:reasons_concerned_id]
+
     else
       management_rules = LeaveManagementRule.where(id: params[:management_rule_ids], project: @project)
       management_rule_ids = management_rules.pluck(:id)
       sender_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:sender])
       receiver_exceptions = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:receiver])
       backup_receiver = LeaveExceptionRule.where(leave_management_rule_id: management_rule_ids, actor_concerned: LeaveExceptionRule.actors_concerned[:backup_receiver])
+      reasons_concerned = LeaveReasonRule.where(leave_management_rule_id: management_rule_ids)
 
       @sender_type = management_rules.first.sender_type_form
       @sender_list_id ||= management_rules.pluck(:sender_id)
@@ -40,6 +48,9 @@ class LeaveManagementRulesController < ApplicationController
       @receiver_list_id ||= management_rules.pluck(:receiver_id)
       @receiver_exception_id ||= receiver_exceptions.pluck(:user_id)
       @backup_receiver_id ||= backup_receiver.pluck(:user_id)
+      @reasons_concerned_ids ||= reasons_concerned.pluck(:issue_id)
+      @reason_selected = 0
+      @reason_selected = 1 if @reasons_concerned_ids.any?
       session[:management_rule_ids] = management_rule_ids
     end
   end
@@ -71,6 +82,15 @@ class LeaveManagementRulesController < ApplicationController
               if params[:backup_receiver_id]
                 params[:backup_receiver_id].each do |backup_receiver|
                   LeaveExceptionRule.create(leave_management_rule: @leave_management_rule, actor_concerned: :backup_receiver, user: User.find(backup_receiver.to_i))
+                end
+              end
+
+              @reason_selected = '0'
+              @reason_selected = params[:reasons_selected] if params[:reasons_selected]
+
+              if params[:reasons_concerned_id] && @reason_selected == '1'
+                params[:reasons_concerned_id].each do |reason|
+                  LeaveReasonRule.create(leave_management_rule: @leave_management_rule, issue: Issue.find(reason.to_i))
                 end
               end
 

@@ -5,6 +5,7 @@ class LeaveManagementRule < ActiveRecord::Base
   belongs_to :receiver , polymorphic: true # receiver can be a Role or a User
 
   has_many :leave_exception_rules, dependent: :destroy
+  has_many :leave_reason_rules, dependent: :destroy
 
   # Sender [notifies, is consulted by, is managed by] Receiver
   enum action: { notifies_approved: 0, consults: 1, is_managed_by: 2 } #Action to make
