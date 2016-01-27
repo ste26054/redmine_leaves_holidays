@@ -15,9 +15,9 @@ module LeaveRequestsHelper
 
 	def leaves_holidays_tabs
 		tabs = []
-
+		can_create_leave_requests = @user.can_create_leave_requests
 		# OK
-		if @user.can_create_leave_requests
+		if can_create_leave_requests
 			tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 		end
 		# TO_CHECK
@@ -25,11 +25,13 @@ module LeaveRequestsHelper
 		# He can view all leave requests
 		# He is a plugin admin
 		# He manages people at the moment (For instance, as a temporary backup)
-		if LeavesHolidaysLogic::user_has_any_manage_right(@user) || LeavesHolidaysLogic::has_view_all_rights(@user)
+		if  @user.can_manage_leave_requests || @user.can_be_consulted_leave_requests || @user.can_be_notified_leave_requests
 			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
 		end
 
-		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
+		if can_create_leave_requests
+			tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
+		end
 
 		# OK
 		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)

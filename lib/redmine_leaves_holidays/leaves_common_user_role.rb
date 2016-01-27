@@ -16,6 +16,14 @@ module LeavesCommonUserRole
     return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'is_managed_by')
   end
 
+  def consulted_rules
+    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'consults')
+  end
+
+  def notified_rules
+    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'notifies_approved')
+  end
+
   def manage_users_project(project)
     manage_rules = self.manage_rules_project(project)
     manage_users = {directly: [], indirectly: []}

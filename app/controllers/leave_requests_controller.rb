@@ -62,7 +62,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def submit
-    unless @leave.request_status == "created" && @user == @leave.user
+    unless @leave.request_status == "created"
       render_403
       return
     else
@@ -77,7 +77,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def unsubmit
-    unless @leave.request_status == "submitted" && @user == @leave.user
+    unless @leave.request_status == "submitted"
       render_403
       return
     else
@@ -91,9 +91,17 @@ class LeaveRequestsController < ApplicationController
   end
 
   def edit
+    unless @leave.request_status == "created"
+      render_403
+      return
+    end
   end
 
   def update
+    unless @leave.request_status == "created"
+      render_403
+      return
+    end
     if @leave.update(leave_request_params)
       self.info_flash
   		redirect_to @leave
@@ -163,16 +171,27 @@ class LeaveRequestsController < ApplicationController
 
   # TO_CHECK
   def authenticate
-    if params[:action].to_sym.in?([:index, :new, :create])
-      right = LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
-      if !right && LeavesHolidaysLogic.has_view_all_rights(@user)
-        redirect_to leave_approvals_path and return
-      end
-      render_403 unless right
-    else
-      render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
+    # if params[:action].to_sym.in?([:index, :new, :create])
+    #   right = LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
+    #   if !right && LeavesHolidaysLogic.has_view_all_rights(@user)
+    #     redirect_to leave_approvals_path and return
+    #   end
+    #   render_403 unless right
+    # else
+    #   render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
+    # end
+
+    case params[:action].to_sym
+    when :index
+      @user.can_create_leave_requests
+    when :new, :create
+      @user.can_create_leave_requests
+    when :submit, :unsubmit, :edit, :update, :destroy
+      @user == @leave.user
+    when :show
+      @user == @leave.user
     end
-    
+
   end
 
   def set_user

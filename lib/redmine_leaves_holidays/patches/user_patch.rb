@@ -216,7 +216,6 @@ module RedmineLeavesHolidays
 			end
 
 			# Set of "permissions" based on rules set in the different projects
-
 			# A user can manage leave requests if he manages directly, is set as temporary backup, or is leave admin
 			def can_manage_leave_requests
 				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').any? || self.is_leave_admin?
@@ -369,6 +368,7 @@ module RedmineLeavesHolidays
 				projects = Project.system_leave_projects
 				project_ids_leave_admin = LeavesHolidaysLogic.leave_administrators_for_projects(projects.to_a).select{|k,v| self.in?(v)}.keys.map(&:id)
 				project_ids_member = self.projects.system_leave_projects.pluck(:id)
+				
 				project_ids_leave_backup = LeaveExceptionRule.includes(:leave_management_rule).where(user: self, actor_concerned: LeaveExceptionRule.actors_concerned["backup_receiver"]).map{|e| e.leave_management_rule.project_id}
 
 				return Project.where(id: project_ids_leave_admin | project_ids_member | project_ids_leave_backup)
@@ -394,13 +394,11 @@ module RedmineLeavesHolidays
 			# Even if backup and indirect options are not selected, if the user effectively acts as a backup, or indirect users must be managed, those users will anyway be included in the list.
 			def manage_users_summary(date = Date.today, options={})
 				manage_full_list = self.manage_users_with_backup
-				users = []
+
 				managers_list = manage_full_list[:directly].map{|h| h[:managers]} + manage_full_list[:directly].map{|h| h[:backups]} + manage_full_list[:indirectly].map{|h| h[:managers]} + manage_full_list[:indirectly].map{|h| h[:backups]}
 
 				managers_list = managers_list.flatten.uniq - [self]
 				managers_on_leave_ids = LeaveRequest.are_on_leave(managers_list.map(&:id), date)
-
-				users << manage_full_list[:directly].map{|h| h[:managed]}
 
 				managed_directly = manage_full_list[:directly].select{|h| (self.in?(h[:managers]) || (options[:backup] && self.in?(h[:backups])) || (self.in?(h[:backups]) && (h[:managers].map(&:id) - managers_on_leave_ids).empty?))}.map{|h| h[:managed]}
 
@@ -408,7 +406,30 @@ module RedmineLeavesHolidays
 
 				managed_indirectly = manage_full_list[:indirectly].select{|h| options[:indirect] || ((h[:managers].map(&:id) + h[:backups].map(&:id)).flatten.uniq - managers_on_leave_ids).empty?  }.map{|h| h[:managed]}
 
-				return (managed_directly + managed_indirectly).flatten.uniq
+
+				# project.users_managed_by_leave_admin
+				managed_as_admin = []
+				self.leave_admin_projects.each do |project|
+					managed_as_admin << project.users_managed_by_leave_admin
+					managed_as_admin << project.users.can_create_leave_request.not_contractor.to_a if options[:indirect]
+				end
+
+				list = (managed_directly + managed_indirectly + managed_as_admin).flatten.uniq
+				list -= [self] unless self.can_self_approve_requests?
+				list -= LeavesHolidaysLogic.plugin_admins_users unless self.is_system_leave_admin?
+				return list
+			end
+
+			def is_consulted_for_user?(user)
+				return self.consulted_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
+			end
+
+			def is_notified_from_user?(user)
+				return self.notified_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
+			end
+
+			def is_managing_user?(user)
+				return user.in?(self.manage_users_summary(Date.today, {indirect: true, backup: true}))
 			end
 
 		end

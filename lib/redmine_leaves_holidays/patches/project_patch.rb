@@ -33,8 +33,14 @@ module RedmineLeavesHolidays
         Project.where(id: self.id).system_leave_projects.any?
       end
 
+      # used in lmr helper
       def role_list
         return self.users_by_role.keys.sort
+      end
+
+      # used in lmr helper
+      def user_list
+        return self.users.sort
       end
 
       def roles_for_user(user)
@@ -60,6 +66,7 @@ module RedmineLeavesHolidays
         return users_role
       end
 
+      # returns users who can create leave requests, not contractors, who manage people but who are not managed.
       def users_managed_by_leave_admin
         users_leave_ids = self.users.can_create_leave_request.not_contractor.pluck(:id)
         lmr = self.leave_management_rules.where(action: LeaveManagementRule.actions["is_managed_by"])

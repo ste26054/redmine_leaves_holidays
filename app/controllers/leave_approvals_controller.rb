@@ -124,7 +124,7 @@ class LeaveApprovalsController < ApplicationController
 
   # TO_CHECK
   def authenticate
-    render_403 unless LeavesHolidaysLogic.user_has_any_manage_right(@user)
+    render_403 unless @user.can_manage_leave_requests || @user.can_be_consulted_leave_requests || @user.can_be_notified_leave_requests
   end
 
   def set_user
