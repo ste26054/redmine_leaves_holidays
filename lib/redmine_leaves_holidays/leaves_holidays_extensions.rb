@@ -2,9 +2,9 @@ module LeavesHolidaysExtensions
 	refine User do
 		
 
-		def memberships
-			super.where.not(project_id: LeavesHolidaysLogic.disabled_project_list)
-		end
+		# def memberships
+		# 	super.where.not(project_id: LeavesHolidaysLogic.disabled_project_list)
+		# end
 
 		def allowed_to?(action, context, options={}, &block)
 		    if context && context.is_a?(Project)

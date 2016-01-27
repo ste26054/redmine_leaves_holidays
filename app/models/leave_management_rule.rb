@@ -55,6 +55,14 @@ class LeaveManagementRule < ActiveRecord::Base
     return {rule: self, user_senders: actor_list('sender'), action: self.action, user_receivers: actor_list('receiver'), backup_list: backup_list}
   end
 
+  def to_users_summary(options={})
+    users = []
+    users << actor_list('sender')
+    users << actor_list('receiver')
+    users << backup_list if options[:backup]
+    return users.flatten.uniq
+  end
+
   def backup_list
     return self.leave_exception_rules.includes(:user).where(actor_concerned: LeaveExceptionRule.actors_concerned['backup_receiver']).map(&:user).flatten
   end

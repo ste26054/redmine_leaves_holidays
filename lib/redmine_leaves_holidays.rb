@@ -6,6 +6,7 @@ Rails.configuration.to_prepare do
   require 'redmine_leaves_holidays/leaves_holidays_extensions'
 
   require 'redmine_leaves_holidays/leaves_holidays_logic'
+  require 'redmine_leaves_holidays/leaves_holidays_permissions'
   require 'redmine_leaves_holidays/leaves_holidays_dates'
   require 'redmine_leaves_holidays/leaves_holidays_triggers'
   require 'redmine_leaves_holidays/leaves_holidays_managements'

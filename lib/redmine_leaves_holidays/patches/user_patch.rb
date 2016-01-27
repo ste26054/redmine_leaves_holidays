@@ -91,8 +91,6 @@ module RedmineLeavesHolidays
 			include LeavesCommonUserRole
 
 			def leave_preferences
-				#return @leave_preferences if @leave_preferences
-				#return @leave_preferences = 
 				return LeavePreference.find_by(user_id: self.id) || LeavesHolidaysLogic.get_default_leave_preferences(self)
 			end
 
@@ -229,15 +227,15 @@ module RedmineLeavesHolidays
 			end
 
 			def can_be_consulted_leave_requests
-				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults').empty?
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults').any?
 			end
 
 			def can_be_notified_leave_requests
-				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').empty?
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').any? || LeavesHolidaysLogic.has_view_all_rights(self)
 			end
 
 			def can_be_notified_leave_requests_project(project)
-				!LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).empty?
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).any?
 			end
 
 			def can_create_leave_requests
@@ -246,7 +244,7 @@ module RedmineLeavesHolidays
 			end
 
 			# Used in init.rb to check whether user has a link to the plugin displayed
-			def has_leave_plugin_access
+			def has_leave_plugin_access?
 				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
 			end
 
@@ -358,6 +356,12 @@ module RedmineLeavesHolidays
 				return self.in?(project.get_leave_administrators[:users])
 			end
 
+			# returns project list where the user is actually a leave admin
+			def leave_admin_projects
+				projects = Project.system_leave_projects
+				return LeavesHolidaysLogic.leave_administrators_for_projects(projects.to_a).select{|k,v| self.in?(v)}.keys
+			end
+
 			# Returns all leave projects regarding a user, where:
 			# The user is a leave admin OR is a member OR is a leave backup AND
 			# The plugin leave module is enabled AND Leave management rules are enabled.
@@ -383,6 +387,28 @@ module RedmineLeavesHolidays
 				projects_managed = LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project_id)
 				return true if (projects_managed - leave_admin_projects).empty?
 				return false
+			end
+
+			# Returns the list of users who are managed by user at a given date.
+			# options are to include users managed indirectly and as a backup.
+			# Even if backup and indirect options are not selected, if the user effectively acts as a backup, or indirect users must be managed, those users will anyway be included in the list.
+			def manage_users_summary(date = Date.today, options={})
+				manage_full_list = self.manage_users_with_backup
+				users = []
+				managers_list = manage_full_list[:directly].map{|h| h[:managers]} + manage_full_list[:directly].map{|h| h[:backups]} + manage_full_list[:indirectly].map{|h| h[:managers]} + manage_full_list[:indirectly].map{|h| h[:backups]}
+
+				managers_list = managers_list.flatten.uniq - [self]
+				managers_on_leave_ids = LeaveRequest.are_on_leave(managers_list.map(&:id), date)
+
+				users << manage_full_list[:directly].map{|h| h[:managed]}
+
+				managed_directly = manage_full_list[:directly].select{|h| (self.in?(h[:managers]) || (options[:backup] && self.in?(h[:backups])) || (self.in?(h[:backups]) && (h[:managers].map(&:id) - managers_on_leave_ids).empty?))}.map{|h| h[:managed]}
+
+				managed_indirectly = []
+
+				managed_indirectly = manage_full_list[:indirectly].select{|h| options[:indirect] || ((h[:managers].map(&:id) + h[:backups].map(&:id)).flatten.uniq - managers_on_leave_ids).empty?  }.map{|h| h[:managed]}
+
+				return (managed_directly + managed_indirectly).flatten.uniq
 			end
 
 		end

@@ -50,21 +50,23 @@ module RedmineLeavesHolidays
         return members.includes(:user, :roles).where(roles: {id: role_ids}).map(&:user)
       end
 
-      def user_list
-        return self.users.sort
-      end
-
       def users_roles_managed_by_leave_admin
+        users_managed_admin = self.users_managed_by_leave_admin
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| user.is_managed_by_leave_admin?(self)}
+          v.keep_if{ |user| user.in?(users_managed_admin)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
       end
 
       def users_managed_by_leave_admin
-        return self.users.to_a.keep_if{ |user| user.is_managed_by_leave_admin?(self) }
+        users_leave_ids = self.users.can_create_leave_request.not_contractor.pluck(:id)
+        lmr = self.leave_management_rules.where(action: LeaveManagementRule.actions["is_managed_by"])
+        lmr_users = lmr.map(&:to_users)
+        user_list = lmr_users.map{|t| t[:user_senders] + t[:user_receivers]}.flatten.uniq
+        managed_user_list = lmr_users.map{|t| t[:user_senders]}.flatten.uniq
+        return (user_list - managed_user_list).select{|u| u.id.in?(users_leave_ids)}
       end
 
       def contractors_by_role_notifying_plugin_admin

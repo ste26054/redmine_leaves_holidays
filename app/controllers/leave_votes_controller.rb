@@ -81,10 +81,12 @@ class LeaveVotesController < ApplicationController
     @votes ||= LeaveVote.for_request(@leave.id)
   end
 
+  # TO_CHECK
   def authenticate
     render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, LeaveVote, params[:action].to_sym, @leave)
   end
 
+  # TO_CHECK
   def authenticate_edit
     if @vote == nil
       render_404

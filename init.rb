@@ -13,14 +13,14 @@ Redmine::Plugin.register :redmine_leaves_holidays do
   						:annual_leave_days_max => "25"}, :partial => "settings/leaves_holidays_settings"
 
 project_module :leave_management do
-  permission :view_all_leave_requests, { :leaves_requests => :view_all }
-  permission :manage_leave_requests, { :leaves_requests => :manage }
-  permission :consult_leave_requests, { :leaves_requests => :vote }
+  permission :view_all_leave_requests, { :leaves_requests => :view_all } # NOT_NEEDED
+  permission :manage_leave_requests, { :leaves_requests => :manage } # NOT_NEEDED
+  permission :consult_leave_requests, { :leaves_requests => :vote } # NOT_NEEDED
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
-  permission :create_leave_requests, { :leaves_requests => :create, :leave_timelines => :show_project }
+  permission :create_leave_requests, { :leaves_requests => :create, :leave_timelines => :show_project } # NOT_NEEDED
   permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics, :enable, :disable], :leave_administrators => [:edit, :update, :clear]}
 end
-  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current) || LeavesHolidaysLogic.has_view_all_rights(User.current) }
+  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new { User.current.has_leave_plugin_access? }
 
   menu :project_menu, :redmine_leaves_holidays, { :controller => 'leave_timelines', :action => 'show_project'},
                               :caption => :tab_leaves_timeline,

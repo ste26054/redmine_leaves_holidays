@@ -87,6 +87,7 @@ class LeavePreferencesController < ApplicationController
   	end
   end
 
+  # TO_CHECK
   def show
     render_403 unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, :show)
   end
@@ -202,6 +203,7 @@ private
     @user.preference.save
   end
 
+  # TP_CHECK
   def authenticate
     # unless action_name.in?(["index", "bulk_edit", "bulk_update", "clear_filters"])
     #   unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)

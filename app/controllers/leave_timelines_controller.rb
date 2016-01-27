@@ -12,6 +12,7 @@ class LeaveTimelinesController < ApplicationController
   before_action :find_project, only: [:show_project]
   before_action :check_clear_filters
   before_action :check_is_apply_form
+  before_action :authenticate, only: [:show]
 
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
@@ -198,6 +199,10 @@ class LeaveTimelinesController < ApplicationController
   def role_list
     role_ids = Role.all.givable.to_a
     return Role.where(id: role_ids)
+  end
+
+  def authenticate
+    render_403 unless @user.has_leave_plugin_access?
   end
 
 

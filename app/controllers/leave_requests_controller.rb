@@ -161,6 +161,7 @@ class LeaveRequestsController < ApplicationController
   	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments)
   end
 
+  # TO_CHECK
   def authenticate
     if params[:action].to_sym.in?([:index, :new, :create])
       right = LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)

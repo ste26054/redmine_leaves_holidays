@@ -25,7 +25,7 @@ class LeaveApprovalsController < ApplicationController
 
     @limit = per_page_option
 
-    @scope_initial = LeaveRequest.processable_by(@user)
+    @scope_initial = LeaveRequest.processable_by(@user) # TO_CHECK
     scope = @scope_initial
 
     @show_rejected = params[:show_rejected] || "false"
@@ -122,6 +122,7 @@ class LeaveApprovalsController < ApplicationController
 
   private
 
+  # TO_CHECK
   def authenticate
     render_403 unless LeavesHolidaysLogic.user_has_any_manage_right(@user)
   end

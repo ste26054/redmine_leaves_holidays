@@ -16,16 +16,22 @@ module LeaveRequestsHelper
 	def leaves_holidays_tabs
 		tabs = []
 
-		if LeavesHolidaysLogic::has_create_rights(@user)
+		# OK
+		if @user.can_create_leave_requests
 			tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 		end
-
+		# TO_CHECK
+		# User should be able to access management tab if:
+		# He can view all leave requests
+		# He is a plugin admin
+		# He manages people at the moment (For instance, as a temporary backup)
 		if LeavesHolidaysLogic::user_has_any_manage_right(@user) || LeavesHolidaysLogic::has_view_all_rights(@user)
 			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
 		end
 
 		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
 
+		# OK
 		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
 		end
@@ -40,9 +46,6 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_status_options_for_select_count(selected)
- 		 # options = @scope_initial.group('request_status').count.to_hash.collect {|k, v| ["#{LeaveRequest.request_statuses.key(k)} (#{v})".html_safe, k]}
- 		 # options_for_select(options, selected)
-
  		submitted_count = @scope_initial.submitted_or_processing.count
  		processed_count = @scope_initial.processed.count
 
@@ -54,7 +57,6 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_regions_options_for_select(selected)
- 			# @scope_initial.group('region').count.to_hash.keys
 	    options_for_select(@regions_initial, selected)
  	end 	
 
@@ -72,7 +74,6 @@ module LeaveRequestsHelper
  				count = @scope_initial.when(k.to_s).count
  				options << ["#{v} (#{count})".html_safe, k.to_s]
  			end
-	    # options_for_select([['Past', 'finished'], ['Present', 'ongoing'], ['Future', 'coming']], selected)
 	    options_for_select(options, selected)
  	end
 
