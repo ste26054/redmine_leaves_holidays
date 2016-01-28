@@ -228,5 +228,12 @@ module LeavesHolidaysManagements
     return snd_recv.flatten(1)
   end
 
+  def self.users_notifying_someone(projects = [])
+    projects = Project.system_leave_projects if projects.empty?
+    users = User.all.can_create_leave_request
+    list = []
+
+  end
+
 
 end

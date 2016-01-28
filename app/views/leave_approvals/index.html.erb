@@ -30,12 +30,13 @@
 	<label for='show_contractor'>Include Contractor:</label>
 	<%= check_box_tag 'show_contractor', true, @show_contractor == "true" %>
 
-	<%= link_to_function l(:button_apply), '$("#query_form").submit()',
-                     :class => 'icon icon-checked' %>
+	<%= hidden_field_tag(:apply_form, 0) %>
+  
+  <%= link_to_function l(:button_apply), '$("#apply_form").val(1); $("#query_form").submit();', { :value => "apply", :class => 'icon icon-checked'}%>
 	<%= link_to l(:button_clear), { :clear_filters => 1 }, :class => 'icon icon-reload' %>
 	</p>
 </fieldset>
 <% end %>
 <br/>
 
-<%= render 'tab_approvals', leave_approvals: @leave_approvals, leave_pages: @leave_pages, leave_count: @leave_count %>
+<%= render 'tab_approvals', leave_approvals: @leave_approvals, leave_pages: @leave_pages, leave_count: @leave_count, users_managed: @users_managed, users_consulted: @users_consulted, users_notified:  @users_notified  %>

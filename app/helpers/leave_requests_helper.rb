@@ -85,7 +85,10 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_users_options_for_select(selected)
- 		options = @scope_initial.group('user').count.to_hash.collect {|k, v| [k.lastname, "#{k.name} (#{v})".html_safe, k.id]}.sort_by{|a| a.first}.map{|a| a.drop(1)}
+ 		users_leave_count = @scope_initial.group(:user_id).count
+
+ 		options = @users_initial_viewable.sort_by(&:name).map {|u| count = users_leave_count[u.id] || 0;
+ 			["#{u.name} (#{count})", u.id]}
 
  		options_for_select(options, selected)
  	end
@@ -130,14 +133,14 @@ module LeaveRequestsHelper
  			str += ' '.html_safe + image_tag('group.png').html_safe
  		elsif user.is_project_leave_admin?(project)
  			str += ' '.html_safe + image_tag('user.png').html_safe
- 			if user.is_managed?
+ 			if user.is_rule_managed?
  				str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  			end
  		elsif user.is_contractor
  			str += ' '.html_safe + image_tag('hourglass.png', :size => '12x12').html_safe
- 		elsif user.is_managed_in_project?(project)
+ 		elsif user.is_rule_managed_in_project?(project)
  			str +=  ' '.html_safe + checked_image.html_safe
- 		elsif user.is_managed?
+ 		elsif user.is_rule_managed?
  			str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  		else
  			str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe

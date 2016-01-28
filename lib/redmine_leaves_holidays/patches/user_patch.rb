@@ -253,12 +253,37 @@ module RedmineLeavesHolidays
 
 
 			# If user is a leave admin, then he is managed
-			def is_managed_in_project?(project)
+			def is_rule_managed_in_project?(project)
 				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by', project).any?
 			end
 
-			def is_managed?
+			def is_rule_managed?
 				LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').any?
+			end
+
+			def is_managing?
+				return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', [], [], true).any?
+			end
+
+			# Will tell if user leave requests will reach someone, cross project
+			# If a user manages people, but is not managed by anyone, he is managed by the leave administrators
+			# If a user is a contractor, and he notifies at least someone
+			# If a user is explicitely managed by someone
+			# If a user is a leave administrator, who can self approve his leave
+			def is_notifying_people?
+				return false unless self.can_create_leave_requests
+				if self.is_contractor
+					return self.notify_rules.any?
+				else
+					return true if self.can_self_approve_requests?
+					if self.is_rule_managed?
+						return true
+					else
+						# If the user is managing someone, we assume he is managed by the leave admin if not by someone else
+						return true if self.is_managing?
+						return false
+					end
+				end
 			end
 
 			# A user is managed by a leave admin only if
@@ -268,7 +293,7 @@ module RedmineLeavesHolidays
       # - He manages people in the project, and does not appear only as a leave backup
       # - He is not managed by anybody in the project
 			def is_managed_by_leave_admin?(project)
-				return self.can_create_leave_requests && !self.is_managed_in_project?(project) && self.leave_manages_project?(project, false) && !self.is_contractor && !self.is_leave_admin?(project) && !self.is_system_leave_admin?
+				return self.can_create_leave_requests && !self.is_rule_managed_in_project?(project) && self.leave_manages_project?(project, false) && !self.is_contractor && !self.is_leave_admin?(project) && !self.is_system_leave_admin?
 			end
 
 
@@ -420,18 +445,37 @@ module RedmineLeavesHolidays
 				return list
 			end
 
+			def viewable_user_list
+				return (self.managed_user_list + self.consulted_user_list + self.notified_user_list).flatten.uniq
+			end
+
+			def managed_user_list
+				return [] unless self.can_manage_leave_requests
+				return self.manage_users_summary(Date.today, {indirect: true, backup: true})
+			end
+
+			def consulted_user_list
+				return [] unless self.can_be_consulted_leave_requests
+				return self.consulted_rules.flatten.map(&:to_users).map{|t| t[:user_senders]}.flatten.uniq
+			end
+
+			def notified_user_list
+				return [] unless self.can_be_notified_leave_requests
+				return self.leave_projects.map{|p| p.users.can_create_leave_request}.flatten.uniq if LeavesHolidaysLogic.has_view_all_rights(self)
+				return self.notified_rules.flatten.map(&:to_users).map{|t| t[:user_senders]}.flatten.uniq
+			end
+
 			def is_consulted_for_user?(user)
-				return self.consulted_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
+				return self.can_be_consulted_leave_requests && self.consulted_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
 			end
 
 			def is_notified_from_user?(user)
-				return self.notified_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
+				return LeavesHolidaysLogic.has_view_all_rights(self) || self.can_be_notified_leave_requests && self.notified_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?
 			end
 
 			def is_managing_user?(user)
-				return user.in?(self.manage_users_summary(Date.today, {indirect: true, backup: true}))
+				return self.can_manage_leave_requests && user.in?(self.manage_users_summary(Date.today, {indirect: true, backup: true}))
 			end
-
 		end
 	end
 end

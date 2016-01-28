@@ -17,11 +17,15 @@ module LeavesCommonUserRole
   end
 
   def consulted_rules
-    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'consults')
+    return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults')
   end
 
   def notified_rules
-    return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'notifies_approved')
+    return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved')
+  end
+
+  def notify_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'notifies_approved')
   end
 
   def manage_users_project(project)

@@ -3,6 +3,7 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
+  include LeavesHolidaysPermissions
 
   before_action :set_user
   before_action :set_leave_preferences
@@ -88,6 +89,9 @@ class LeaveRequestsController < ApplicationController
   end
 
   def show
+    @auth_view_metrics = @is_consulted || @is_notified || @is_managing || @has_view_all_rights
+    @auth_manage = @is_managing
+    @auth_consult = authenticate_leave_votes({action: :new})
   end
 
   def edit
@@ -169,29 +173,9 @@ class LeaveRequestsController < ApplicationController
   	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments)
   end
 
-  # TO_CHECK
   def authenticate
-    # if params[:action].to_sym.in?([:index, :new, :create])
-    #   right = LeavesHolidaysLogic.has_right(@user, @user, LeaveRequest, params[:action].to_sym)
-    #   if !right && LeavesHolidaysLogic.has_view_all_rights(@user)
-    #     redirect_to leave_approvals_path and return
-    #   end
-    #   render_403 unless right
-    # else
-    #   render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, @leave, params[:action].to_sym)
-    # end
-
-    case params[:action].to_sym
-    when :index
-      @user.can_create_leave_requests
-    when :new, :create
-      @user.can_create_leave_requests
-    when :submit, :unsubmit, :edit, :update, :destroy
-      @user == @leave.user
-    when :show
-      @user == @leave.user
-    end
-
+    @auth_leave = authenticate_leave_request(params)
+    render_403 unless @auth_leave
   end
 
   def set_user

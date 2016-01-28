@@ -21,9 +21,10 @@
 			</tr></thead>
 			<tbody>
 				<% for req in leave_approvals -%>
+					<% req_user = req.user %>
 					<tr class="<%= cycle("odd", "even") %> <%= req.css_classes(true) %>">
 					<td class="id"><%= req.id %></td>
-					<td><%= link_to req.user.name, user_path(req.user) %></td>
+					<td><%= link_to req.user.name, user_path(req_user) %></td>
 					<td><%= req.region %></td>
 					<td class="created_at"><%= format_date(req.created_at.to_date) %></td>
 					<td><%= req.actual_leave_days %></td>
@@ -48,8 +49,8 @@
 						<% else %>
 							<td><%= req.get_days_remaining_with.round(1) %>d</td>
 						<% end %>
-						<% lptd = req.user.leave_period_to_date %>
-						<td   title="from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>"><%= req.user.days_accumulated.round(1) %>d</td>
+						<% lptd = req_user.leave_period_to_date %>
+						<td   title="from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>"><%= req_user.days_accumulated.round(1) %>d</td>
 					<% else %>
 						<% tdata = "Data is not available because the leave associated is not within the user current leave period" %>
 						<td title="<%= tdata %>" style="cursor: help;">-</td>
@@ -57,11 +58,13 @@
 					<% end %>
 					
 					<td class="buttons">
+					<% #users_managed users_consulted users_notified
+					%>
 						<%= link_to 'Details', req, :class => 'icon icon-details' %>
-						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveStatus, [:create, :update], req, :or) %>
+						<% if req_user.in?(users_managed) %>
 							<%= link_to 'Manage', new_leave_request_leave_status_path(req), :class => 'icon icon-edit' %>
 						<% end %>
-						<% if LeavesHolidaysLogic.has_rights(User.current, req.user, LeaveVote, [:create, :update], req, :or) %>
+						<% if req_user.in?(users_consulted)	%>
 							<% if (req.request_status == "submitted" || req.request_status == "processing") %>
 							<%= link_to 'Consult', new_leave_request_leave_vote_path(req), :class => 'icon icon-edit' %>
 							<% end %>

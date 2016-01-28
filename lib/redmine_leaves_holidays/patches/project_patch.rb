@@ -100,18 +100,20 @@ module RedmineLeavesHolidays
       end
 
       def users_by_role_who_can_create_leave_requests
+        users_can_create_leave = self.users.can_create_leave_request
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| user.can_create_leave_requests}
+          v.keep_if{ |user| user.in?(users_can_create_leave) }
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
       end
 
       def users_by_role_who_cant_create_leave_requests
+        users_can_create_leave = self.users.can_create_leave_request
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| !user.can_create_leave_requests}
+          v.keep_if{ |user| !user.in?(users_can_create_leave)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
@@ -121,7 +123,7 @@ module RedmineLeavesHolidays
         return LeaveAdministrator.where(project: self)
       end
 
-      # Returns leave administrators for current project. If no leave administrator explicitly set, returns system leave administrators
+      # Returns leave administrators for current project. If no leave administrator is explicitly set, returns the system leave administrators
       def get_leave_administrators
         obj = {users: [], project_defined: false}
         users = self.leave_administrators.includes(:user).map{|l| l.user}

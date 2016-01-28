@@ -9,7 +9,7 @@
     <% unless leave_admins[:project_defined] %>
        <h3 style="color: red">Project members managed by the system leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% else %>
-       <h3>Project members managed by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
+       <h3>Project members managed directly by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% end %>
 
     <% managed_by_leave_admin_people.keys.sort.each do |role| %>

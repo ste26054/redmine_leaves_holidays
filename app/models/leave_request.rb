@@ -85,21 +85,12 @@ class LeaveRequest < ActiveRecord::Base
 
     leave_list = LeaveRequest.where.not(request_status: 0).includes(:user)
 
-    user_list = LeavesHolidaysLogic.users_leave_approval_list(user, leave_list.map(&:user).uniq)
+    user_list = user.viewable_user_list
 
     leave_list.where(user_id: user_list.map(&:id))
   }
 
   scope :pending_or_accepted, -> { not_rejected.where.not(request_status: "0") }
-
-  # TO CHECK
-  scope :viewable_by, ->(uid) {
-    user = User.find(uid)
-    processed_ids = processed.pluck(:id)
-    processed_ids.delete_if { |id| leave = LeaveRequest.find(id) 
-                                return !(LeavesHolidaysLogic.has_right(user, leave.user, LeaveRequest, :read, leave))}
-    where(id: processed_ids)
-  }
 
   scope :status, lambda {|arg| where(arg.blank? ? nil : {:request_status => arg}) }
   
@@ -124,6 +115,12 @@ class LeaveRequest < ActiveRecord::Base
     user_list_lp = includes(user: :leave_preference).map(&:user).uniq.keep_if{|u| u.leave_preference }.map(&:id)
     uid_contractors = LeavePreference.where(user_id: user_list_lp, is_contractor: true).pluck(:user_id)
     where.not(user_id: uid_contractors)
+  }
+
+  scope :from_contractors, -> {
+    user_list_lp = includes(user: :leave_preference).map(&:user).uniq.keep_if{|u| u.leave_preference }.map(&:id)
+    uid_contractors = LeavePreference.where(user_id: user_list_lp, is_contractor: true).pluck(:user_id)
+    where(user_id: uid_contractors)
   }
 
 

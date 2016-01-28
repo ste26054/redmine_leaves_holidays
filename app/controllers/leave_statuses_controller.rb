@@ -68,11 +68,15 @@ class LeaveStatusesController < ApplicationController
       @votes ||= LeaveVote.for_request(@leave.id)
   end
 
-  # TO_CHECK
   def authenticate
-    unless (@status != nil && params[:action].to_sym == :new)
-      render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveStatus, params[:action].to_sym, @leave)
+    auth = false
+    case params[:action].to_sym
+    when :new, :create, :show, :edit, :update
+      auth = User.current.is_managing_user?(@leave.user)
     end
+
+    render_403 unless auth
+
   end
 
 end
