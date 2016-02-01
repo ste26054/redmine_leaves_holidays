@@ -1,5 +1,6 @@
 module LeaveRequestsHelper
 	include LeavesHolidaysLogic
+	include LeavesHolidaysPermissions
 
 	def render_leave_tabs(tabs, selected=params[:tab])
 	    if tabs.any?
@@ -15,17 +16,14 @@ module LeaveRequestsHelper
 
 	def leaves_holidays_tabs
 		tabs = []
-		can_create_leave_requests = @user.can_create_leave_requests
-		# OK
+
+		can_create_leave_requests = authenticate_leave_request({action: :index})
+
 		if can_create_leave_requests
 			tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 		end
-		# TO_CHECK
-		# User should be able to access management tab if:
-		# He can view all leave requests
-		# He is a plugin admin
-		# He manages people at the moment (For instance, as a temporary backup)
-		if  @user.can_manage_leave_requests || @user.can_be_consulted_leave_requests || @user.can_be_notified_leave_requests
+
+		if  authenticate_leave_status({action: :index})
 			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
 		end
 
@@ -33,8 +31,8 @@ module LeaveRequestsHelper
 			tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
 		end
 
-		# OK
-		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
+
+		if authenticate_leave_preferences({action: :index})
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
 		end
 

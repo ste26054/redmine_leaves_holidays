@@ -1,7 +1,5 @@
 <h3>Leave Approval Checks for User <%= @user_pref.name %> <small><%= link_to 'Edit user leave preferences', new_user_leave_preference_path(@user_pref), :class => "icon icon-edit" %></small></h3>
 
-<% plugin_admins_users =  LeavesHolidaysLogic.plugin_admins_users.map(&:name) %>
-
 <% projects = @user_pref.projects %>
 <% leave_projects = @user_pref.leave_projects %>
 <% is_contractor = @user_pref.is_contractor %>

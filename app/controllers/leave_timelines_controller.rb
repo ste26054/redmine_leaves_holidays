@@ -13,6 +13,7 @@ class LeaveTimelinesController < ApplicationController
   before_action :check_clear_filters
   before_action :check_is_apply_form
   before_action :authenticate, only: [:show]
+  before_action :set_viewable_users_leave
 
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
@@ -113,8 +114,12 @@ class LeaveTimelinesController < ApplicationController
 
   private
 
+  def set_viewable_users_leave
+    @viewable_users = @user.viewable_user_list
+  end
+
   def set_user
-    @user ||= User.current
+    @user = User.current
   end
 
   def find_project

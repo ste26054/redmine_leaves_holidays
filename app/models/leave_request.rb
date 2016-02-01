@@ -79,7 +79,6 @@ class LeaveRequest < ActiveRecord::Base
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
 
-  # TO CHECK
   scope :processable_by, ->(user) {
     ids = []
 
@@ -128,10 +127,6 @@ class LeaveRequest < ActiveRecord::Base
     return self.request_status unless self.request_status == "processed"
     return self.leave_status.acceptance_status
   end
-
-  # def get_days(arg)
-  #   LeavesHolidaysDates.get_days(arg, self.user, self)
-  # end
 
   def get_days_remaining_with
     remaining = self.user.days_remaining(from_date)
@@ -228,14 +223,17 @@ class LeaveRequest < ActiveRecord::Base
     return !self.is_non_deduce_leave && self.get_status.in?(["submitted", "processing", "accepted"])
   end
 
+  # TO_CHECK
   def vote_list_left
     @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
   end
 
+  #TO_CHECK
   def vote_list
     @vote_list ||= LeavesHolidaysLogic.vote_list(self.user)
   end
 
+  #TO_CHECK
   def manage_list
     @manage_list ||= LeavesHolidaysLogic.manage_list(self.user)
   end

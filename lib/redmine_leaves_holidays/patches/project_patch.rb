@@ -72,8 +72,8 @@ module RedmineLeavesHolidays
         lmr = self.leave_management_rules.where(action: LeaveManagementRule.actions["is_managed_by"])
         lmr_users = lmr.map(&:to_users)
         user_list = lmr_users.map{|t| t[:user_senders] + t[:user_receivers]}.flatten.uniq
-        managed_user_list = lmr_users.map{|t| t[:user_senders]}.flatten.uniq
-        return (user_list - managed_user_list).select{|u| u.id.in?(users_leave_ids)}
+        manages_user_list = lmr_users.map{|t| t[:user_senders]}.flatten.uniq
+        return (user_list - manages_user_list).select{|u| u.id.in?(users_leave_ids)}
       end
 
       def contractors_by_role_notifying_plugin_admin

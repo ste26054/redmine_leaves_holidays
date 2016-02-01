@@ -67,7 +67,7 @@ class LeaveRequestsController < ApplicationController
       render_403
       return
     else
-      if (LeavesHolidaysLogic.user_params(@leave.user, :is_contractor) || @leave.is_non_approval_leave || LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id))
+      if LeavesHolidaysLogic.user_params(@leave.user, :is_contractor) || @leave.is_non_approval_leave || @leave.user.can_self_approve_requests?
         @leave.manage({acceptance_status: "accepted", comments: "AUTO_APPROVED"})
       else
         @leave.update_attribute(:request_status, "submitted")
@@ -90,7 +90,7 @@ class LeaveRequestsController < ApplicationController
 
   def show
     @auth_view_metrics = @is_consulted || @is_notified || @is_managing || @has_view_all_rights
-    @auth_manage = @is_managing
+    @auth_manage = authenticate_leave_status({action: :new})
     @auth_consult = authenticate_leave_votes({action: :new})
   end
 
@@ -133,7 +133,7 @@ class LeaveRequestsController < ApplicationController
   protected
 
   def info_flash
-    if LeavesHolidaysLogic.plugin_admins.include?(@leave.user.id)
+    if @leave.user.can_self_approve_requests?
       flash[:notice] = "As you are an administrator, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
     elsif LeavesHolidaysLogic.user_params(@leave.user, :is_contractor)
       flash[:notice] = "As you are a Contractor, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
@@ -179,7 +179,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def set_user
-    @user ||= User.current
+    @user = User.current
   end
 
   def set_leave_preferences

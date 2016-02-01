@@ -58,8 +58,6 @@
 					<% end %>
 					
 					<td class="buttons">
-					<% #users_managed users_consulted users_notified
-					%>
 						<%= link_to 'Details', req, :class => 'icon icon-details' %>
 						<% if req_user.in?(users_managed) %>
 							<%= link_to 'Manage', new_leave_request_leave_status_path(req), :class => 'icon icon-edit' %>

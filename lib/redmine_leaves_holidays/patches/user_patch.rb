@@ -399,11 +399,6 @@ module RedmineLeavesHolidays
 				return Project.where(id: project_ids_leave_admin | project_ids_member | project_ids_leave_backup)
 			end
 
-			# Returns true if given user acts as a backup on the given date
-			def is_actually_leave_backup?(date = Date.today)
-				#TODO
-			end
-
 			# A user who is a project leave administrator can self approve his own requests only if he is not managed anywhere
 			def can_self_approve_requests?
 				# return false anyway if user is not a leave admin
@@ -445,25 +440,76 @@ module RedmineLeavesHolidays
 				return list
 			end
 
-			def viewable_user_list
-				return (self.managed_user_list + self.consulted_user_list + self.notified_user_list).flatten.uniq
+			def managed_users_summary(date = Date.today, options={})
+				managed_full_list = self.managed_users_with_backup
+
+				managers_list = managed_full_list[:directly].map{|h| h[:managers]} + managed_full_list[:directly].map{|h| h[:backups]} + managed_full_list[:indirectly].map{|h| h[:managers]} + managed_full_list[:indirectly].map{|h| h[:backups]}
+
+				managers_list = managers_list.flatten.uniq - [self]
+				managers_on_leave_ids = LeaveRequest.are_on_leave(managers_list.map(&:id), date)
+
+				managing_directly = managed_full_list[:directly].select{|h| (self.in?(h[:managers]) || (options[:backup] && self.in?(h[:backups])) || (self.in?(h[:backups]) && (h[:managers].map(&:id) - managers_on_leave_ids).empty?))}.map{|h| h[:managers]}
+
+				managing_indirectly = []
+
+				managing_indirectly = managed_full_list[:indirectly].select{|h| options[:indirect] || ((h[:managers].map(&:id) + h[:backups].map(&:id)).flatten.uniq - managers_on_leave_ids).empty?  }.map{|h| h[:managers]}
+
+
+				managed_as_admin = []
+				self.leave_admin_projects.each do |project|
+					managed_as_admin << project.users_managed_by_leave_admin
+					managed_as_admin << project.users.can_create_leave_request.not_contractor.to_a if options[:indirect]
+				end
+
+				list = (managing_directly + managing_indirectly + managed_as_admin).flatten.uniq
+				list -= [self] unless self.can_self_approve_requests?
+				list -= LeavesHolidaysLogic.plugin_admins_users unless self.is_system_leave_admin?
+				return list
 			end
 
-			def managed_user_list
+			# Leave Requests - Receiver Part
+
+			def viewable_user_list
+				return (self.manages_user_list + self.consulted_user_list + self.notified_user_list).flatten.uniq
+			end
+
+			# receiver manages senders
+			def manages_user_list
 				return [] unless self.can_manage_leave_requests
 				return self.manage_users_summary(Date.today, {indirect: true, backup: true})
 			end
 
+			# receiver is consulted for approval from senders
 			def consulted_user_list
 				return [] unless self.can_be_consulted_leave_requests
 				return self.consulted_rules.flatten.map(&:to_users).map{|t| t[:user_senders]}.flatten.uniq
 			end
 
+			# receiver is notified from senders approved leave requests
 			def notified_user_list
 				return [] unless self.can_be_notified_leave_requests
 				return self.leave_projects.map{|p| p.users.can_create_leave_request}.flatten.uniq if LeavesHolidaysLogic.has_view_all_rights(self)
 				return self.notified_rules.flatten.map(&:to_users).map{|t| t[:user_senders]}.flatten.uniq
 			end
+
+			# Leave Requests - Sender Part
+
+			# sender is managed by receivers
+			def managed_user_list
+
+			end
+
+			#sender consults for approval receivers
+			def consults_user_list
+
+			end
+
+			#sender notifies for approved receivers
+			def notifies_user_list
+
+			end
+
+			###
 
 			def is_consulted_for_user?(user)
 				return self.can_be_consulted_leave_requests && self.consulted_rules.flatten.map(&:to_users).select{|lmr| user.in?(lmr[:user_senders])}.any?

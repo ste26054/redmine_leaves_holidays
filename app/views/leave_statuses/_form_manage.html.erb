@@ -1,25 +1,28 @@
 
-
-
 <h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
-<p>Leave (<%= leave.issue.subject %>) from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
+
+<% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
+<div class="splitcontentleft">
+<div class="box">
+
+<p><%= leave.issue.subject %> from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
 <% unless leave.comments.empty? %>
 	<p>
 		User comments: <%= leave.comments %>
 	</p>
 <% end %>
-<% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
-
-<fieldset>
 <% if !roles.empty? %>
 	<p>You are managing this request as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
 
 	<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
 <% end %>
 
-
 <%= form_for [leave, status], :url => leave_request_leave_status_path do |f| %>
-	
+
+
+
+<hr/>
+	<fieldset>
 	<% if status.errors.any? %>
 		<div class="flash">
 			<ul>
@@ -49,6 +52,14 @@
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 </fieldset>
 
+
+</div></div>
+
+	<div id="splitcontentright">
+		<%= render partial: '/leave_requests/details_metrics', locals: {user: leave.user} %>
+	</div>
+
+<hr/>
 <% if User.current.id != leave.user.id %>
 
 	<% if !leave.manage_list.empty? %>
@@ -95,3 +106,4 @@
 	<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
 	</fieldset>
 <% end %>
+

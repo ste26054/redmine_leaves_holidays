@@ -1,11 +1,8 @@
-
-
-
-
 <% if @auth_view_metrics %>
 	<%= render partial: 'details_metrics', locals: {user: @leave.user} %>
 <% end %>
-
+<div class="splitcontentleft">
+<div class="box">
 <%= render partial: 'details_leave', locals: {leave: @leave} %>
 
 <% if @leave.request_status == "processed" %>
@@ -26,7 +23,7 @@
 	| <%= link_to 'Consult', new_leave_request_leave_vote_path(@leave) %>
 <% end %>
 
-<% if (@auth_manage || @auth_consult) && @leave.request_status == "processed"  %>
+<% if (@auth_manage || @auth_consult) && @leave.request_status == "processed" && LeaveVote.for_request(@leave.id).any?  %>
 | <%= link_to 'Consultative Results', leave_request_leave_votes_path(@leave) %>
 <% end %>
 
@@ -41,3 +38,5 @@
 <% if @user == @leave.user && @leave.request_status != "cancelled" && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
 | <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' }, :class => 'icon icon-del' %>
 <% end %>
+</div>
+</div>

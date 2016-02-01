@@ -3,6 +3,7 @@ class LeaveApprovalsController < ApplicationController
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
+  include LeavesHolidaysPermissions
 
   helper :leave_requests
   include LeaveRequestsHelper
@@ -26,7 +27,7 @@ class LeaveApprovalsController < ApplicationController
 
     @limit = per_page_option
 
-    @users_initial_managed = @user.managed_user_list
+    @users_initial_managed = @user.manages_user_list
     @users_initial_consulted = @user.consulted_user_list
     @users_initial_notified = @user.notified_user_list
 
@@ -141,13 +142,14 @@ class LeaveApprovalsController < ApplicationController
 
   private
 
-  # OK
   def authenticate
-    render_403 unless @user.can_manage_leave_requests || @user.can_be_consulted_leave_requests || @user.can_be_notified_leave_requests
+    @auth_status = authenticate_leave_status({action: :index})
+
+    render_403 unless @auth_status
   end
 
   def set_user
-    @user ||= User.current
+    @user = User.current
   end
 
   def remove_filters

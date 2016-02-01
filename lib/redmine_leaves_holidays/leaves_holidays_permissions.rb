@@ -37,4 +37,29 @@ module LeavesHolidaysPermissions
     return auth
   end
 
+  def authenticate_leave_status(params={})
+    auth = false
+    case params[:action].to_sym
+    when :new, :create, :show, :edit, :update
+      auth = @user.is_managing_user?(@leave.user) && !@leave.request_status.in?(["created", "cancelled"])
+    when :index
+      auth = @user.can_manage_leave_requests || @user.can_be_consulted_leave_requests || @user.can_be_notified_leave_requests
+    end
+
+    return auth
+  end
+
+  def authenticate_leave_preferences(params={})
+    auth = false
+
+    case params[:action].to_sym
+      when :index, :new, :create, :edit, :bulk_edit, :bulk_update, :update, :destroy, :notification, :manage_pending_days, :clear_filters
+        auth = @user.allowed_to?(:manage_user_leave_preferences, nil, :global => true)
+      when :show
+        auth = @user == @user_pref || @user.allowed_to?(:manage_user_leave_preferences, nil, :global => true)
+    end
+
+    return auth
+  end
+
 end
