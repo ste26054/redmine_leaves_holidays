@@ -60,7 +60,7 @@
 			<%= f.select :can_create_leave_requests, options, :include_blank => l(:label_no_change_option)  %>
 		</p>
 
-		<p><%= f.submit "Submit" %> | <a href="javascript:history.back()"><%= l(:button_back) %></a> </p>
+		<p><%= f.submit "Submit" %> | <%= link_to 'Back to leave preferences', leave_preferences_path %> </p>
 
 <% end %>
 </div>

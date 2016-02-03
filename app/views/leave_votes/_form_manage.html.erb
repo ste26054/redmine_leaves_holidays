@@ -7,12 +7,11 @@
 	</p>
 <% end %>
 
-<% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 2) %>
-
+<% projects = leave.vote_list.delete_if{|k,v| !User.current.in?(v)}.keys %>
 
 <fieldset>
-<p>You are being consulted as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
-<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
+<p>You are being consulted as:<strong> <%= projects.map{|p| p.roles_for_user(User.current)}.flatten.map(&:name).uniq.join(', ') %></strong></p>
+<p>For the Projects:<strong> <%= projects.uniq.join(', ') %></strong></p>
 
 <%= form_for [leave, vote] do |f| %>
 	

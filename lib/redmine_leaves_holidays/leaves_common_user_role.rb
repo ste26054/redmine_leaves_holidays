@@ -20,6 +20,10 @@ module LeavesCommonUserRole
     return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults')
   end
 
+  def consult_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'consults')
+  end
+
   def notified_rules
     return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved')
   end
@@ -169,8 +173,8 @@ module LeavesCommonUserRole
       managed_users[project] ||= []
 
       rules.each do |rule|
-        managed_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}}
-        managed_users[project] << rule[:backup_list].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}} if rule[:backup_list].any?
+        managed_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave), is_backup: false}}
+        managed_users[project] << rule[:backup_list].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave), is_backup: true}} if rule[:backup_list].any?
       end
       
     end

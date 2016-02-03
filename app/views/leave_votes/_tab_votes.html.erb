@@ -12,7 +12,8 @@
 				</tr></thead>
 			<tbody>
 				<% for vote in votes -%>
-					<% roles = LeavesHolidaysLogic.allowed_common_project(vote.user, leave.user, 2) %>
+					<% roles = []# LeavesHolidaysLogic.allowed_common_project(vote.user, leave.user, 2) 
+					%>
 					<tr class="<%= cycle("odd", "even") %>">
 					<td><%= link_to vote.user.name, user_path(vote.user) %></td>
 					<td><%= vote.vote %></td>

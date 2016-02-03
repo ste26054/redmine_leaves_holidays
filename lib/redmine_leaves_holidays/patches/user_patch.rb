@@ -209,10 +209,6 @@ module RedmineLeavesHolidays
 			# returns the list of projects where the user has a direct leave management rule set 
 			def leave_managed_projects
 				return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'is_managed_by').map(&:project).uniq
-			end			
-
-			def leave_managed_projects_new
-				return LeavesHolidaysManagements.management_rules_list_new(self, 'sender', 'is_managed_by').map(&:project).uniq
 			end
 
 			# Set of "permissions" based on rules set in the different projects
@@ -221,20 +217,12 @@ module RedmineLeavesHolidays
 				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by').any? || self.is_leave_admin?
 			end
 
-			def can_manage_leave_requests_project(project)
-				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', project).any? || self.is_leave_admin?(project)
-			end
-
 			def can_be_consulted_leave_requests
 				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults').any?
 			end
 
 			def can_be_notified_leave_requests
 				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').any? || LeavesHolidaysLogic.has_view_all_rights(self)
-			end
-
-			def can_be_notified_leave_requests_project(project)
-				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved', project).any?
 			end
 
 			def can_create_leave_requests
@@ -246,11 +234,6 @@ module RedmineLeavesHolidays
 			def has_leave_plugin_access?
 				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
 			end
-
-			def is_on_leave?(date = Date.today)
-				LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: self.id, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).any?
-			end
-
 
 			# If user is a leave admin, then he is managed
 			def is_rule_managed_in_project?(project)
@@ -467,6 +450,20 @@ module RedmineLeavesHolidays
 				return list
 			end
 
+			# returns a list of project / users where the current user is managed
+			def managed_by_project_users
+				managed_list = self.managed_rules
+				project_ids = managed_list.flatten.map(&:project_id).uniq
+				projects = Project.where(id: project_ids)
+				out = {}
+				projects.each do |project|
+					list_for_project = managed_list.map{|rules| rules.select{|r| r.project_id == project.id }}.select{|rules| rules.any?}
+					managed_list_users = list_for_project.map{|a| a.map(&:to_users)}
+					out[project] = managed_list_users# if managed_list_users.flatten.any?
+				end
+				return out
+			end
+
 			# Leave Requests - Receiver Part
 
 			def viewable_user_list
@@ -522,6 +519,66 @@ module RedmineLeavesHolidays
 			def is_managing_user?(user)
 				return self.can_manage_leave_requests && user.in?(self.manage_users_summary(Date.today, {indirect: true, backup: true}))
 			end
+
+			def project_consults_full_list
+				consult_list = self.consult_rules
+				project_ids = consult_list.map(&:project_id).uniq
+				projects = Project.where(id: project_ids)
+
+				out = {}
+				projects.each do |project|
+					list_for_project = consult_list.select{|r| r.project_id == project.id }
+					consult_list_users = list_for_project.map(&:to_users)
+					out[project] = consult_list_users.map{|r| r[:user_receivers]}.flatten.uniq
+				end
+				return out
+			end
+
+			# Returns the full list of users managing self for every project.
+			def project_managed_by_full_list
+				return {} if self.can_self_approve_requests?
+
+				managed_list = self.managed_rules
+				managing_rules = LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'is_managed_by', [], [], false).to_a
+
+				managed_project_ids = managed_list.flatten.map(&:project_id).uniq
+				managed_projects = Project.where(id: managed_project_ids).to_a
+
+				managing_project_ids = managing_rules.map(&:project_id).uniq
+				managing_projects = Project.where(id: managing_project_ids).to_a
+
+				not_managed_projects = managing_projects - managed_projects
+
+				out = {}
+
+				managed_projects.each do |project|
+					list_for_project = managed_list.map{|rules| rules.select{|r| r.project_id == project.id }}.select{|rules| rules.any?}
+					managed_list_users = list_for_project.map{|a| a.map(&:to_users)}
+
+					out[project] = {}
+					hsh = {}
+					managed_list_users.each_with_index do |rules, nesting|
+						level = nesting + 1
+						hsh[level] = []
+						rules.each do |rule|
+							hsh[level] << {users: (rule[:user_receivers] - [self]), backups: (rule[:backup_list] - [self])}
+						end
+					end
+					hsh[:leave_administrators] = [{users: (project.get_leave_administrators[:users] - [self]), backups: []}]
+					out[project] = hsh
+				end
+
+				not_managed_projects.each do |project|
+					out[project] = {}
+					hsh = {}
+					hsh[:leave_administrators] = [{users: (project.get_leave_administrators[:users] - [self]), backups: []}]
+					out[project] = hsh
+				end
+
+				return out
+
+			end
+
 		end
 	end
 end

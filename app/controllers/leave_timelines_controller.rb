@@ -124,7 +124,7 @@ class LeaveTimelinesController < ApplicationController
 
   def find_project
     @project = Project.find(params[:project_id])
-    render_403 if  !@project.module_enabled?(:leave_management) || !LeavesHolidaysLogic.has_create_rights(@user)
+    render_403 if  !@project.module_enabled?(:leave_management) || !@user.can_create_leave_requests
   end
 
   def leave_requests_initial_users(user_ids)

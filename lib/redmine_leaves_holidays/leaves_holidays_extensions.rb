@@ -48,7 +48,7 @@ module LeavesHolidaysExtensions
 		    # No role on archived projects
 		    return [] if project.nil? || project.archived?
 		    if membership = membership(project)
-		      membership.roles.dup.to_a.delete_if {|r| !:create_leave_requests.in?(r[:permissions])}
+		      membership.roles.to_a
 		    elsif project.is_public?
 		      []
 		    else

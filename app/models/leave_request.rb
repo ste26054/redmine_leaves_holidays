@@ -223,19 +223,35 @@ class LeaveRequest < ActiveRecord::Base
     return !self.is_non_deduce_leave && self.get_status.in?(["submitted", "processing", "accepted"])
   end
 
-  # TO_CHECK
   def vote_list_left
-    @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
+    vote_list_left = []
+    voted_list = LeaveVote.for_request(self.id).map(&:user_id)
+    hsh = self.vote_list.inject({}){|h, (k,v)| h[k] = v.delete_if{|u| u.id.in?(voted_list)}; h}
+    return hsh.delete_if{ |k, v| v.empty? }
   end
 
-  #TO_CHECK
   def vote_list
-    @vote_list ||= LeavesHolidaysLogic.vote_list(self.user)
+    vote_list = self.user.project_consults_full_list
   end
 
   #TO_CHECK
   def manage_list
-    @manage_list ||= LeavesHolidaysLogic.manage_list(self.user)
+    manage_list = self.user.project_managed_by_full_list
+  end
+
+  #TO_CHECK
+  def notify_list
+    notify_list = []
+  end
+
+  #TO_CHECK
+  def should_notify_leave_admins?
+    return false
+  end
+
+  #TO_CHECK
+  def leave_admins
+    leave_admins = []
   end
 
   def manage(args = {})
@@ -453,9 +469,9 @@ class LeaveRequest < ActiveRecord::Base
           unless changes["request_status"][0].in?(["created"]) && changes["request_status"][1].in?(["cancelled"])
 
           user_list = []
-          user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
-          if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
-            user_list = user_list + LeavesHolidaysLogic.plugin_admins_users
+          #user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
+          if user_list.empty? || self.should_notify_leave_admins?
+            user_list = user_list + self.leave_admins
           end
 
           user_list = user_list - [self.user]
