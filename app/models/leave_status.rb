@@ -78,39 +78,16 @@ class LeaveStatus < ActiveRecord::Base
       leave_request = self.leave_request.reload
       if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
         if changes.has_key?("acceptance_status")
-          user_list = []
-          unless leave_request.is_quiet_leave
-            #user_list = (leave_request.manage_list + leave_request.vote_list).collect{ |e| e.first[:user]}.uniq
-            if user_list.empty? || leave_request.should_notify_leave_admins?
-              #user_list += leave_request.leave_admins
-            end
-          end
+          was_accepted = false
+          was_accepted = true if changes["acceptance_status"][0] == "accepted"
 
-          
-          
           case changes["acceptance_status"][1]
           when "accepted"
-            #user_list += ([leave_request.user] + leave_request.notify_list)
-            #user_list = user_list.uniq - [self.user]
-            Mailer.leave_request_update(user_list, leave_request, {user: self.user, action: "accepted"}).deliver
-          
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:accepted, was_accepted), leave_request, {user: self.user, action: "accepted"}).deliver
           when "rejected"
-            #user_list += [leave_request.user]
-            if changes["acceptance_status"][0] == "accepted"
-              #user_list += leave_request.notify_list
-            end
-            #user_list = user_list.uniq - [self.user]
-
-            Mailer.leave_request_update(user_list, leave_request, {user: self.user, action: "rejected"}).deliver
-          
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:rejected, was_accepted), leave_request, {user: self.user, action: "rejected"}).deliver
           when "cancelled"
-        
-            if changes["acceptance_status"][0] == "accepted"
-              #user_list += leave_request.notify_list
-            end
-            #user_list = user_list.uniq - [leave_request.user]
-
-            Mailer.leave_request_update(user_list, leave_request, {user: leave_request.user, action: "cancelled"}).deliver
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:cancelled, was_accepted), leave_request, {user: leave_request.user, action: "cancelled"}).deliver
           else
           end
         end

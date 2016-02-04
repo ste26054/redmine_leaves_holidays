@@ -20,7 +20,7 @@ class LeaveTimelinesController < ApplicationController
     @timeline.user = @user
     
 
-    @projects_initial = LeavesHolidaysLogic.system_leave_projects & @user.projects
+    @projects_initial = LeavesHolidaysLogic.projects_with_leave_management_active & @user.projects
     @users_initial = LeavesHolidaysLogic.users_for_projects(@projects_initial)
     @leave_requests_initial = leave_requests_initial_users(@users_initial.map(&:id))
 
@@ -115,7 +115,7 @@ class LeaveTimelinesController < ApplicationController
   private
 
   def set_viewable_users_leave
-    @viewable_users = @user.viewable_user_list
+    @viewable_users = (@user.viewable_user_list + [@user]).uniq
   end
 
   def set_user

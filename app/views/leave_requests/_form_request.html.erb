@@ -5,6 +5,24 @@
 </fieldset>
 <br />
 <fieldset>
+	<% if @is_ok_to_submit_leave %>
+	<p><strong>The following people will be notified for your request: </strong></p>
+	<% if @managed_list.any? %>
+		<p><strong>For Management:</strong> <%= @managed_list.map(&:name).join(', ') %></p>
+	<% end %>
+	<% if @consult_list.any? %>
+		<p><strong>For Consultation:</strong> <%= @consult_list.map(&:name).join(', ') %></p>
+	<% end %>
+	<% if @notify_approved_full.any? %>
+		<p><strong>For Notification once approved:</strong> <%= @notify_approved_full.map(&:name).join(', ') %></p>
+	<% end %>
+	
+	
+<% end %>
+
+</fieldset>
+<br/>
+<fieldset>
 <%= form_for(@leave) do |f| %>
 	
 	<% if @leave.errors.any? %>

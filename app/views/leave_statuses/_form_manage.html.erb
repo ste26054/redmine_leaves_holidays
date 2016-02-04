@@ -58,63 +58,63 @@
 	
 	<% m_list = leave.manage_list %>
 
-	<% if m_list.any? %>
+	
 	
 	<br />
 	<fieldset>
 		<h3>Users able to manage this Leave Request:</h3>
+		<% if m_list.any? %>
+			<% m_list.each do |project, nested_rules| %>
+				<% users_role = project.users_by_role %>
+				<p><strong><%= project.name %></strong></p>
+				<% nested_rules.each do |nesting, rule_set| %>
 
-		<% m_list.each do |project, nested_rules| %>
-			<% users_role = project.users_by_role %>
-			<p><strong><%= project.name %></strong></p>
-			<% nested_rules.each do |nesting, rule_set| %>
+					<% if nesting == 1 %>
 
-				<% if nesting == 1 %>
+						<li>Directly (level <%= nesting %>):
 
-					<li>Directly (level <%= nesting %>):
+					<% elsif nesting == :leave_administrators %>
 
-				<% elsif nesting == :leave_administrators %>
+						<li>Project Leave Administrators:
 
-					<li>Project Leave Administrators:
+					<% else %>
 
-				<% else %>
+						<li>Indirectly (level <%= nesting %>):
 
-					<li>Indirectly (level <%= nesting %>):
-
-				<% end %>
-
-				<% rule_set.each do |rules| %>
-
-					<%= rules[:users].map{|u| 
-						roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
-						str = "".html_safe;
-						str += "<strong>You: ".html_safe if User.current == u;
-						str += u.name.to_s.html_safe;
-						str += " (#{roles.join(', ')})".html_safe if roles.any?;
-						str += "</strong>".html_safe if User.current == u;
-						str
-					}.join(', ').html_safe %>
-
-					<% if rules[:backups].any? %>
-						(Backup: <%= rules[:backups].map(&:name).uniq.join(', ') %>)
 					<% end %>
 
+					<% rule_set.each do |rules| %>
+
+						<%= rules[:users].map{|u| 
+							roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
+							str = "".html_safe;
+							str += "<strong>You: ".html_safe if User.current == u;
+							str += u.name.to_s.html_safe;
+							str += " (#{roles.join(', ')})".html_safe if roles.any?;
+							str += "</strong>".html_safe if User.current == u;
+							str
+						}.join(', ').html_safe %>
+
+						<% if rules[:backups].any? %>
+							(Backup: <%= rules[:backups].map(&:name).uniq.join(', ') %>)
+						<% end %>
+
+					<% end %>
+
+					</li>
 				<% end %>
-
-				</li>
+			
 			<% end %>
-			
-			
-		<% end %>
-
+		<% else %>
+		<p><strong>Nobody is explicitly set to manage the leave requests of this user. Please set leave management rules associated.</strong></p>
 	</fieldset>
 	<% end %>
 
-	<% v_list = leave.vote_list_left %>
+	<% v_list = leave.vote_list %>
 	<% if v_list.any? %>
 	<br />
 	<fieldset>
-		<h3>Waiting for Consultation:</h3>
+		<h3>Users who can be consulted:</h3>
 		<% v_list.each do |project, users| %>
 		<% users_role = project.users_by_role %>
 			<p><strong><%= project.name %>: </strong>
@@ -130,10 +130,10 @@
 			</p>
 		<% end %>
 
-	</fieldset>
+
 	<% end %>
 	<br />
-	<fieldset>
+
 	<h3>Users Consulted:</h3>
 	
 	<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>

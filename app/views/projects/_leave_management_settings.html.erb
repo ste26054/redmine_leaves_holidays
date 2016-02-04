@@ -7,8 +7,6 @@
 <% else %>
   <% if @project.leave_management_rules_enabled? %>
   	<h3>Leave Management Rules <small><%= link_to "Disable", project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
-  	<p style="color: red;"><strong>Important:</strong> Rules defined here are not applied at the moment. They will replace the actual approval system in future versions of this plugin. Please make sure they are correctly set.</p>
-
 
     <ul class="menu">
     <li>

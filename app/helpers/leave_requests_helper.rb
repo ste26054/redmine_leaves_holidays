@@ -136,12 +136,20 @@ module LeaveRequestsHelper
  			end
  		elsif user.is_contractor
  			str += ' '.html_safe + image_tag('hourglass.png', :size => '12x12').html_safe
+ 			unless user.is_rule_notifying?
+ 				str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			end
  		elsif user.is_rule_managed_in_project?(project)
  			str +=  ' '.html_safe + checked_image.html_safe
  		elsif user.is_rule_managed?
  			str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  		else
- 			str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			if user.is_managing?(false)
+ 				str += ' '.html_safe + image_tag('reload.png').html_safe
+ 			else
+ 				str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			end
+ 			
  		end
 
  		link_to str, notification_user_leave_preference_path(user)

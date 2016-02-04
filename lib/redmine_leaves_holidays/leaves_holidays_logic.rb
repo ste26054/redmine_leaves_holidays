@@ -97,7 +97,7 @@ module LeavesHolidaysLogic
 	end
 
 	# returns projects where the leave_management module is activated.
-	def self.system_leave_projects
+	def self.projects_with_leave_management_active
 		return Project.all.active.where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
 	end
 	
@@ -115,29 +115,26 @@ module LeavesHolidaysLogic
 	end
 
 	def self.plugin_admins
-		RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins).map(&:to_i)
+		out = RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins) || []
+		out.map(&:to_i)
 	end
 
 	def self.plugin_admins_users
-		ids = RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins).map(&:to_i)
-		return User.active.where(id: ids).to_a.uniq
+		ids = RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins) || []
+		return User.active.where(id: ids.map(&:to_i)).to_a.uniq
+	end	
+
+	def self.plugin_users_errors_recipients
+		ids = RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients) || []
+		return User.active.where(id: ids.map(&:to_i)).to_a.uniq
 	end
 
 	def self.has_view_all_rights(user)
 		user.allowed_to?(:view_all_leave_requests, nil, :global => true)
 	end
 
-	def self.disabled_project_list
-		projs = RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)
-		if projs != nil
-			return projs.map(&:to_i)
-		else
-			return []
-		end
-	end
-
 	def self.get_region_list
-		return RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)
+		return RedmineLeavesHolidays::Setting.defaults_settings(:available_regions) || []
 	end
 
 	def self.user_params(user, arg)
@@ -162,5 +159,16 @@ module LeavesHolidaysLogic
     p.can_create_leave_requests = true
     return p
   end
+
+  def self.users_with_view_all_right
+		# Get roles allowed to manage
+		role_ids = Role.where("permissions LIKE ?", "%:view_all_leave_requests%").pluck(:id)
+		
+		# Get member role ids of roles allowed to manage
+		member_role_ids = MemberRole.where(role_id: role_ids).pluck(:id)
+
+		# Get the uniq user ids of corresponding members
+		return Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where(project_id: self.projects_with_leave_management_active.pluck(:id)).map(&:user).uniq
+	end
 
 end

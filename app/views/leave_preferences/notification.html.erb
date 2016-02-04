@@ -128,24 +128,16 @@
 				</ul>
 
 				<ul>
-					<% if is_contractor %>
-						User notifies 
-					<% else %>
+				<% unless is_contractor %>
 						User is managed by 
-					<% end %>
-
 					<% unless leave_admins[:project_defined] %>
 			      system
 			    <% else %>
 			      project
 			    <% end %>
-
-
-			    <% if is_contractor %>
-			    	leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.contractor_notifies_leave_admin?(leave_project)) %>
-					<% else %>
 						leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.is_managed_by_leave_admin?(leave_project)) %>
 					<% end %>
+
 				</ul>
 			<% end %>
 		<% end %>

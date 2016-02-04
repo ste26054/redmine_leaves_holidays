@@ -31,7 +31,7 @@
 		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), in: 0.0..100.0, step: 0.5 %>
 	</p>
 
-	<%- users = User.where(status: 1).sort_by(&:lastname).collect{|t| [t.name, t.id]} -%>
+	<%- users = User.where(status: 1).sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:label_plugin_admins) %></label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins)) -%>
@@ -99,8 +99,10 @@
 	</p>
 
 	<p>
-		<label>Disable the plugin for projects:</label>
-		<%- options = options_for_select(projects.sort_by {|l| l[0]}, RedmineLeavesHolidays::Setting.defaults_settings(:default_quiet_projects)) -%>
-		<%= select_tag "settings[default_quiet_projects]", options, :multiple => true, :include_blank => true, :size => 10 %>
+		<label>Users to send errors to:</label>
+		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients)) -%>
+		<%= select_tag "settings[leave_error_recipients]", options, :multiple => true, :width => 80, :size => 10 %>
 	</p>
+
+
 </fieldset>

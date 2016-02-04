@@ -26,15 +26,6 @@
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(no_create_people[role].sort) %></p>
     <% end %>
   <% end %>
-
-  <% contractors_list = @project.contractors_by_role_notifying_plugin_admin %>
-  <% unless contractors_list.empty? %>
-  
-    <h3 title="<%= l(:label_contractor_notify_leave_admin) %>" style="cursor: help;">Contractors notifying the leave administrator:</h3>
-    <% contractors_list.keys.sort.each do |role| %>
-      <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(contractors_list[role].sort) %></p>
-    <% end %>
-  <% end %>
   </div>
 </div>
 
@@ -52,10 +43,11 @@
     <h4>Legend:</h4>
     <p><span class="label"><%= checked_image %></span> Member has his leave managed by people in this project</p>
     <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %></span> Member has his leave managed by people in other projects</p>
-    <p><span class="label"><%= image_tag('false.png', :size => '12x12') %></span> Member is not currently managed (see upper right column for details)</p>
+    <p><span class="label"><%= image_tag('reload.png')  %></span> Member is managed by a leave administrator (see upper right column for details)</p>
     <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> Member is a contractor, he is self managed (see lower right column for details)</p>
     <p><span class="label"><%= image_tag('user.png') %></span> Member is a project leave administrator</p>
     <p><span class="label"><%= image_tag('group.png') %></span> Member is a system leave administrator</p>
+    <p><span class="label"><%= image_tag('false.png', :size => '12x12') %></span> Member does not have leave management rules associated, hence the system is unable to determine who should be notified for the leave request. <strong>The member will not be able to submit leave requests.</strong></p>
     <p><small>Click on any user to check who the user manages / is managed by (cross project)</small></p>
   </div>
 <% end %>

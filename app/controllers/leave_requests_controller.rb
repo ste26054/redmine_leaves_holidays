@@ -14,7 +14,9 @@ class LeaveRequestsController < ApplicationController
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
   before_action :set_checkboxes, only: [:edit, :update]
-
+  before_action :set_check_ok
+  before_action :set_notifications, only: [:new, :create, :edit, :update]
+  before_action :check_actions_are_notified, only: [:new, :create, :submit, :unsubmit, :edit, :update, :destroy]
 
   helper :sort
   include SortHelper
@@ -142,6 +144,36 @@ class LeaveRequestsController < ApplicationController
     else
       flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button. You will then be able to edit it until it is processed."
     end  
+  end
+
+  def set_notifications
+    @is_contractor = @user.is_contractor
+
+    if @is_contractor
+      @managed_list = []
+      @consult_list = []
+    else
+      @managed_list = @user.project_managed_by_notification_list
+      @consult_list = @user.project_consults_full_list.values.flatten.uniq
+    end
+    
+    @notify_approved_full = (LeavesHolidaysLogic.users_with_view_all_right + @user.project_notify_full_list.values).flatten.uniq.sort_by(&:name)
+
+  end
+
+  def set_check_ok
+    @is_ok_to_submit_leave = @user.are_leave_notifications_ok?
+  end
+
+  def check_actions_are_notified
+    unless @is_ok_to_submit_leave
+      users_to_send_mail = LeavesHolidaysLogic.plugin_users_errors_recipients
+      msg = "The system does not have enough information to determine who is able to process your leave requests. Please, ask your manager to update your leave management rules and retry."
+      msg += " An email was sent to the administrators." if users_to_send_mail.any?
+      flash[:error] = msg
+      Mailer.leave_general_error(users_to_send_mail, @user).deliver
+      redirect_to leave_requests_path
+    end
   end
 
   private

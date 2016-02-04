@@ -13,7 +13,7 @@ module RedmineLeavesHolidays
 	    	when :daily_working_hours
 	    		return ::Setting.plugin_redmine_leaves_holidays[:weekly_working_hours].to_f / (7.0 - non_working_week_days.count )
 	    	else
-	    		return	::Setting.plugin_redmine_leaves_holidays[arg]	
+	    		return	::Setting.plugin_redmine_leaves_holidays[arg]#	|| []
 	    	end
 	    end
 
