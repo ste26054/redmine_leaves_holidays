@@ -5,18 +5,18 @@ The Leave Management plugin is a cross project plugin, which makes use of leave 
 
 ### Features
 
-Users can take full or half days leave, for a custom time period. They can specify if the leave is AM and/or PM
-Users can easily select a leave reason (Annual leave, sick leave...), and add a comment on their leave request
-Users can see how many days they can book as leave, on a dedicated dashboard
-Selected roles/users are notified when a user makes a leave request, or when a leave request status is updated
-Administrators can manage (add, remove) leave reasons
-Selected roles/users can manage (approve, reject), or be consulted for feedback (yes, no) on leave requests, depending on the user who made the leave request
-Selected roles/users can view all approved leave requests
-Selected roles/users can manage user preferences, generally or per user
-User region, for computation of bank holidays
-User weekly working hours
-User maximum number of leave days per year
-Leave renewal date for auto report of non taken leave days when this date is reached
+- Users can take full or half days leave, for a custom time period. They can specify if the leave is AM and/or PM
+- Users can easily select a leave reason (Annual leave, sick leave...), and add a comment on their leave request
+- Users can see how many days they can book as leave, on a dedicated dashboard
+- Selected roles/users are notified when a user makes a leave request, or when a leave request status is updated
+- Administrators can manage (add, remove) leave reasons
+- Selected roles/users can manage (approve, reject), or be consulted for feedback (yes, no) on leave requests, depending on the user who made the leave request
+- Selected roles/users can view all approved leave requests
+- Selected roles/users can manage user preferences, generally or per user
+  - User region, for computation of bank holidays
+  - User weekly working hours
+  - User maximum number of leave days per year
+  - Leave renewal date for auto report of non taken leave days when this date is reached
 
 
 ### Permissions
