@@ -33,7 +33,12 @@ module LeaveTimelinesHelper
     end
 
     s << '<strong><p>'.html_safe
-    s << link_to("Leave \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style => css_style}).html_safe
+    if leave.user_id.in?(@viewable_users.map(&:id))
+      s << link_to("Leave \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style => css_style}).html_safe
+    else
+      s << "Leave \##{leave.id} - #{leave.issue.subject}".html_safe
+    end
+
     s << '</strong></p>'.html_safe
 
     s << '<table class="leave-table">'.html_safe

@@ -57,7 +57,7 @@ module LeaveManagementRulesHelper
     sender_roles_selected = Role.where(id: @sender_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(sender_roles_selected)
     #return [] if users_associated_with_roles_selected.count == 1
-    return (users_associated_with_roles_selected + receiver_selected).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
+    return (users_associated_with_roles_selected + receiver_selected.select{|u| u.in?(users_associated_with_roles_selected)}).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
   end
 
   def receiver_exception_collection_for_select_options(project)
@@ -71,7 +71,7 @@ module LeaveManagementRulesHelper
     receiver_roles_selected = Role.where(id: @receiver_list_id.map{|e| e.to_i}).to_a
     users_associated_with_roles_selected = project.users_for_roles(receiver_roles_selected)
     #return [] if users_associated_with_roles_selected.count == 1
-    return (users_associated_with_roles_selected + sender_selected).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
+    return (users_associated_with_roles_selected + sender_selected.select{|u| u.in?(users_associated_with_roles_selected)}).uniq.sort_by(&:name).map{|l| [l.name, l.id]}
   end
 
   def backup_receiver_collection_for_select_options(project)

@@ -1,4 +1,4 @@
-<% if LeavesHolidaysLogic.has_create_rights(User.current) %>
+<% if User.current.can_create_leave_requests %>
 	<h3><%= link_to 'Leave / Holidays', leave_requests_path %>
 	</h3>
 	<p>

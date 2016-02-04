@@ -1,5 +1,6 @@
 module LeaveRequestsHelper
 	include LeavesHolidaysLogic
+	include LeavesHolidaysPermissions
 
 	def render_leave_tabs(tabs, selected=params[:tab])
 	    if tabs.any?
@@ -16,17 +17,22 @@ module LeaveRequestsHelper
 	def leaves_holidays_tabs
 		tabs = []
 
-		if LeavesHolidaysLogic::has_create_rights(@user)
+		can_create_leave_requests = authenticate_leave_request({action: :index})
+
+		if can_create_leave_requests
 			tabs << {:label => :tab_my_leaves, :controller => 'leave_requests', :action => 'index'}
 		end
 
-		if LeavesHolidaysLogic::user_has_any_manage_right(@user) || LeavesHolidaysLogic::has_view_all_rights(@user)
+		if  authenticate_leave_status({action: :index})
 			tabs << { :label => :tab_leaves_approval, :controller => 'leave_approvals', :action => 'index'}
 		end
 
-		tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
+		if can_create_leave_requests
+			tabs << {:label => :tab_leaves_timeline, :controller => 'leave_timelines', :action => 'show'}
+		end
 
-		if LeavesHolidaysLogic::has_manage_user_leave_preferences(@user)
+
+		if authenticate_leave_preferences({action: :index})
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
 		end
 
@@ -40,9 +46,6 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_status_options_for_select_count(selected)
- 		 # options = @scope_initial.group('request_status').count.to_hash.collect {|k, v| ["#{LeaveRequest.request_statuses.key(k)} (#{v})".html_safe, k]}
- 		 # options_for_select(options, selected)
-
  		submitted_count = @scope_initial.submitted_or_processing.count
  		processed_count = @scope_initial.processed.count
 
@@ -54,7 +57,6 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_regions_options_for_select(selected)
- 			# @scope_initial.group('region').count.to_hash.keys
 	    options_for_select(@regions_initial, selected)
  	end 	
 
@@ -72,7 +74,6 @@ module LeaveRequestsHelper
  				count = @scope_initial.when(k.to_s).count
  				options << ["#{v} (#{count})".html_safe, k.to_s]
  			end
-	    # options_for_select([['Past', 'finished'], ['Present', 'ongoing'], ['Future', 'coming']], selected)
 	    options_for_select(options, selected)
  	end
 
@@ -82,7 +83,10 @@ module LeaveRequestsHelper
  	end
 
  	def leaves_users_options_for_select(selected)
- 		options = @scope_initial.group('user').count.to_hash.collect {|k, v| [k.lastname, "#{k.name} (#{v})".html_safe, k.id]}.sort_by{|a| a.first}.map{|a| a.drop(1)}
+ 		users_leave_count = @scope_initial.group(:user_id).count
+
+ 		options = @users_initial_viewable.sort_by(&:name).map {|u| count = users_leave_count[u.id] || 0;
+ 			["#{u.name} (#{count})", u.id]}
 
  		options_for_select(options, selected)
  	end
@@ -127,17 +131,25 @@ module LeaveRequestsHelper
  			str += ' '.html_safe + image_tag('group.png').html_safe
  		elsif user.is_project_leave_admin?(project)
  			str += ' '.html_safe + image_tag('user.png').html_safe
- 			if user.is_managed?
+ 			if user.is_rule_managed?
  				str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  			end
  		elsif user.is_contractor
  			str += ' '.html_safe + image_tag('hourglass.png', :size => '12x12').html_safe
- 		elsif user.is_managed_in_project?(project)
+ 			unless user.is_rule_notifying?
+ 				str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			end
+ 		elsif user.is_rule_managed_in_project?(project)
  			str +=  ' '.html_safe + checked_image.html_safe
- 		elsif user.is_managed?
+ 		elsif user.is_rule_managed?
  			str += ' '.html_safe + image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays').html_safe
  		else
- 			str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			if user.is_managing?(false)
+ 				str += ' '.html_safe + image_tag('reload.png').html_safe
+ 			else
+ 				str += ' '.html_safe + image_tag('false.png', :size => '12x12').html_safe
+ 			end
+ 			
  		end
 
  		link_to str, notification_user_leave_preference_path(user)

@@ -1,14 +1,12 @@
 class LeaveVotesController < ApplicationController
   unloadable
+  include LeavesHolidaysPermissions
 
   before_action :set_user, :set_leave_request
 
-  before_filter :authenticate, only: [:new, :create]
+  before_action :set_leave_vote, :set_leave_votes  
 
-  before_action :set_leave_vote, :set_leave_votes
-
-  before_filter :authenticate_edit, only: [:edit, :update]
-  
+  before_filter :authenticate
 
   helper :sort
   include SortHelper
@@ -36,7 +34,6 @@ class LeaveVotesController < ApplicationController
   end
 
   def index
-    render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveVote, :read, @leave)
   end
 
   def edit
@@ -58,12 +55,12 @@ class LeaveVotesController < ApplicationController
   end
 
   def set_user
-  	@user ||= User.current
+  	@user = User.current
   end
 
   def set_leave_request
     begin
-      @leave ||= LeaveRequest.find(params[:leave_request_id])
+      @leave = LeaveRequest.find(params[:leave_request_id])
     rescue ActiveRecord::RecordNotFound
       render_404
     end
@@ -81,16 +78,13 @@ class LeaveVotesController < ApplicationController
     @votes ||= LeaveVote.for_request(@leave.id)
   end
 
-  def authenticate
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @leave.user, LeaveVote, params[:action].to_sym, @leave)
-  end
 
-  def authenticate_edit
-    if @vote == nil
-      render_404
-      return
-    end
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @vote.user, @vote, :edit)
-  end  
+  def authenticate
+
+    @auth_vote = authenticate_leave_votes(params)
+
+    render_403 unless @auth_vote
+
+  end
 
 end

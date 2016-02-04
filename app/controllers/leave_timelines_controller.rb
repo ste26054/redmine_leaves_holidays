@@ -12,13 +12,15 @@ class LeaveTimelinesController < ApplicationController
   before_action :find_project, only: [:show_project]
   before_action :check_clear_filters
   before_action :check_is_apply_form
+  before_action :authenticate, only: [:show]
+  before_action :set_viewable_users_leave
 
   def show
     @timeline = RedmineLeavesHolidays::Helpers::Timeline.new(params)
     @timeline.user = @user
     
 
-    @projects_initial = LeavesHolidaysLogic.system_leave_projects & @user.projects
+    @projects_initial = LeavesHolidaysLogic.projects_with_leave_management_active & @user.projects
     @users_initial = LeavesHolidaysLogic.users_for_projects(@projects_initial)
     @leave_requests_initial = leave_requests_initial_users(@users_initial.map(&:id))
 
@@ -112,13 +114,17 @@ class LeaveTimelinesController < ApplicationController
 
   private
 
+  def set_viewable_users_leave
+    @viewable_users = (@user.viewable_user_list + [@user]).uniq
+  end
+
   def set_user
-    @user ||= User.current
+    @user = User.current
   end
 
   def find_project
     @project = Project.find(params[:project_id])
-    render_403 if  !@project.module_enabled?(:leave_management) || !LeavesHolidaysLogic.has_create_rights(@user)
+    render_403 if  !@project.module_enabled?(:leave_management) || !@user.can_create_leave_requests
   end
 
   def leave_requests_initial_users(user_ids)
@@ -198,6 +204,10 @@ class LeaveTimelinesController < ApplicationController
   def role_list
     role_ids = Role.all.givable.to_a
     return Role.where(id: role_ids)
+  end
+
+  def authenticate
+    render_403 unless @user.has_leave_plugin_access?
   end
 
 

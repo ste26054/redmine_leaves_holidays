@@ -35,19 +35,10 @@ class LeaveVote < ActiveRecord::Base
   # TO CHECK
   def send_notifications
     changes = self.changes
+    leave_request = self.leave_request.reload
     if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
       if changes.has_key?("vote")
-        user_list = []
-        user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}.uniq
-        
-        if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.leave_request.user, 3)
-            user_list += LeavesHolidaysLogic.plugin_admins_users
-        end
-
-        user_list = user_list - [self.user] - [leave_request.user]
-
-        Mailer.leave_vote_mail(user_list, self.leave_request, {user: self.user, vote: self}).deliver
-
+        Mailer.leave_vote_mail(leave_request.email_people_notification_for(:consulted), self.leave_request, {user: self.user, vote: self}).deliver
       end
     end
   end

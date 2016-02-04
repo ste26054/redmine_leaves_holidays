@@ -3,6 +3,7 @@ class LeaveApprovalsController < ApplicationController
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include LeavesHolidaysTriggers
+  include LeavesHolidaysPermissions
 
   helper :leave_requests
   include LeaveRequestsHelper
@@ -10,6 +11,7 @@ class LeaveApprovalsController < ApplicationController
   before_action :set_user
   before_filter :authenticate
   before_action :check_clear_filters
+  before_action :check_is_apply_form
 
   helper :sort
   include SortHelper
@@ -25,7 +27,14 @@ class LeaveApprovalsController < ApplicationController
 
     @limit = per_page_option
 
-    @scope_initial = LeaveRequest.processable_by(@user)
+    @users_initial_managed = @user.manages_user_list
+    @users_initial_consulted = @user.consulted_user_list
+    @users_initial_notified = @user.notified_user_list
+
+    @users_initial_viewable = (@users_initial_managed + @users_initial_consulted + @users_initial_notified).flatten.uniq
+
+    @scope_initial = LeaveRequest.where.not(request_status: 0).where(user_id: @users_initial_viewable.map(&:id))
+
     scope = @scope_initial
 
     @show_rejected = params[:show_rejected] || "false"
@@ -37,9 +46,13 @@ class LeaveApprovalsController < ApplicationController
 
     if @show_contractor == "false"
       scope = scope.not_from_contractors
+    # else
+    #   scope = scope.from_contractors
     end
 
     @scope_initial = scope
+
+
 
     @status_initial = ['1','2','4']
     if params[:status].present?
@@ -98,8 +111,6 @@ class LeaveApprovalsController < ApplicationController
 
     scope = scope.where(region: @region_selected) if @region_selected
 
-    #@users = params[:users] || @scope_initial.pluck(:user_id).uniq
-
     if params[:users].present?
       @users_selected = params[:users]
       @user.pref[:approval_users_selected_filters] = params[:users]
@@ -110,6 +121,15 @@ class LeaveApprovalsController < ApplicationController
 
     scope = scope.where(user: @users_selected) if @users_selected
 
+    @users_managed = @users_initial_managed
+    @users_consulted = @users_initial_consulted
+    @users_notified = @users_initial_notified
+
+    if @users_selected
+      @users_managed   = @users_initial_managed.select{|u| u.id.in?(@users_selected.map(&:to_i))}
+      @users_consulted = @users_initial_consulted.select{|u| u.id.in?(@users_selected.map(&:to_i))}
+      @users_notified  = @users_initial_notified.select{|u| u.id.in?(@users_selected.map(&:to_i))}
+    end
 
 
     @leave_count = scope.count
@@ -123,22 +143,35 @@ class LeaveApprovalsController < ApplicationController
   private
 
   def authenticate
-    render_403 unless LeavesHolidaysLogic.user_has_any_manage_right(@user)
+    @auth_status = authenticate_leave_status({action: :index})
+
+    render_403 unless @auth_status
   end
 
   def set_user
-    @user ||= User.current
+    @user = User.current
   end
 
-  def check_clear_filters
-    if params[:clear_filters].present?
+  def remove_filters
       @user.pref[:approval_status_filters] = nil
       @user.pref[:approval_when_filters] = nil
       @user.pref[:approval_reason_filters] = nil
       @user.pref[:approval_region_filters] = nil
       @user.pref[:approval_users_selected_filters] = nil
       @user.preference.save
+  end
+
+  def check_clear_filters
+    if params[:clear_filters].present?
+      remove_filters
       params.delete :clear_filters
+    end
+  end
+
+  def check_is_apply_form
+    if params[:apply_form] && params[:apply_form] == "1"
+      @is_apply = true
+      remove_filters
     end
   end
 

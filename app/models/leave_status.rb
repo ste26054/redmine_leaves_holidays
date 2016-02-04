@@ -75,41 +75,19 @@ class LeaveStatus < ActiveRecord::Base
   # TO CHECK
   def send_notifications
       changes = self.changes
+      leave_request = self.leave_request.reload
       if RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
         if changes.has_key?("acceptance_status")
-          user_list = []
-          unless self.leave_request.is_quiet_leave
-            user_list = (self.leave_request.manage_list + self.leave_request.vote_list).collect{ |e| e.first[:user]}.uniq
-            if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.leave_request.user, 3)
-              user_list += LeavesHolidaysLogic.plugin_admins_users
-            end
-          end
+          was_accepted = false
+          was_accepted = true if changes["acceptance_status"][0] == "accepted"
 
-          
-          
           case changes["acceptance_status"][1]
           when "accepted"
-            user_list += ([leave_request.user] + LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests))
-            user_list = user_list.uniq - [self.user]
-            Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "accepted"}).deliver
-          
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:accepted, was_accepted), leave_request, {user: self.user, action: "accepted"}).deliver
           when "rejected"
-            user_list += [leave_request.user]
-            if changes["acceptance_status"][0] == "accepted"
-              user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests)
-            end
-            user_list = user_list.uniq - [self.user]
-
-            Mailer.leave_request_update(user_list, self.leave_request, {user: self.user, action: "rejected"}).deliver
-          
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:rejected, was_accepted), leave_request, {user: self.user, action: "rejected"}).deliver
           when "cancelled"
-        
-            if changes["acceptance_status"][0] == "accepted"
-              user_list += LeavesHolidaysLogic.users_rights_list(:view_all_leave_requests)
-            end
-            user_list = user_list.uniq - [self.leave_request.user]
-
-            Mailer.leave_request_update(user_list, self.leave_request, {user: self.leave_request.user, action: "cancelled"}).deliver
+            Mailer.leave_request_update(leave_request.email_people_notification_for(:cancelled, was_accepted), leave_request, {user: leave_request.user, action: "cancelled"}).deliver
           else
           end
         end

@@ -6,8 +6,8 @@ RedmineApp::Application.routes.draw do
 			get 'submit'
 			get 'unsubmit'
 		end
-		resource :leave_status
-		resources :leave_votes
+		resource :leave_status, :except => [:show]
+		resources :leave_votes, :except => [:show]
 	end
 
 	resources :users do

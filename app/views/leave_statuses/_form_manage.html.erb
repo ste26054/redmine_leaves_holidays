@@ -1,25 +1,22 @@
 
-
-
 <h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
-<p>Leave (<%= leave.issue.subject %>) from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
+
+<div class="splitcontentleft">
+<div class="box">
+
+<p><%= leave.issue.subject %> from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
 <% unless leave.comments.empty? %>
 	<p>
 		User comments: <%= leave.comments %>
 	</p>
 <% end %>
-<% roles = LeavesHolidaysLogic.allowed_common_project(User.current, leave.user, 3) %>
-
-<fieldset>
-<% if !roles.empty? %>
-	<p>You are managing this request as:<strong> <%= roles.collect{ |e| e[:name] }.uniq.join(', ') %></strong></p>
-
-	<p>For the Projects:<strong> <%= roles.collect{ |e| e[:project] }.uniq.join(', ') %></strong></p>
-<% end %>
-
 
 <%= form_for [leave, status], :url => leave_request_leave_status_path do |f| %>
-	
+
+
+
+<hr/>
+	<fieldset>
 	<% if status.errors.any? %>
 		<div class="flash">
 			<ul>
@@ -49,49 +46,97 @@
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 </fieldset>
 
-<% if User.current.id != leave.user.id %>
 
-	<% if !leave.manage_list.empty? %>
+</div></div>
+
+	<div id="splitcontentright">
+		<%= render partial: '/leave_requests/details_metrics', locals: {user: leave.user} %>
+	</div>
+
+<hr/>
+<% if User.current.id != leave.user.id %>
+	
+	<% m_list = leave.manage_list %>
+
+	
+	
 	<br />
 	<fieldset>
 		<h3>Users able to manage this Leave Request:</h3>
+		<% if m_list.any? %>
+			<% m_list.each do |project, nested_rules| %>
+				<% users_role = project.users_by_role %>
+				<p><strong><%= project.name %></strong></p>
+				<% nested_rules.each do |nesting, rule_set| %>
 
-		<% for entry in leave.manage_list -%>
+					<% if nesting == 1 %>
 
-			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
+						<li>Directly (level <%= nesting %>):
 
-			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
+					<% elsif nesting == :leave_administrators %>
 
-			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
+						<li>Project Leave Administrators:
 
-			</p>
-		<% end %>
+					<% else %>
 
+						<li>Indirectly (level <%= nesting %>):
+
+					<% end %>
+
+					<% rule_set.each do |rules| %>
+
+						<%= rules[:users].map{|u| 
+							roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
+							str = "".html_safe;
+							str += "<strong>You: ".html_safe if User.current == u;
+							str += u.name.to_s.html_safe;
+							str += " (#{roles.join(', ')})".html_safe if roles.any?;
+							str += "</strong>".html_safe if User.current == u;
+							str
+						}.join(', ').html_safe %>
+
+						<% if rules[:backups].any? %>
+							(Backup: <%= rules[:backups].map(&:name).uniq.join(', ') %>)
+						<% end %>
+
+					<% end %>
+
+					</li>
+				<% end %>
+			
+			<% end %>
+		<% else %>
+		<p><strong>Nobody is explicitly set to manage the leave requests of this user. Please set leave management rules associated.</strong></p>
 	</fieldset>
 	<% end %>
 
-	<% if !leave.vote_list_left.empty? %>
+	<% v_list = leave.vote_list %>
+	<% if v_list.any? %>
 	<br />
 	<fieldset>
-		<h3>Waiting for Consultation:</h3>
-
-		<% for entry in leave.vote_list_left -%>
-
-			<p><%= link_to entry.first[:user].name, user_path(entry.first[:user]) %>: 
-
-			<strong> <%= entry.collect{ |e| e[:name] }.uniq.join(', ') %></strong> - 
-
-			<strong> <%= entry.collect{ |e| e[:project] }.uniq.join(', ') %></strong>
-
+		<h3>Users who can be consulted:</h3>
+		<% v_list.each do |project, users| %>
+		<% users_role = project.users_by_role %>
+			<p><strong><%= project.name %>: </strong>
+			<%= users.map{|u| 
+						roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
+						str = "".html_safe;
+						str += "<strong>You: ".html_safe if User.current == u;
+						str += u.name.to_s.html_safe;
+						str += " (#{roles.join(', ')})".html_safe if roles.any?;
+						str += "</strong>".html_safe if User.current == u;
+						str
+					}.join(', ').html_safe %>
 			</p>
 		<% end %>
 
-	</fieldset>
+
 	<% end %>
 	<br />
-	<fieldset>
-	<h3>Consulted:</h3>
+
+	<h3>Users Consulted:</h3>
 	
 	<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
 	</fieldset>
 <% end %>
+

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+Leave Error: Error initiated by <%= @user_init %> while attempting to perform an action on the leave system.
+
+<% if Rails.env.development? %>
+  <p>Sent to: <%= @recp %></p>
+<% end %>
+
+<hr />
+
+<p>Please review the leave management rules associated to this user</p>

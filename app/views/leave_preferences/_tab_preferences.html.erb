@@ -4,12 +4,6 @@
 	<table class="list">
 		<thead>
 			<tr>
-				<th colspan="3"></th>
-				<th colspan="5">Leave days metrics</th>
-				<th colspan="2">Extra leave days</th>
-				<th colspan="6"></th>
-			</tr>
-			<tr>
 				<th>
 					<%= button_tag(type: 'submit', class: "btn btn-primary", title: "Edit / Bulk Edit Selected") do %>
  						<i class="icon icon-edit"></i>
@@ -18,18 +12,17 @@
 				<th>User</th>
 				<th>Main projects</th>
 				<th>Region</th>
-				<th>Leave period</th>
+				<th>Contract Start</th>
+				<th>Period Start</th>
+				<th>Period End</th>
+				<th>Days max</th>
+				<th title="Mouse over to see comments associated" style="cursor: help;">Extra days</th>
 				<th>Remaining</th>
 				<th>Accumulated</th>
 				<th>Taken</th>
-				<th>Extra days</th>
-				<th>Comments</th>
 				<th>Hours/week</th>
-				<th>Days max</th>
-				<th>Contract Start date</th>
 				<th>% Alloc</th>
 				<th>Contractor</th>
-				<th></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -39,25 +32,27 @@
 				<tr class="hascontextmenu <%= cycle("odd", "even") %> <%= lp.css_classes %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
-				<td><%= link_to u.login, edit_user_leave_preference_path(u), :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %></td>
+				<td><%= link_to u.login, edit_user_leave_preference_path(u), :class => 'icon icon-edit', :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %>  <%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => 'Check who can manage / consult this user\'s leave request' %></td>
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
-				<td><div style="min-width: 120px" ><%= leave_period(u) %></div></td>
+				<td><%= format_date(lp.contract_start_date) %></td>
+				<td><%= format_date(v[:leave_period][:start]) %></td>
+				<td><%= format_date(v[:leave_period][:end]) %></td>
+				
 				<% unless lp.is_contractor %>
+					<td title="Actual leave entitlement" style="cursor: help;"><%= v[:actual_days_max] %></td>
+					<td title="Comments: <%= lp.annual_max_comments %>" style="cursor: help;"><%= lp.extra_leave_days %></td>
 					<td><%= v[:days_remaining] %></td>
 				<% else %>
-					<td>-</td>
+					<td title="User is a contractor" style="cursor: help;">-</td>
+					<td title="User is a contractor" style="cursor: help;">-</td>
+					<td title="User is a contractor" style="cursor: help;">-</td>
 				<% end %>
 				<td><%= v[:days_accumulated] %></td>
 				<td><%= v[:days_taken] %></td>
-				<td><%= lp.extra_leave_days %></td>
-				<td><%= lp.annual_max_comments %></td>
 				<td><%= lp.weekly_working_hours %></td>
-				<td><%= v[:actual_days_max] %></td>
-				<td><%= format_date(lp.contract_start_date) %></td>
 				<td><%= lp.overall_percent_alloc %></td>
 				<td><%= checked_image lp.is_contractor %></td>
-				<td><%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => 'Check who can manage / consult this user\'s leave request' %></td>
 				</tr>
 
 
@@ -67,3 +62,17 @@
 	</table>
 </div>
 <% end -%>
+
+<%= javascript_tag do %>
+$(document).ready(function(){
+	//if( !document.attachEvent){
+$('table').floatThead({
+    position: 'absolute',
+    scrollContainer: function($table){
+        return $table.closest(".wrapper");
+    }
+});
+	//}
+});
+
+<% end %>

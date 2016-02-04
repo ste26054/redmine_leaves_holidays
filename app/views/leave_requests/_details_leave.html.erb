@@ -14,13 +14,14 @@
 	<strong>Leave Until:</strong>
 	<%= format_date(leave.to_date) %>
 </p>
+<% actual_days = leave.actual_leave_days %>
 <p>
 	<strong>Actual Leave Days for the period:</strong>
-	<%= leave.actual_leave_days %>
+	<%= actual_days %>
 </p>
 <p>
 	<strong>Non Working Days or Bank Holidays:</strong>
-	<%= leave.real_leave_days - leave.actual_leave_days %>
+	<%= leave.real_leave_days - actual_days %>
 </p>
 <% if leave.comments != "" %>
 	<p>
@@ -47,5 +48,5 @@
 
 <p>
 	<strong>Leave Status:</strong>
-	<%= leave.request_status %>
+	<%= leave.get_status %>
 </p>

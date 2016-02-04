@@ -5,7 +5,7 @@ include CalendarsHelper
 Redmine::Plugin.register :redmine_leaves_holidays do
   name 'Redmine Leave Holidays plugin'
   author 'Stephane EVRARD'
-  description 'A Leave Management System for redmine (Calendar, Mail notifications, Role based, Cross Project)'
+  description 'A Leave Management System for redmine (Timeline, Mail notifications, Role / User based, Cross Project)'
   version '0.2'
   requires_redmine :version_or_higher => "3.0.0"
 
@@ -14,13 +14,10 @@ Redmine::Plugin.register :redmine_leaves_holidays do
 
 project_module :leave_management do
   permission :view_all_leave_requests, { :leaves_requests => :view_all }
-  permission :manage_leave_requests, { :leaves_requests => :manage }
-  permission :consult_leave_requests, { :leaves_requests => :vote }
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
-  permission :create_leave_requests, { :leaves_requests => :create, :leave_timelines => :show_project }
   permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics, :enable, :disable], :leave_administrators => [:edit, :update, :clear]}
 end
-  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new {LeavesHolidaysLogic.has_create_rights(User.current) || LeavesHolidaysLogic.has_view_all_rights(User.current) }
+  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new { User.current.logged? && User.current.has_leave_plugin_access? }
 
   menu :project_menu, :redmine_leaves_holidays, { :controller => 'leave_timelines', :action => 'show_project'},
                               :caption => :tab_leaves_timeline,
@@ -43,6 +40,8 @@ Rails.configuration.to_prepare do
   Holidays.load_all
   require 'rufus/scheduler'
 
+
+
   leave_job = Rufus::Scheduler.new(:lockfile => ".leave-scheduler.lock")
   
   unless leave_job.down?
@@ -51,5 +50,6 @@ Rails.configuration.to_prepare do
         Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
 	end
   end
+
 end
 

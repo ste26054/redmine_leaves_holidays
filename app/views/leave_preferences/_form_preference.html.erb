@@ -88,19 +88,16 @@
 			<%= f.check_box :can_create_leave_requests %>
 		</p>
 
-	<% if LeavesHolidaysLogic.has_rights(user, user_pref, preference, [:create, :update], nil, :or) %>
 		<%= f.submit 'Save' %>
-	<% else %>
-		<p>Save Function is disabled as you do not have sufficient rights</p>
-	<% end %>
+
 
 	
 <% end %>
 
-| <a href="javascript:history.back()"><%= l(:button_back) %></a> |
+| <%= link_to 'Back to leave preferences', leave_preferences_path %> |
 
-<% if @exists && LeavesHolidaysLogic.has_right(user, user_pref, preference, :delete) %>
-<%= link_to 'Revert to Defaults', user_leave_preference_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' } %>
+<% if @exists %>
+	<%= link_to 'Revert to Defaults', user_leave_preference_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' }, :class => "icon icon-del" %>
 <% end %>
 </div>
 </div>

@@ -16,6 +16,22 @@ module LeavesCommonUserRole
     return LeavesHolidaysManagements.management_rules_list_recursive(self, 'receiver', 'is_managed_by')
   end
 
+  def consulted_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'consults')
+  end
+
+  def consult_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'consults')
+  end
+
+  def notified_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved')
+  end
+
+  def notify_rules
+    return LeavesHolidaysManagements.management_rules_list(self, 'sender', 'notifies_approved')
+  end
+
   def manage_users_project(project)
     manage_rules = self.manage_rules_project(project)
     manage_users = {directly: [], indirectly: []}
@@ -120,20 +136,26 @@ module LeavesCommonUserRole
   end
 
   def managed_users_with_backup
-    rule_users_per_project= self.managed_rules.flatten.map(&:to_users).group_by{|r| r[:rule].project}
-    
-    managed_users = {}
-    rule_users_per_project.each do |project, rules|
-      managed_users[project] ||= []
+    managed_rules = self.managed_rules
+    managing_users = {directly: [], indirectly: []}
 
-      rules.each do |rule|
-        managed_users[project] << rule[:user_receivers]
-        managed_users[project] << rule[:backup_list] if rule[:backup_list].any?
+
+    managed_rules.each_with_index do |rules, nesting| 
+      rules_users_objects_by_backups = rules.map(&:to_users).group_by{|r| r[:backup_list]}.values
+
+      rules_users_objects_by_backups.each do |rules_backup|
+        backups = rules_backup.map{|r| r[:backup_list]}.flatten.uniq
+        managed = rules_backup.map{|r| r[:user_senders]}.flatten.uniq
+        managers = rules_backup.map{|r| r[:user_receivers]}.flatten.uniq
+        if nesting == 0
+          managing_users[:directly] << {managed: managed, managers: managers, backups: backups}
+        else
+          managing_users[:indirectly] << {managed: managed, managers: managers, backups: backups}
+        end
       end
-      
     end
 
-    return managed_users
+    return managing_users
   end
 
   # returns a list of project where the user is managed.
@@ -151,8 +173,8 @@ module LeavesCommonUserRole
       managed_users[project] ||= []
 
       rules.each do |rule|
-        managed_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}}
-        managed_users[project] << rule[:backup_list].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave)}} if rule[:backup_list].any?
+        managed_users[project] << rule[:user_receivers].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave), is_backup: false}}
+        managed_users[project] << rule[:backup_list].map{|u| {user: u, is_on_leave: u.id.in?(users_on_leave), is_backup: true}} if rule[:backup_list].any?
       end
       
     end

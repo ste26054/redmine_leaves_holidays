@@ -33,8 +33,14 @@ module RedmineLeavesHolidays
         Project.where(id: self.id).system_leave_projects.any?
       end
 
+      # used in lmr helper
       def role_list
         return self.users_by_role.keys.sort
+      end
+
+      # used in lmr helper
+      def user_list
+        return self.users.sort
       end
 
       def roles_for_user(user)
@@ -50,31 +56,25 @@ module RedmineLeavesHolidays
         return members.includes(:user, :roles).where(roles: {id: role_ids}).map(&:user)
       end
 
-      def user_list
-        return self.users.sort
-      end
-
       def users_roles_managed_by_leave_admin
+        return {} unless self.is_system_leave_project?
+        users_managed_admin = self.users_managed_by_leave_admin
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| user.is_managed_by_leave_admin?(self)}
+          v.keep_if{ |user| user.in?(users_managed_admin)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
       end
 
+      # returns users who can create leave requests, not contractors, who manage people but who are not managed.
       def users_managed_by_leave_admin
-        return self.users.to_a.keep_if{ |user| user.is_managed_by_leave_admin?(self) }
-      end
-
-      def contractors_by_role_notifying_plugin_admin
-        contractors = self.contractor_list
-        contractors_role = self.users_by_role
-        contractors_role.each do |k,v|
-          v.keep_if{ |user| (user.in?(contractors) && user.contractor_notifies_leave_admin?(self))}
-        end
-        contractors_role.delete_if{ |k,v| v.empty? }
-        return contractors_role
+        users_leave_ids = self.users.can_create_leave_request.not_contractor.pluck(:id)
+        lmr = self.leave_management_rules.where(action: LeaveManagementRule.actions["is_managed_by"])
+        lmr_users = lmr.map(&:to_users)
+        user_list = lmr_users.map{|t| t[:user_senders] + t[:user_receivers]}.flatten.uniq
+        manages_user_list = lmr_users.map{|t| t[:user_senders]}.flatten.uniq
+        return (user_list - manages_user_list).select{|u| u.id.in?(users_leave_ids)}
       end
 
       def contractor_list
@@ -91,18 +91,20 @@ module RedmineLeavesHolidays
       end
 
       def users_by_role_who_can_create_leave_requests
+        users_can_create_leave = self.users.can_create_leave_request
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| user.can_create_leave_requests}
+          v.keep_if{ |user| user.in?(users_can_create_leave) }
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
       end
 
       def users_by_role_who_cant_create_leave_requests
+        users_can_create_leave = self.users.can_create_leave_request
         users_role = self.users_by_role
         users_role.each do |k,v|
-          v.keep_if{ |user| !user.can_create_leave_requests}
+          v.keep_if{ |user| !user.in?(users_can_create_leave)}
         end
         users_role.delete_if{ |k,v| v.empty? }
         return users_role
@@ -112,7 +114,7 @@ module RedmineLeavesHolidays
         return LeaveAdministrator.where(project: self)
       end
 
-      # Returns leave administrators for current project. If no leave administrator explicitly set, returns system leave administrators
+      # Returns leave administrators for current project. If no leave administrator is explicitly set, returns the system leave administrators
       def get_leave_administrators
         obj = {users: [], project_defined: false}
         users = self.leave_administrators.includes(:user).map{|l| l.user}

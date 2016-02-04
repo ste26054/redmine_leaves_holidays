@@ -79,27 +79,17 @@ class LeaveRequest < ActiveRecord::Base
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
 
-  # TO CHECK
   scope :processable_by, ->(user) {
     ids = []
 
     leave_list = LeaveRequest.where.not(request_status: 0).includes(:user)
 
-    user_list = LeavesHolidaysLogic.users_leave_approval_list(user, leave_list.map(&:user).uniq)
+    user_list = user.viewable_user_list
 
     leave_list.where(user_id: user_list.map(&:id))
   }
 
   scope :pending_or_accepted, -> { not_rejected.where.not(request_status: "0") }
-
-  # TO CHECK
-  scope :viewable_by, ->(uid) {
-    user = User.find(uid)
-    processed_ids = processed.pluck(:id)
-    processed_ids.delete_if { |id| leave = LeaveRequest.find(id) 
-                                return !(LeavesHolidaysLogic.has_right(user, leave.user, LeaveRequest, :read, leave))}
-    where(id: processed_ids)
-  }
 
   scope :status, lambda {|arg| where(arg.blank? ? nil : {:request_status => arg}) }
   
@@ -126,15 +116,17 @@ class LeaveRequest < ActiveRecord::Base
     where.not(user_id: uid_contractors)
   }
 
+  scope :from_contractors, -> {
+    user_list_lp = includes(user: :leave_preference).map(&:user).uniq.keep_if{|u| u.leave_preference }.map(&:id)
+    uid_contractors = LeavePreference.where(user_id: user_list_lp, is_contractor: true).pluck(:user_id)
+    where(user_id: uid_contractors)
+  }
+
 
   def get_status
     return self.request_status unless self.request_status == "processed"
     return self.leave_status.acceptance_status
   end
-
-  # def get_days(arg)
-  #   LeavesHolidaysDates.get_days(arg, self.user, self)
-  # end
 
   def get_days_remaining_with
     remaining = self.user.days_remaining(from_date)
@@ -232,15 +224,74 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def vote_list_left
-    @vote_list_left ||= LeavesHolidaysLogic.vote_list_left(self)
+    vote_list_left = []
+    voted_list = LeaveVote.for_request(self.id).map(&:user_id)
+    hsh = self.vote_list.inject({}){|h, (k,v)| h[k] = v.delete_if{|u| u.id.in?(voted_list)}; h}
+    return hsh.delete_if{ |k, v| v.empty? }
   end
 
   def vote_list
-    @vote_list ||= LeavesHolidaysLogic.vote_list(self.user)
+    vote_list = self.user.project_consults_full_list
+  end
+
+  def vote_list_users
+    return vote_list.values.flatten.uniq
   end
 
   def manage_list
-    @manage_list ||= LeavesHolidaysLogic.manage_list(self.user)
+    manage_list = self.user.project_managed_by_full_list
+  end
+
+  def management_notification_list_users
+    management_notification_list_users = self.user.project_managed_by_notification_list
+  end
+
+  def view_all_list_users
+    view_all_list = LeavesHolidaysLogic.users_with_view_all_right
+  end
+
+  def notifies_approved_list
+    notifies_approved_list = self.user.project_notify_full_list.values.flatten.uniq
+  end
+
+  def email_people_notification_for(action, was_approved=false)
+    people = []
+    case action.to_sym
+    when :submitted #should send to anybody except view all & notifies approved & sender
+      people << self.management_notification_list_users
+      people << self.vote_list_users
+    when :unsubmitted #should send to anybody except view all & notifies approved & sender
+      people << self.management_notification_list_users
+      people << self.vote_list_users
+    when :accepted #should send to anybody except sender. if is quiet, notify only view all + notifies approved.
+      unless self.is_quiet_leave
+        people << self.management_notification_list_users
+        people << self.vote_list_users
+      end
+      people << self.notifies_approved_list
+      people << self.view_all_list_users
+      people << self.user
+    when :rejected # should send to anybody except sender
+      if was_approved
+        people << self.notifies_approved_list
+        people << self.view_all_list_users
+      end
+      people << self.management_notification_list_users
+      people << self.vote_list_users
+      people << self.user
+    when :consulted # should send to anybody except sender & leave creator & view all & notifies approved
+      people << self.management_notification_list_users
+      people << self.vote_list_users
+    when :cancelled # should send to (anybody if was_approved, anybody except view all & notifies approved else) except sender. If was approved + is quiet, notify only view all + notifies approved.
+      if was_approved
+        people << self.notifies_approved_list
+        people << self.view_all_list_users
+      end
+      people << self.management_notification_list_users
+      people << self.vote_list_users
+    end
+    people = (people.flatten.uniq - [User.current])
+    return people.sort_by(&:name)
   end
 
   def manage(args = {})
@@ -456,23 +507,14 @@ class LeaveRequest < ActiveRecord::Base
       if changes.has_key?("request_status")
         if changes["request_status"][1].in?(["submitted", "created", "cancelled"])
           unless changes["request_status"][0].in?(["created"]) && changes["request_status"][1].in?(["cancelled"])
-
-          user_list = []
-          user_list = (self.manage_list + self.vote_list_left).collect{ |e| e.first[:user]}.uniq
-          if user_list.empty? || LeavesHolidaysLogic.should_notify_plugin_admin(self.user, 3)
-            user_list = user_list + LeavesHolidaysLogic.plugin_admins_users
-          end
-
-          user_list = user_list - [self.user]
-
           case changes["request_status"][1]
           when "submitted"
-            Mailer.leave_request_add(user_list, self, {user: self.user}).deliver
-          #when "created"
-          #  Mailer.leave_request_update(user_list, self, {user: self.user, action: "unsubmitted"}).deliver
+            Mailer.leave_request_add(email_people_notification_for(:submitted), self, {user: self.user}).deliver
+          when "created"
+            Mailer.leave_request_update(email_people_notification_for(:unsubmitted), self, {user: self.user, action: "unsubmitted"}).deliver
           when "cancelled"
             if changes["request_status"][0].in?(["submitted","processing"])
-              Mailer.leave_request_update(user_list, self, {user: self.user, action: "cancelled"}).deliver
+              Mailer.leave_request_update(email_people_notification_for(:cancelled), self, {user: self.user, action: "cancelled"}).deliver
             end
           else
           end

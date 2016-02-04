@@ -1,13 +1,14 @@
 class LeavePreferencesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
+  include LeavesHolidaysPermissions
 
   helper :leave_requests
   include LeaveRequestsHelper
   
   before_action :set_user
   before_action :set_user_preferences, except: [:index, :bulk_edit, :bulk_update, :clear_filters]
-  before_action :authenticate, except: [:show, :notification]
+  before_action :authenticate#, except: [:show, :notification]
   before_action :set_holidays, only: [:new, :create, :edit, :bulk_edit, :update, :bulk_update]
 
   def clear_filters
@@ -88,7 +89,7 @@ class LeavePreferencesController < ApplicationController
   end
 
   def show
-    render_403 unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, :show)
+    @auth_change = authenticate_leave_preferences({action: :edit})
   end
 
   def edit
@@ -155,9 +156,6 @@ class LeavePreferencesController < ApplicationController
   end
 
   def notification
-    @vote_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 2)
-    @manage_list = LeavesHolidaysLogic.users_allowed_common_project(@user_pref, 3)
-    # @manage_list = LeaveManagementRule.management_rules_list_recursive(@user_pref, 'sender', 'is_managed_by')
   end
 
   def manage_pending_days
@@ -203,13 +201,7 @@ private
   end
 
   def authenticate
-    # unless action_name.in?(["index", "bulk_edit", "bulk_update", "clear_filters"])
-    #   unless LeavesHolidaysLogic.has_right(@user, @user_pref, @preference, params[:action].to_sym)
-    #     redirect_to user_leave_preference_path
-    #     return
-    #   end
-    # else
-      render_403 unless LeavesHolidaysLogic.has_manage_user_leave_preferences(@user)
-    #end
+    @auth_preferences = authenticate_leave_preferences(params)
+    render_403 unless @auth_preferences
   end
 end

@@ -1,19 +1,16 @@
-<% content_for :header_tags do %>
-    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
-<% end %>
+
 
 <h1>Leave Dashboard</h1>
 
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
-<% unless LeavesHolidaysLogic.user_params(@user, :is_contractor) %>
+
+<% unless @is_contractor %>
   <% leave_period = @user.leave_period %>
   <% remaining_pending =  @user.days_remaining %>
 
 	<h3>Total days remaining for current Leave Period from <%= format_date(leave_period[:start]) %> to <%= format_date(leave_period[:end]) %>: <%= remaining_pending %> (Indicative, includes requests submitted, processing, accepted)</h3>
 <% end %>
-
-<!--<h3>People who will be notified for leave requests submitted: <%= @user.leave_notifications_for_management.map(&:name).join(", ") %></h3>-->
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
 	<%= form_tag leave_requests_path, :method => :get do %>
@@ -26,4 +23,4 @@
 </fieldset>
 <br/>
 
-<%= render 'tab_requests', leave_requests: @leave_requests, leave_pages: @leave_pages, leave_count: @leave_count, user: @user %>
+<%= render 'tab_requests', leave_requests: @leave_requests, leave_pages: @leave_pages, leave_count: @leave_count, user: @user, readonly: @is_ok_to_submit_leave %>

@@ -1,7 +1,9 @@
 class LeaveStatusesController < ApplicationController
   unloadable
   include LeavesHolidaysLogic
-  before_action :set_leave_request, :set_leave_status, :set_leave_vote
+  include LeavesHolidaysPermissions
+  
+  before_action :set_user, :set_leave_request, :set_leave_status, :set_leave_vote
   
   before_action :authenticate
 
@@ -28,9 +30,6 @@ class LeaveStatusesController < ApplicationController
     end
   end
 
-  def show
-  end
-
   def edit
   end
 
@@ -47,6 +46,10 @@ class LeaveStatusesController < ApplicationController
   end
 
   private
+
+  def set_user
+    @user = User.current
+  end
 
   def leave_status_params
     params.require(:leave_status).permit(:leave_request_id, :processed_date, :user_id, :comments, :acceptance_status)
@@ -69,9 +72,11 @@ class LeaveStatusesController < ApplicationController
   end
 
   def authenticate
-    unless (@status != nil && params[:action].to_sym == :new)
-      render_403 unless LeavesHolidaysLogic.has_right(User.current, @leave.user, LeaveStatus, params[:action].to_sym, @leave)
-    end
+    
+    @auth_status = authenticate_leave_status(params)
+
+    render_403 unless @auth_status
+
   end
 
 end

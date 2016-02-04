@@ -1,4 +1,4 @@
-<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
+<% if @auth_change %>
 	<%= render partial: '/leave_requests/details_metrics', locals: {user: @user_pref} %>
 <% end %>
 
@@ -36,7 +36,7 @@
 
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 
-<% if LeavesHolidaysLogic.has_rights(@user, @user_pref, @preference, [:create, :update, :delete], nil, :or) %>
+<% if @auth_change %>
 	| <%= link_to 'Manage', new_user_leave_preference_path(@user_pref) %> | <%= link_to 'Check Manage/Consult list', notification_user_leave_preference_path(@user_pref) %>
 <% end %>
 </div>
