@@ -124,8 +124,11 @@ class LeaveRequest < ActiveRecord::Base
 
 
   def get_status
-    return self.request_status unless self.request_status == "processed"
-    return self.leave_status.acceptance_status
+    if self.request_status == "processed" && self.leave_status
+      return self.leave_status.acceptance_status
+    else
+      return self.request_status
+    end
   end
 
   def get_days_remaining_with

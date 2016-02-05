@@ -232,7 +232,7 @@ module RedmineLeavesHolidays
 
 			# Used in init.rb to check whether user has a link to the plugin displayed
 			def has_leave_plugin_access?
-				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests
+				can_create_leave_requests || can_manage_leave_requests || can_be_consulted_leave_requests || can_be_notified_leave_requests || self.allowed_to?(:manage_user_leave_preferences, nil, :global => true)
 			end
 
 			# If user is a leave admin, then he is managed

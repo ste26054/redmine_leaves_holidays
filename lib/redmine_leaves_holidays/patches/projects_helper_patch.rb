@@ -22,11 +22,6 @@ module RedmineLeavesHolidays
 
               tabs
             end
-
-            # def users_link_to_notification(users)
-            #   users.map{|user| link_to user.name, notification_user_leave_preference_path(user)}.join(', ').html_safe
-            # end
-
         end
     end
   end

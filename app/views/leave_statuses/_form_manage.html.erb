@@ -96,7 +96,13 @@
 						}.join(', ').html_safe %>
 
 						<% if rules[:backups].any? %>
-							(Backup: <%= rules[:backups].map(&:name).uniq.join(', ') %>)
+							(Backup: <%= rules[:backups].map{|u| 
+								str = "".html_safe;
+								str += "<strong>You: ".html_safe if User.current == u;
+								str += u.name.to_s.html_safe;
+								str += "</strong>".html_safe if User.current == u;
+								str
+								}.uniq.join(', ').html_safe %>)
 						<% end %>
 
 					<% end %>
@@ -107,9 +113,9 @@
 			<% end %>
 		<% else %>
 		<p><strong>Nobody is explicitly set to manage the leave requests of this user. Please set leave management rules associated.</strong></p>
-	</fieldset>
+	
 	<% end %>
-
+	</fieldset>
 	<% v_list = leave.vote_list %>
 	<% if v_list.any? %>
 	<br />
