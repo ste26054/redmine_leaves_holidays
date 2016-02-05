@@ -47,7 +47,7 @@ module RedmineLeavesHolidays
 								uids = pluck(:id)
 		          	cannot_create_request_ids = joins(:leave_preference).where.not(leave_preferences: { id: nil }).where(leave_preferences: {can_create_leave_requests: 0}).pluck(:id)
 
-		          	where(id: uids - cannot_create_request_ids)
+		          	active.where(id: uids - cannot_create_request_ids)
 		          }		         
 
 		          scope :not_contractor, lambda {
@@ -396,9 +396,9 @@ module RedmineLeavesHolidays
 			end
 
 			# receiver is notified from senders approved leave requests
-			def notified_user_list
+			def notified_user_list(check_with_view_all_permission=true)
 				return [] unless self.can_be_notified_leave_requests
-				return self.leave_projects.map{|p| p.users.can_create_leave_request}.flatten.uniq if LeavesHolidaysLogic.has_view_all_rights(self)
+				return self.leave_projects.map{|p| p.users.can_create_leave_request}.flatten.uniq if LeavesHolidaysLogic.has_view_all_rights(self) && check_with_view_all_permission
 				return self.notified_rules.flatten.map(&:to_users).map{|t| t[:user_senders]}.flatten.uniq
 			end
 

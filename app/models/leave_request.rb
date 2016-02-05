@@ -411,7 +411,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_days_remaining
-    if to_date != nil && from_date != nil && !self.is_non_deduce_leave && self.in_current_leave_period?
+    if to_date != nil && from_date != nil && from_date <= to_date && !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days
@@ -486,8 +486,8 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_quiet
-    if self.is_non_approval_leave && self.comments == ""
-      errors.add(:comments, "Are mandatory for this leave reason")
+    if self.is_non_approval_leave && self.comments.gsub(/\s+/, "").size < 5
+      errors.add(:comments, "Are mandatory for this leave reason. Please enter at least 5 characters.")
     end
   end
 
@@ -499,7 +499,6 @@ class LeaveRequest < ActiveRecord::Base
       return d
   end
 
-  # TO CHECK
   def send_notifications
 
     changes = self.changes

@@ -27,9 +27,16 @@ class LeaveApprovalsController < ApplicationController
 
     @limit = per_page_option
 
-    @users_initial_managed = @user.manages_user_list
+    @show_only_direct_managed = params[:show_only_direct_managed] || "false"
+    
+    if @show_only_direct_managed == "false"
+      @users_initial_managed = @user.manages_user_list
+      @users_initial_notified = @user.notified_user_list
+    else
+      @users_initial_managed = @user.manage_users_summary
+       @users_initial_notified = @user.notified_user_list(false)
+    end
     @users_initial_consulted = @user.consulted_user_list
-    @users_initial_notified = @user.notified_user_list
 
     @users_initial_viewable = (@users_initial_managed + @users_initial_consulted + @users_initial_notified).flatten.uniq
 
@@ -39,6 +46,7 @@ class LeaveApprovalsController < ApplicationController
 
     @show_rejected = params[:show_rejected] || "false"
     @show_contractor = params[:show_contractor] || "false"
+    
 
     if @show_rejected == "false"
       scope = scope.not_rejected
