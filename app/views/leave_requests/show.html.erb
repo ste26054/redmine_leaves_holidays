@@ -28,7 +28,7 @@
 <% end %>
 
 <% if @leave.request_status == "created" && @user == @leave.user %>
-	| <%= link_to 'Submit', submit_leave_request_path(@leave), :class => 'icon icon-checked' %>
+	| <strong><%= link_to 'Submit', submit_leave_request_path(@leave), :class => 'icon icon-checked' %></strong>
 <% end %>
 
 <% if @leave.request_status == "submitted" && @user == @leave.user %>

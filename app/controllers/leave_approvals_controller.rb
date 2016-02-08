@@ -25,17 +25,27 @@ class LeaveApprovalsController < ApplicationController
                 'from_date' => "#{LeaveRequest.table_name}.from_date",
                 'to_date' => "#{LeaveRequest.table_name}.to_date"
 
+
+
     @limit = per_page_option
 
-    @show_only_direct_managed = params[:show_only_direct_managed] || "false"
+    if @is_apply && params[:show_only_direct_managed].present?
+      @show_only_direct_managed = params[:show_only_direct_managed]
+      @user.pref[:show_only_direct_managed] = params[:show_only_direct_managed]
+      @user.preference.save
+    else
+      @show_only_direct_managed = @user.pref[:show_only_direct_managed] if @user.pref[:show_only_direct_managed].present?
+    end
     
-    if @show_only_direct_managed == "false"
+    unless @show_only_direct_managed
       @users_initial_managed = @user.manages_user_list
       @users_initial_notified = @user.notified_user_list
     else
       @users_initial_managed = @user.manage_users_summary
-       @users_initial_notified = @user.notified_user_list(false)
+      @users_initial_notified = @user.notified_user_list(false)
     end
+
+
     @users_initial_consulted = @user.consulted_user_list
 
     @users_initial_viewable = (@users_initial_managed + @users_initial_consulted + @users_initial_notified).flatten.uniq
@@ -44,18 +54,29 @@ class LeaveApprovalsController < ApplicationController
 
     scope = @scope_initial
 
-    @show_rejected = params[:show_rejected] || "false"
-    @show_contractor = params[:show_contractor] || "false"
-    
 
-    if @show_rejected == "false"
+    if @is_apply && params[:show_rejected].present?
+      @show_rejected = params[:show_rejected]
+      @user.pref[:show_rejected] = params[:show_rejected]
+      @user.preference.save
+    else
+      @show_rejected = @user.pref[:show_rejected] if @user.pref[:show_rejected].present?
+    end
+
+    unless @show_rejected
       scope = scope.not_rejected
     end
 
-    if @show_contractor == "false"
+    if @is_apply && params[:show_contractor].present?
+      @show_contractor = params[:show_contractor]
+      @user.pref[:show_contractor] = params[:show_contractor]
+      @user.preference.save
+    else
+      @show_contractor = @user.pref[:show_contractor] if @user.pref[:show_contractor].present?
+    end
+
+    unless @show_contractor
       scope = scope.not_from_contractors
-    # else
-    #   scope = scope.from_contractors
     end
 
     @scope_initial = scope
@@ -63,7 +84,7 @@ class LeaveApprovalsController < ApplicationController
 
 
     @status_initial = ['1','2','4']
-    if params[:status].present?
+    if @is_apply && params[:status].present?
       @status_selected = params[:status]
       @user.pref[:approval_status_filters] = params[:status]
       @user.preference.save
@@ -87,7 +108,7 @@ class LeaveApprovalsController < ApplicationController
     end
 
     @when_initial = ['ongoing', 'coming', 'finished']
-    if params[:when].present?
+    if @is_apply && params[:when].present?
       @when_selected = params[:when]
       @user.pref[:approval_when_filters] = params[:when]
       @user.preference.save
@@ -98,7 +119,7 @@ class LeaveApprovalsController < ApplicationController
     scope = scope.when(@when_selected) if @when_selected
 
     @reason_initial = @scope_initial.pluck(:issue_id).uniq
-    if params[:reason].present?
+    if @is_apply && params[:reason].present?
       @reason_selected = params[:reason]
       @user.pref[:approval_reason_filters] = params[:reason]
       @user.preference.save
@@ -109,7 +130,7 @@ class LeaveApprovalsController < ApplicationController
     scope = scope.reason(@reason_selected) if @reason_selected
 
     @regions_initial = @scope_initial.group('region').count.to_hash.keys
-    if params[:region].present?
+    if @is_apply && params[:region].present?
       @region_selected = params[:region]
       @user.pref[:approval_region_filters] = params[:region]
       @user.preference.save
@@ -119,13 +140,7 @@ class LeaveApprovalsController < ApplicationController
 
     scope = scope.where(region: @region_selected) if @region_selected
 
-    if params[:users].present?
-      @users_selected = params[:users]
-      @user.pref[:approval_users_selected_filters] = params[:users]
-      @user.preference.save
-    else
-      @users_selected = @user.pref[:approval_users_selected_filters] if @user.pref[:approval_users_selected_filters].present?
-    end
+    @users_selected ||= params[:users]
 
     scope = scope.where(user: @users_selected) if @users_selected
 
@@ -165,7 +180,9 @@ class LeaveApprovalsController < ApplicationController
       @user.pref[:approval_when_filters] = nil
       @user.pref[:approval_reason_filters] = nil
       @user.pref[:approval_region_filters] = nil
-      @user.pref[:approval_users_selected_filters] = nil
+      @user.pref[:show_only_direct_managed] = nil
+      @user.pref[:show_rejected] = nil
+      @user.pref[:show_contractor] = nil
       @user.preference.save
   end
 

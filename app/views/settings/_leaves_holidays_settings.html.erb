@@ -99,7 +99,7 @@
 	</p>
 
 	<p>
-		<label>Users to send errors to:</label>
+		<label>Users to send feedback to:</label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients)) -%>
 		<%= select_tag "settings[leave_error_recipients]", options, :multiple => true, :width => 80, :size => 10 %>
 	</p>

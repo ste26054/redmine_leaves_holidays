@@ -9,7 +9,8 @@ class LeaveRequestsController < ApplicationController
   before_action :set_leave_preferences
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_action :authenticate, except: [:index]
+  before_action :authenticate, except: [:index, :feedback_new, :feedback_send]
+  before_action :authenticate_feedback, only: [:feedback_new, :feedback_send]
   before_action :auth_handle_index, only: [:index]
 
   before_action :set_status, only: [:show, :destroy]
@@ -133,6 +134,16 @@ class LeaveRequestsController < ApplicationController
     redirect_to leave_requests_path
   end
 
+  def feedback_new
+
+  end
+
+  def feedback_send
+    if params[:leave_feedback] && params[:leave_feedback].squish.size > 0
+      send_general_notification_email(params[:leave_feedback].gsub(/\n/, '<br>').html_safe)
+    end
+  end
+
   protected
 
   def info_flash
@@ -219,6 +230,11 @@ class LeaveRequestsController < ApplicationController
     return if authenticate_leave_request(params)
     redirect_to leave_approvals_path and return if authenticate_leave_status(params)
     redirect_to leave_preferences_path and return if authenticate_leave_preferences(params)
+    render_403
+  end
+
+  def authenticate_feedback
+    return if @user.has_leave_plugin_access? || @user.allowed_to?(:manage_leave_management_rules, nil, :global => true)
     render_403
   end
 

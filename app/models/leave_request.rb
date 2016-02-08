@@ -293,7 +293,7 @@ class LeaveRequest < ActiveRecord::Base
       people << self.management_notification_list_users
       people << self.vote_list_users
     end
-    people = (people.flatten.uniq - [User.current])
+    people = (people.flatten.uniq + [User.current]).uniq # Always include sender in the loop
     return people.sort_by(&:name)
   end
 

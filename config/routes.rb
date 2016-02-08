@@ -40,5 +40,9 @@ RedmineApp::Application.routes.draw do
 	get '/leave_timeline', :to => 'leave_timelines#show'
 	get '/projects/:project_id/leave_timeline', :to => 'leave_timelines#show_project'
 	get '/leave_management_rules/:project_id/show_metrics', :to => 'leave_management_rules#show_metrics', as: :leave_rules_show_metrics
+
+	get '/leave_feedbacks/new', :to => 'leave_requests#feedback_new', as: :leave_feedbacks_new
+	post '/leave_feedbacks/send', :to => 'leave_requests#feedback_send', as: :leave_feedbacks_send
+
 	
 end
