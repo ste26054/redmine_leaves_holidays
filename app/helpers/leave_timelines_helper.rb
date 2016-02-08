@@ -47,6 +47,7 @@ module LeaveTimelinesHelper
     s << '</th><th><p>User: '.html_safe
     s << link_to("#{leave.user.name}", user_path(leave.user), {:style => css_style}).html_safe
     s << '</p>'.html_safe
+    s << "<p>Region: #{leave.region}</p>".html_safe
     s << "<p>From: #{format_date(leave.from_date)}</p>".html_safe
     s << "<p>To: #{format_date(leave.to_date)}</p>".html_safe
 
