@@ -2,10 +2,11 @@
 
 <%= form_tag leave_feedbacks_send_path, :remote => true, :method => :post do %>
 <p><small>Please enter your feedback / issue here. An email will be sent to the administrators once you click "submit"</small></p>
+<%= wikitoolbar_for "leave_feedback" %>
 <table align="center">
   <tr>
     <td>
-      <%= text_area_tag 'leave_feedback', nil, rows: 5, cols: 40, resize: "none" %>
+      <%= text_area_tag 'leave_feedback', nil, rows: 5, cols: 60, resize: "none" %>
     </td>
   </tr>
 </table>
