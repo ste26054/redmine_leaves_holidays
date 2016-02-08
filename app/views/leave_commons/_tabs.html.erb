@@ -1,5 +1,10 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
+<% end %>
+
     <ul class="menu">
     <li>
+    <h1>Leave Dashboard</h1>
     </li>
     <li>
       <%= link_to "Send feedback", leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>

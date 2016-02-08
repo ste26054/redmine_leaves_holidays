@@ -135,12 +135,15 @@ class LeaveRequestsController < ApplicationController
   end
 
   def feedback_new
-
   end
 
   def feedback_send
     if params[:leave_feedback] && params[:leave_feedback].squish.size > 0
-      send_general_notification_email(params[:leave_feedback].gsub(/\n/, '<br>').html_safe)
+      # see @redmine source for textile formatting
+      text = params[:leave_feedback].to_s.strip.gsub(%r{<pre>(.*?)</pre>}m, '[...]')
+      @content = "#{ll(Setting.default_language, :text_user_wrote, @user)}\n> "
+      @content << text.gsub(/(\r?\n|\r\n?)/, "\n> ") + "\n\n"
+      send_general_notification_email(@content)
     end
   end
 
