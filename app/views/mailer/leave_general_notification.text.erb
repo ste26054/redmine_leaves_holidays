@@ -1,0 +1,11 @@
+Leave Plugin General Notification: Initiated by <%= @user_init %> 
+
+<% if Rails.env.development? %>
+  Sent to: <%= @recp %>
+<% end %>
+
+---
+
+Content of the message sent:
+
+<%= @text %>

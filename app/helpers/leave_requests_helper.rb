@@ -92,7 +92,7 @@ module LeaveRequestsHelper
  	end
 
  	def user_projects(user)
- 		leave_managed_projects = user.leave_managed_projects.map(&:id)
+ 		#leave_managed_projects = user.leave_managed_projects.map(&:id)
  		projects = user.memberships.collect{ |e| e.project }.uniq
 
 	 	s = ''.html_safe
@@ -100,8 +100,14 @@ module LeaveRequestsHelper
 	    project_tree(projects) do |project, level|
 	      if level == 0
 		      check_img = "".html_safe
-		      check_img = " ".html_safe + checked_image.html_safe if project.id.in?(leave_managed_projects)
-		      s << content_tag('p', h(project) + check_img)
+		      #check_img = " ".html_safe + checked_image.html_safe if project.id.in?(leave_managed_projects)
+		      # s << content_tag('p', h(project) + check_img)
+		      if project.visible?
+		      	s << content_tag('p', link_to(project.name, project))
+		      else
+		      	s << content_tag('p', project)
+		      end
+		      
 		  end
 	    end
 	    s.html_safe

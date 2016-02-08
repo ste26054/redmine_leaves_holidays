@@ -124,8 +124,11 @@ class LeaveRequest < ActiveRecord::Base
 
 
   def get_status
-    return self.request_status unless self.request_status == "processed"
-    return self.leave_status.acceptance_status
+    if self.request_status == "processed" && self.leave_status
+      return self.leave_status.acceptance_status
+    else
+      return self.request_status
+    end
   end
 
   def get_days_remaining_with
@@ -290,7 +293,7 @@ class LeaveRequest < ActiveRecord::Base
       people << self.management_notification_list_users
       people << self.vote_list_users
     end
-    people = (people.flatten.uniq - [User.current])
+    people = (people.flatten.uniq + [User.current]).uniq # Always include sender in the loop
     return people.sort_by(&:name)
   end
 
@@ -411,7 +414,7 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_days_remaining
-    if to_date != nil && from_date != nil && !self.is_non_deduce_leave && self.in_current_leave_period?
+    if to_date != nil && from_date != nil && from_date <= to_date && !self.is_non_deduce_leave && self.in_current_leave_period?
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days
@@ -486,8 +489,8 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def validate_quiet
-    if self.is_non_approval_leave && self.comments == ""
-      errors.add(:comments, "Are mandatory for this leave reason")
+    if self.is_non_approval_leave && self.comments.gsub(/\s+/, "").size < 5
+      errors.add(:comments, "Are mandatory for this leave reason. Please enter at least 5 characters.")
     end
   end
 
@@ -499,7 +502,6 @@ class LeaveRequest < ActiveRecord::Base
       return d
   end
 
-  # TO CHECK
   def send_notifications
 
     changes = self.changes

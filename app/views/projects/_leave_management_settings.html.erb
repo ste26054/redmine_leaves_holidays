@@ -6,7 +6,15 @@
   <h3>Please enable the Leave Management module first</h3>
 <% else %>
   <% if @project.leave_management_rules_enabled? %>
-  	<h3>Leave Management Rules <small><%= link_to "Disable", project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
+    <ul class="menu">
+    <li>
+    <h3>Leave Management Rules <small><%= link_to "Disable", project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
+    </li>
+    <li>
+      <%= link_to "Send feedback", leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>
+    </li>
+    </ul>
+  	
 
     <ul class="menu">
     <li>
@@ -16,6 +24,7 @@
       <div id="leave-admins">
         <%= render partial: '/leave_administrators/link_to_leave_administrators', locals: {project: @project} %>
       </div>
+
     </li>
     </ul>
 

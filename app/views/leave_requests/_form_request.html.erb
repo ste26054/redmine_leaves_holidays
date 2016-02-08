@@ -2,6 +2,7 @@
 <h2>Leave Request:</h2>
 <fieldset>
 	<p><strong>Notice:</strong> Bank Holidays for your region (<%= LeavesHolidaysLogic.user_params(@user, :region) %>) and week ends are automatically ignored.</p>
+	<p><strong>Important:</strong> Creating a leave request <strong>does not</strong> submit it. Once it is created, please review the leave details. If you are happy with the details, hit the submit button. A confirmation email will be sent to you once the submission is successful.</p>
 </fieldset>
 <br />
 <fieldset>
@@ -41,8 +42,8 @@
 		<p><%= l(:label_leave_period_absence) %></p>
 		
 		<p>
-			<%= l(:label_leave_from) %><%= f.text_field :from_date, readonly: true %><%= calendar_for('leave_request_from_date') %>
-			<%= l(:label_leave_to) %><%= f.text_field :to_date, readonly: true %><%= calendar_for('leave_request_to_date') %> included
+			<%= l(:label_leave_from) %><%= f.date_field :from_date, readonly: true %><%= calendar_for('leave_request_from_date') %>
+			<%= l(:label_leave_to) %><%= f.date_field :to_date, readonly: true %><%= calendar_for('leave_request_to_date') %> included
 		</p>
 
 		<p>
@@ -56,7 +57,7 @@
 		<p>
 			<label><%= l(:label_leave_reason) %>:</label>
  			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
-			<%= f.select :issue_id, options, :multiple => false, :prompt => "Please select" %>
+			<%= f.select :issue_id, options, {:include_blank => "Please select"}, :required => true %>
 		</p>
 
 		<p>

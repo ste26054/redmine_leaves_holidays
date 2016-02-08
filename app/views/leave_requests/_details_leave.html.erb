@@ -48,5 +48,11 @@
 
 <p>
 	<strong>Leave Status:</strong>
-	<%= leave.get_status %>
+	<% s = leave.get_status %>
+	<% if s == "created" %>
+	<span style="color: red;"><strong><%= leave.get_status %></strong></span>
+	<% else %>
+		<%= leave.get_status %>
+	<% end %>
+	
 </p>

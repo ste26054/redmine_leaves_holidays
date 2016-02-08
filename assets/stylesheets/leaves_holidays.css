@@ -28,8 +28,7 @@ table.cal tbody th {
 }
 
 /*tr.leave-request.manageable-by-me*/
-.needs-attention {color: #f00; font-weight: bold;}
-
+.needs-attention {background: #FF9292; font-weight: bold;}
 
 /***** Tooltips ******/
 .ltooltip{position:relative;z-index:24;}

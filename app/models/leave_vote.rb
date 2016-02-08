@@ -32,7 +32,6 @@ class LeaveVote < ActiveRecord::Base
     end
   end
 
-  # TO CHECK
   def send_notifications
     changes = self.changes
     leave_request = self.leave_request.reload

@@ -1,0 +1,17 @@
+<h3 class="title">Send feedback</h3>
+
+<%= form_tag leave_feedbacks_send_path, :remote => true, :method => :post do %>
+<p><small>Please enter your feedback / issue here. An email will be sent to the administrators once you click "submit"</small></p>
+<table align="center">
+  <tr>
+    <td>
+      <%= text_area_tag 'leave_feedback', nil, rows: 5, cols: 40, resize: "none" %>
+    </td>
+  </tr>
+</table>
+
+  <p class="buttons">
+    <%= submit_tag l(:button_submit), :name => nil, :onclick => "hideModal(this);" %>
+    <%= submit_tag l(:button_cancel), :name => nil, :onclick => "hideModal(this);", :type => 'button' %>
+  </p>
+<% end %>

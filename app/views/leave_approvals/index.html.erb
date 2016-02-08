@@ -30,6 +30,9 @@
 	<label for='show_contractor'>Include Contractor:</label>
 	<%= check_box_tag 'show_contractor', true, @show_contractor == "true" %>
 
+	<label for='show_only_direct_managed'>Only show people that I manage directly:</label>
+	<%= check_box_tag 'show_only_direct_managed', true, @show_only_direct_managed == "true" %>
+
 	<%= hidden_field_tag(:apply_form, 0) %>
   
   <%= link_to_function l(:button_apply), '$("#apply_form").val(1); $("#query_form").submit();', { :value => "apply", :class => 'icon icon-checked'}%>

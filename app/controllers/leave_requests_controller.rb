@@ -9,7 +9,9 @@ class LeaveRequestsController < ApplicationController
   before_action :set_leave_preferences
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
   
-  before_filter :authenticate
+  before_action :authenticate, except: [:index, :feedback_new, :feedback_send]
+  before_action :authenticate_feedback, only: [:feedback_new, :feedback_send]
+  before_action :auth_handle_index, only: [:index]
 
   before_action :set_status, only: [:show, :destroy]
   before_action :set_issue_trackers
@@ -132,6 +134,16 @@ class LeaveRequestsController < ApplicationController
     redirect_to leave_requests_path
   end
 
+  def feedback_new
+
+  end
+
+  def feedback_send
+    if params[:leave_feedback] && params[:leave_feedback].squish.size > 0
+      send_general_notification_email(params[:leave_feedback].gsub(/\n/, '<br>').html_safe)
+    end
+  end
+
   protected
 
   def info_flash
@@ -167,16 +179,20 @@ class LeaveRequestsController < ApplicationController
 
   def check_actions_are_notified
     unless @is_ok_to_submit_leave
-      users_to_send_mail = LeavesHolidaysLogic.plugin_users_errors_recipients
-      msg = "The system does not have enough information to determine who is able to process your leave requests. Please, ask your manager to update your leave management rules and retry."
-      msg += " An email was sent to the administrators." if users_to_send_mail.any?
+      
+      msg = "The system does not have enough information to determine who is able to process your leave requests. Please, ask your manager to update your leave management rules and retry. An email was sent to the administrator."
       flash[:error] = msg
-      Mailer.leave_general_error(users_to_send_mail, @user).deliver
+      send_general_notification_email(msg)
       redirect_to leave_requests_path
     end
   end
 
   private
+
+  def send_general_notification_email(text)
+    users_to_send_mail = LeavesHolidaysLogic.plugin_users_errors_recipients
+    Mailer.leave_general_notification(users_to_send_mail, @user, text).deliver
+  end
 
   def set_leave_request
     begin
@@ -208,6 +224,18 @@ class LeaveRequestsController < ApplicationController
   def authenticate
     @auth_leave = authenticate_leave_request(params)
     render_403 unless @auth_leave
+  end
+
+  def auth_handle_index
+    return if authenticate_leave_request(params)
+    redirect_to leave_approvals_path and return if authenticate_leave_status(params)
+    redirect_to leave_preferences_path and return if authenticate_leave_preferences(params)
+    render_403
+  end
+
+  def authenticate_feedback
+    return if @user.has_leave_plugin_access? || @user.allowed_to?(:manage_leave_management_rules, nil, :global => true)
+    render_403
   end
 
   def set_user

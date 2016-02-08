@@ -9,7 +9,8 @@
 
 <h2>To Review/Manage this Leave Request, please go to your <%= link_to "Dashboard", leave_requests_url %></h2>
 
-<% if @deadline %>
+<% if false #@deadline 
+  %>
 <p>
 	<strong>Note:</strong>This request should be consulted by <%= format_date(@deadline) %>
 </p>

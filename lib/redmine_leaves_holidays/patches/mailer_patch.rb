@@ -68,16 +68,16 @@ module RedmineLeavesHolidays
         mail :to => recipients, :cc => cc, :subject => subject
       end
 
-      def leave_general_error(recipients, user)
+      def leave_general_notification(recipients, user, additional_text="")
         redmine_headers 'Request-Author' => user.login
 
          message_id user
          references user
         @user_init = user
         @recp = recipients.collect { |r| r.login }
-
+        @text = additional_text
         cc = []
-        subject = "[Leave Request - Error] Initiated by #{@user_init.name}"
+        subject = "[Leave Request - General Notification] Initiated by #{@user_init.name}"
 
         mail :to => recipients, :cc => cc, :subject => subject
       end
