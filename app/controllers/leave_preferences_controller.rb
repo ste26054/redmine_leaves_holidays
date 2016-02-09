@@ -17,6 +17,8 @@ class LeavePreferencesController < ApplicationController
   end
 
   def index
+    @limit = per_page_option
+
     if params[:commit] && params[:commit] == "apply"
       remove_filters
     end
@@ -65,6 +67,12 @@ class LeavePreferencesController < ApplicationController
     @users_selected = @users_initial.like(params[:name]) if params[:name].present?
     @users_selected = @users_selected.with_leave_region(@regions_selected) if @regions_selected
     @users_selected = LeavesHolidaysLogic.users_with_roles_for_projects(roles, projects) & @users_selected
+    user_ids = @users_selected.map(&:id)
+
+    @users_count = user_ids.count
+    @users_pages = Paginator.new @users_count, @limit, params['page']
+    @offset = @users_pages.offset
+    @users_selected =  User.where(id: user_ids).order(:firstname, :lastname).limit(@limit).offset(@offset).to_a
   end
 
   def new
@@ -80,10 +88,10 @@ class LeavePreferencesController < ApplicationController
       event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_create", comments: "changed_by: #{User.current.login}")
       event.event_data = @preference.attributes
       event.save
-      flash[:notice] = "Preferences were sucessfully saved for user #{@user_pref.name}"
+      flash[:notice] = l(:leave_preferences_save_success, :user => @user_pref.name)
   		redirect_to edit_user_leave_preference_path
   	else
-  		flash[:error] = "Invalid preferences"
+  		flash[:error] = l(:leave_preferences_save_error)
   		render :new
   	end
   end
@@ -104,7 +112,7 @@ class LeavePreferencesController < ApplicationController
         @users_preferences = users.map{|u| u.leave_preferences}
       end
     else
-      flash[:warning] = "Please select at least one item from the list"
+      flash[:warning] = l(:leave_preferences_warning_bulk_selection) 
       redirect_to leave_preferences_path
     end
   end
@@ -114,7 +122,7 @@ class LeavePreferencesController < ApplicationController
     users_preferences.each do |user_pref|
       success = user_pref.update_attributes(params[:preferences].reject { |k,v| v.blank? })
       if !success 
-        flash[:error] = "Invalid preferences"
+        flash[:error] = l(:leave_preferences_save_error)
         redirect_to :controller => 'leave_preferences', :action => 'bulk_edit', :user_ids => params[:user_ids] and return
       else
         event = LeaveEvent.new(user_id: user_pref.user_id, event_type: "user_pref_manual_update", comments: "changed_by: #{User.current.login}")
@@ -122,7 +130,7 @@ class LeavePreferencesController < ApplicationController
         event.save
       end
     end
-    flash[:notice] = "Preferences were sucessfully updated"
+    flash[:notice] = l(:leave_preferences_bulk_save_success)
     redirect_to leave_preferences_path
   end
 
@@ -133,13 +141,13 @@ class LeavePreferencesController < ApplicationController
     respond_to do |format|
       format.html { 
         if !success 
-          flash[:error] = "Invalid preferences"
+          flash[:error] = l(:leave_preferences_save_error)
           render :edit
         else
           event = LeaveEvent.new(user_id: @user_pref.id, event_type: "user_pref_manual_update", comments: "changed_by: #{User.current.login}")
           event.event_data = @preference.attributes
           event.save
-          flash[:notice] = "Preferences were sucessfully updated for user #{@user_pref.name}"
+          flash[:notice] = l(:leave_preferences_save_success, :user => @user_pref.name)
           redirect_to edit_user_leave_preference_path
         end
       }

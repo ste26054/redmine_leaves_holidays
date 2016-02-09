@@ -3,22 +3,22 @@
 <% end %>
 
 <% unless @project.module_enabled?(:leave_management) %>
-  <h3>Please enable the Leave Management module first</h3>
+  <h3><%= l(:leave_management_rules_please_enable) %></h3>
 <% else %>
   <% if @project.leave_management_rules_enabled? %>
     <ul class="menu">
     <li>
-    <h3>Leave Management Rules <small><%= link_to "Disable", project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
+    <h3><%= l(:leave_management_rules) %> <small><%= link_to l(:leave_disable), project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
     </li>
     <li>
-      <%= link_to "Send feedback", leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>
+      <%= link_to l(:leave_feedback_title), leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>
     </li>
     </ul>
   	
 
     <ul class="menu">
     <li>
-    <%= link_to "New leave management rule", project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
+    <%= link_to l(:leave_management_rule_new), project_leave_management_rules_edit_path(@project.id), :remote => true, :class => "icon icon-add" %>
     </li>
     <li>
       <div id="leave-admins">
@@ -35,7 +35,7 @@
     </br>
 
     <% else %>
-    <h3>Leave Management Rules are not enabled for this Project. <%= link_to "Enable", project_leave_management_rules_enable_path(@project.id), :class => "icon icon-add" %></h3>
+    <h3><%= l(:leave_management_rules_not_enabled) %> <%= link_to l(:leave_enable), project_leave_management_rules_enable_path(@project.id), :class => "icon icon-add" %></h3>
     <% end %>
 
     <div id="leave-rules-metrics">

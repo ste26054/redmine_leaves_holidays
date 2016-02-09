@@ -2,7 +2,7 @@
     <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 <% end %>
 
-<h3 class="title"><%= "Leave management rules" %></h3>
+<h3 class="title"><%= l(:leave_management_rules) %></h3>
 
 <%= form_tag project_leave_management_rules_update_path, :id => :leave_management_rules, :remote => true, :method => :post do %>
   <%= render :partial => 'edit_form' %>

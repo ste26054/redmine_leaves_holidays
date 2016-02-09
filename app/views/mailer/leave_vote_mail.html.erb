@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<h1><%= link_to "Leave Request \##{@leave.id}", @leave %> was consulted by <%= link_to @user.name, @user %></h1>
+<h1><%= link_to "#{l(:leave_form_title)} \##{@leave.id}", @leave %> <%= l(:leave_was_consulted_by) %> <%= link_to @user.name, @user %></h1>
 
 <p>
-	<strong>Consultative answer:</strong>
+	<strong><%= l(:leave_consultative_answer) %>:</strong>
 	<%= @vote.vote %>
 </p>
 
 
 <% if @vote.comments != "" %>
 	<p>
-		<strong>Comments:</strong>
+		<strong><%= l(:leave_comments) %>:</strong>
 		<%= @vote.comments %>
 	</p>
 <% end %>
@@ -20,7 +20,7 @@
 
 <hr />
 
-<h2>For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %></h2>
+<h2><%= l(:leave_review_go_to_dashboard) %></h2>
 
 <%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>
 

@@ -1,6 +1,6 @@
 <div class="splitcontentright">
 <div class="box">
-<h3>Leave days metrics:</h3>
+<h3><%= l(:leave_metrics_title) %>:</h3>
 
 	<%
 		lp = user.leave_period
@@ -8,31 +8,31 @@
 	%>
 
 	<% unless user.is_contractor %>
-		<p>Extra Leave days (Days carried over or catch up) from <%= format_date(lp[:start]) %> to <%= format_date(lp[:end]) %>: <strong><%= user.days_extra %></strong>	</p>
+		<p><%= l(:leave_metrics_extra_days, :from => format_date(lp[:start]), :to => format_date(lp[:end])) %>: <strong><%= user.days_extra %></strong>	</p>
 
 			<table>
 				<thead>
-					<th colspan="2">Leave Days remaining from <%= format_date(lp[:start]) %> to <%= format_date(lp[:end]) %>:</th>
+					<th colspan="2"><%= l(:leave_metrics_days_remaining, :from => format_date(lp[:start]), :to => format_date(lp[:end])) %>:</th>
 				</thead>
 				<tbody>
 					<tr>
-						<td>+ Actual Holiday Entitlement (Allowance):</td>
+						<td>+ <%= l(:leave_metrics_actual_entitlement) %>:</td>
 						<td><%= user.actual_days_max %></td>
 					</tr>
 					<tr>
-						<td>+ Extra Days:</td>
+						<td>+ <%= l(:leave_metrics_extra_days_label) %>:</td>
 						<td><%= user.days_extra %></td>
 					</tr>
 					<tr>
-						<td>- Leave Taken (submitted, processing):</td>
+						<td>- <%= l(:leave_metrics_leave_taken) %>:</td>
 						<td><%= user.days_taken_total - user.days_taken_accepted %></td>
 					</tr>
 					<tr>
-						<td>- Leave Taken (accepted):</td>
+						<td>- <%= l(:leave_metrics_leave_accepted) %>:</td>
 						<td><%= user.days_taken_accepted %></td>
 					</tr>
 					<tr>
-						<td><strong>Total:</strong></td>
+						<td><strong><%= l(:leave_total) %>:</strong></td>
 						<td><strong><%= user.days_remaining %></strong></td>
 					</tr>
 				</tbody>
@@ -40,19 +40,19 @@
 	<% end %>
 <br/>
 	<p>
-		Leave Days accumulated from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>:
+		<%= l(:leave_metrics_days_accumulated, :from => format_date(lptd[:start]), :to => format_date(lptd[:end])) %>:
 		<strong><%= user.days_accumulated %></strong>
 	</p>
 	<p>
-		Leave Days (accepted) taken from <%= format_date(lp[:start]) %> to <%= format_date(lp[:end]) %>:
+		<%= l(:leave_metrics_days_taken, :from => format_date(lp[:start]), :to => format_date(lp[:end])) %>:
 		<strong><%= user.days_taken_accepted %></strong>
 	</p>
 	
-	<p><strong>Note For days Remaining / Taken:</strong>
+	<p><strong><%= l(:leave_metrics_note) %>:</strong>
 	<ul>
-		<li>Leave Requests taken into account are those with a status "submitted", "processing", "accepted"</li>
-		<li>Leave Requests overlapping with <%= format_date(lp[:start]) %> are <strong>ignored</strong> in the calculation</li>
-		<li>Leave Requests overlapping with <%= format_date(lp[:end]) %> are <strong>included</strong> in the calculation</li>
+		<li><%= l(:leave_metrics_note1) %></li>
+		<li><%= t(:leave_metrics_note2_html, :start => format_date(lp[:start])) %></li>
+		<li><%= t(:leave_metrics_note3_html, :end => format_date(lp[:end])) %></li>
 	</ul>
 	</p>
 	</div>

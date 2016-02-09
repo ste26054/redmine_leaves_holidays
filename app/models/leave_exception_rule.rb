@@ -15,7 +15,7 @@ class LeaveExceptionRule < ActiveRecord::Base
 
   def check_backup_receiver
     if self.actor_concerned == 'backup_receiver' && !self.leave_management_rule.action == 'is_managed_by'
-      errors.add(:actor_concerned, "Is invalid regarding the leave management rule action selected")
+      errors.add(:actor_concerned, l(:leave_exception_actor_concerned_invalid))
     end
   end
 end

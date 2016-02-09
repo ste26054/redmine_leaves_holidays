@@ -4,13 +4,13 @@
   <% leave_period = @user.leave_period %>
   <% remaining_pending =  @user.days_remaining %>
 
-	<h3>Total days remaining for current Leave Period from <%= format_date(leave_period[:start]) %> to <%= format_date(leave_period[:end]) %>: <%= remaining_pending %> (Indicative, includes requests submitted, processing, accepted)</h3>
+	<h3><%= l(:leave_index_total_metrics, :start => format_date(leave_period[:start]), :end => format_date(leave_period[:end]), :days => remaining_pending) %></h3>
 <% end %>
 
 <fieldset><legend><%= l(:label_filter_plural) %></legend>
 	<%= form_tag leave_requests_path, :method => :get do %>
 
-		<label for='include_past_leave'>Include leave requests in the past:</label>
+		<label for='include_past_leave'><%= l(:leave_index_include_past) %>:</label>
 		<%= check_box_tag 'include_past_leave', true, @include_past_leave == "true" %>
 
 		<%= submit_tag l(:button_apply), :class => "small", :name => nil %>

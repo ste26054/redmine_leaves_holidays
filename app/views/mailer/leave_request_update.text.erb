@@ -1,8 +1,7 @@
-<%= link_to "Leave Request \##{@leave.id}", @leave %> was <%= @action %> by <%= link_to @user.name, @user %>
+<%= link_to "#{l(:leave_form_title)} \##{@leave.id}", @leave %> <%= l(:leave_was) %> <%= @action %> <%= l(:leave_by) %> <%= link_to @user.name, @user %>
 
 ----------------------------------------
 
-For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %>
-
+<%= l(:leave_review_go_to_dashboard) %>
 
 <%= render partial: '/leave_requests/details_leave', :formats => [:text], locals: {leave: @leave} %>

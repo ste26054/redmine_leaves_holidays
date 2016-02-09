@@ -1,5 +1,5 @@
 <hr />
-<h3>Consultation summary for the leave request <%= @leave.id %></h3>
+<h3><%= l(:leave_vote_summary) %> <%= @leave.id %></h3>
 <hr />
 
 <%= render partial: 'tab_votes', locals: {votes: @votes, leave: @leave} %>

@@ -3,6 +3,7 @@ require 'redmine_leaves_holidays'
 include CalendarsHelper
 
 Redmine::Plugin.register :redmine_leaves_holidays do
+
   name 'Redmine Leave Holidays plugin'
   author 'Stephane EVRARD'
   description 'A Leave Management System for redmine (Timeline, Mail notifications, Role / User based, Cross Project)'
@@ -17,7 +18,7 @@ project_module :leave_management do
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
   permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics, :enable, :disable], :leave_administrators => [:edit, :update, :clear]}
 end
-  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => 'Leave/Holidays', :if => Proc.new { User.current.logged? && User.current.has_leave_plugin_access? }
+  menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => :leave_holidays, :if => Proc.new { User.current.logged? && User.current.has_leave_plugin_access? }
 
   menu :project_menu, :redmine_leaves_holidays, { :controller => 'leave_timelines', :action => 'show_project'},
                               :caption => :tab_leaves_timeline,

@@ -1,12 +1,12 @@
-<h3>Leave Approval Checks for User <%= @user_pref.name %> <small><%= link_to 'Edit user leave preferences', new_user_leave_preference_path(@user_pref), :class => "icon icon-edit" %></small></h3>
+<h3><%= l(:leave_preferences_notif_title_user, :user => @user_pref.name) %> <small><%= link_to l(:leave_preferences_edit_user_link), new_user_leave_preference_path(@user_pref), :class => "icon icon-edit" %></small></h3>
 
 <% projects = @user_pref.projects %>
 <% leave_projects = @user_pref.leave_projects %>
 <% is_contractor = @user_pref.is_contractor %>
 <% can_create_leave_requests = @user_pref.can_create_leave_requests %>
 
-<p>User is a contractor (self approves his leave requests): <%= human_boolean(is_contractor) %></p>
-<p>User is allowed to create leave requests: <%= human_boolean(can_create_leave_requests) %></p>
+<p><%= l(:leave_preferences_notif_user_contractor) %>: <%= human_boolean(is_contractor) %></p>
+<p><%= l(:leave_preferences_notif_user_allowed_create_leave) %>: <%= human_boolean(can_create_leave_requests) %></p>
 
 <hr/>
 
@@ -18,7 +18,7 @@
 		<% if roles_for_project.any? %>
 			(<%= roles_for_project.join(", ") %>)
 		<% else %>
-			(Not Member of the Project)
+			(<%= l(:leave_preferences_notif_not_member_project) %>)
 		<% end %>
 		</h3>
 
@@ -33,7 +33,7 @@
 		<% notify_users = @user_pref.notify_users_project(leave_project) %>
 
 		
-		<ul>User manages leave requests from:
+		<ul><%= l(:leave_preferences_notif_user_manages) %>:
 
 			<% if @user_pref.in?(leave_admins[:users]) %>
 				<ul>
@@ -42,12 +42,12 @@
 			<% end %>
 
 				<% unless manage_users_backups[:directly].empty? %>
-					<ul>Directly:
+					<ul><%= l(:leave_preferences_notif_directly) %>:
 					<% manage_users_backups[:directly].each do |direct| %>
 						<ul>
 							<%= users_link_to_notification(direct[:managed]) %>
 							<% if @user_pref.in?(direct[:backups]) %>
-								(As a backup of <%= users_link_to_notification(direct[:managers]) %>)
+								(<%= l(:leave_preferences_notif_as_backup_of) %> <%= users_link_to_notification(direct[:managers]) %>)
 							<% end %>
 						</ul>
 
@@ -58,7 +58,7 @@
 				<% end %>
 
 				<% unless manage_users_backups[:indirectly].empty? %>
-					<ul>Indirectly:
+					<ul><%= l(:leave_preferences_notif_indirectly) %>:
 					<% manage_users_backups[:indirectly].each do |indirect| %>
 						<ul>
 						<% unless indirect[:managed].empty? %>
@@ -78,29 +78,29 @@
 
 
 		<% unless consulted_users.empty? %>
-			<ul>User is consulted for leave requests from: <%= users_link_to_notification(consulted_users) %></ul>
+			<ul><%= l(:leave_preferences_notif_is_consulted_from) %>: <%= users_link_to_notification(consulted_users) %></ul>
 		<% end %>
 
 		<% unless notified_users.empty? %>
-			<ul>User is notified for leave requests from: <%= users_link_to_notification(notified_users) %></ul>
+			<ul><%= l(:leave_preferences_notif_id_notified_from) %>: <%= users_link_to_notification(notified_users) %></ul>
 		<% end %>
 
 
 		<% if can_create_leave_requests %>
 			<% if @user_pref.in?(leave_admins[:users]) %>
-				<ul>User is part of leave administrators, who are: <%= users_link_to_notification(leave_admins[:users]) %></ul>
+				<ul><%= l(:leave_preferences_notif_is_part_of_leave_admins) %>: <%= users_link_to_notification(leave_admins[:users]) %></ul>
 			<% else %>
-				<ul>User is managed by:
+				<ul><%= l(:leave_preferences_notif_is_managed_by) %>:
 
 					<% unless managed_users_backups[:directly].empty? %>
-						<ul>Directly:
+						<ul><%= l(:leave_preferences_notif_directly) %>:
 						<% managed_users_backups[:directly].each do |direct| %>
 							<ul>
 							<% unless direct[:managers].empty? %>
 								<%= users_link_to_notification(direct[:managers]) %>
 							<% end %>
 							<% unless direct[:backups].empty? %>
-								(Backup: <%= users_link_to_notification(direct[:backups]) %>)
+								(<%= l(:leave_preferences_notif_backup) %>: <%= users_link_to_notification(direct[:backups]) %>)
 							<% end %>
 							</ul>
 						<% end %>
@@ -110,14 +110,14 @@
 					<% end %>
 
 					<% unless managed_users_backups[:indirectly].empty? %>
-						<ul>Indirectly:
+						<ul><%= l(:leave_preferences_notif_indirectly) %>:
 						<% managed_users_backups[:indirectly].each_with_index do |indirect, nesting| %>
 							<ul>
 							<% unless indirect[:managers].empty? %>
 								<%= users_link_to_notification(indirect[:managers]) %>
 							<% end %>
 							<% unless indirect[:backups].empty? %>
-								(Backup: <%= users_link_to_notification(indirect[:backups]) %>)
+								(<%= l(:leave_preferences_notif_backup) %>: <%= users_link_to_notification(indirect[:backups]) %>)
 							<% end %>
 
 							</ul>
@@ -129,13 +129,13 @@
 
 				<ul>
 				<% unless is_contractor %>
-						User is managed by 
+						<%= l(:leave_preferences_notif_is_managed_by) %> 
 					<% unless leave_admins[:project_defined] %>
-			      system
+			      <%= l(:leave_preferences_notif_system) %>
 			    <% else %>
-			      project
+			      <%= l(:leave_preferences_notif_project) %>
 			    <% end %>
-						leave administrators (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.is_managed_by_leave_admin?(leave_project)) %>
+						<%= l(:leave_preferences_notif_leave_admins) %> (<%= users_link_to_notification(leave_admins[:users]) %>): <%= human_boolean(@user_pref.is_managed_by_leave_admin?(leave_project)) %>
 					<% end %>
 
 				</ul>
@@ -146,16 +146,16 @@
 
 
 		<% unless consults_users.empty? %>
-			<ul>User consults for his/her leave requests: <%= users_link_to_notification(consults_users) %></ul>
+			<ul><%= l(:leave_preferences_notif_user_consults) %>: <%= users_link_to_notification(consults_users) %></ul>
 		<% end %>
 
 		<% unless notify_users.empty? %>
-			<ul>User notifies for his/her approved leave requests: <%= users_link_to_notification(notify_users) %></ul>
+			<ul><%= l(:leave_preferences_notif_user_notifies) %>: <%= users_link_to_notification(notify_users) %></ul>
 		<% end %>
 	<% else %>
 
 		<h3><%= link_to_if project.visible?, project.name, settings_project_path(project, 'leave_management') %> (<%= project.roles_for_user(@user_pref).map(&:name).join(", ") %>)</h3>
-		<p class="nodata">There are no leave management rules set for the user</p>
+		<p class="nodata"><%= l(:leave_preferences_notif_no_management_rules) %></p>
 	<% end %>
 <% end %>
 

@@ -2,10 +2,10 @@
   <table class="list">
   <thead>
       <tr>
-        <th>Sender</th>
-        <th>Action</th>
-        <th>Receiver</th>
-        <th>Backup</th>
+        <th><%= l(:leave_management_sender) %></th>
+        <th><%= l(:leave_management_action) %></th>
+        <th><%= l(:leave_management_receiver) %></th>
+        <th><%= l(:leave_management_backup) %></th>
         <th></th>
       <tr>
   </thead>
@@ -25,7 +25,7 @@
           <% excp_sender = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['sender']) %>
           <% unless excp_sender.empty? %>
             <% excep_sender_users = excp_sender.map(&:user).map(&:name).uniq %>
-            </br><strong><%= "Exception".pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
+            </br><strong><%= l(:leave_management_exception).pluralize(excep_sender_users.count) %>:</strong> <%= excep_sender_users.join(", ") %>
           <% end %>
         </td>
 
@@ -36,7 +36,7 @@
           <% excp_receiver = exceptions.where(actor_concerned: LeaveExceptionRule.actors_concerned['receiver']) %>
           <% unless excp_receiver.empty? %>
             <% excep_receiver_users = excp_receiver.map(&:user).map(&:name).uniq %>
-            </br><strong><%= "Exception".pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
+            </br><strong><%= l(:leave_management_exception).pluralize(excep_receiver_users.count) %>:</strong> <%= excep_receiver_users.join(", ") %>
           <% end %>
         </td>
         <td>
@@ -47,9 +47,9 @@
           <% end %>
         </td>
         <td>
-            <%= link_to "Edit", project_leave_management_rules_edit_path(project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
+            <%= link_to l(:button_edit), project_leave_management_rules_edit_path(project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
             %>
-            <%= link_to "Delete", project_leave_management_rules_update_path(project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
+            <%= link_to l(:button_delete), project_leave_management_rules_update_path(project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 
             %>
         </td>
       </tr>

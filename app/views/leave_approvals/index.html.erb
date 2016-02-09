@@ -5,30 +5,30 @@
 <div class="tabular2"><%= render_leave_tabs leaves_holidays_tabs %></div>
 
 <%= form_tag(leave_approvals_path, :method => :get, :id => 'query_form') do %>
-<fieldset><legend>Filters <small>(Ctrl+click or Maj+click to select or deselect entries)</small></legend>
+<fieldset><legend><%= l(:leave_filters) %> <small><%= l(:leave_hint_ctrl_clic) %></small></legend>
 	<label for='status'><%= l(:field_status) %>:</label>
 	<%= select_tag 'status', leaves_status_options_for_select_count(@status_selected), :class => "small", :multiple => true  %>
 
-	<label for='when'>When:</label>
+	<label for='when'><%= l(:leave_when) %>:</label>
 	<%= select_tag 'when', leaves_dates_options_for_select(@when_selected), :class => "small", :multiple => true  %>
 
-	<label for='reason'>Reason:</label>
+	<label for='reason'><%= l(:leave_reason) %>:</label>
 	<%= select_tag 'reason', leaves_reason_options_for_select(@reason_selected), :class => "small", :multiple => true  %>
 
-	<label for='region'>Region:</label>
+	<label for='region'><%= l(:leave_region) %>:</label>
 	<%= select_tag 'region', leaves_regions_options_for_select_count(@region_selected), :class => "small", :multiple => true  %>
 
-	<label for='users'>User:</label>
+	<label for='users'><%= l(:leave_user) %>:</label>
 	<%= select_tag 'users', leaves_users_options_for_select(@users_selected), :class => "small", :multiple => true  %>
 
 	<p class="buttons">
-	<label for='show_rejected'>Include Rejected:</label>
+	<label for='show_rejected'><%= l(:leave_include_rejected) %>:</label>
 	<%= check_box_tag 'show_rejected', true, @show_rejected == "true" %>
 
-	<label for='show_contractor'>Include Contractor:</label>
+	<label for='show_contractor'><%= l(:leave_include_contractor) %>:</label>
 	<%= check_box_tag 'show_contractor', true, @show_contractor == "true" %>
 
-	<label for='show_only_direct_managed'>Only show people that I manage directly:</label>
+	<label for='show_only_direct_managed'><%= l(:leave_only_show_direct_people) %>:</label>
 	<%= check_box_tag 'show_only_direct_managed', true, @show_only_direct_managed == "true" %>
 
 	<%= hidden_field_tag(:apply_form, 0) %>

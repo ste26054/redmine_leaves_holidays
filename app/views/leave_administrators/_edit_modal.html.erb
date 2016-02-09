@@ -1,11 +1,11 @@
-<h3 class="title">Edit Leave Administrators</h3>
+<h3 class="title"><%= l(:leave_administrators_edit_title) %></h3>
 
 <%= form_tag project_leave_administrators_update_path, :id => :leave_administrators, :remote => true, :method => :post do %>
   <%= render :partial => 'form' %>
-  <p><small>Ctrl+click or Maj+click to select or deselect entries</small></p>
+  <p><small><%= l(:leave_hint_ctrl_clic) %></small></p>
 
   <% if @leave_administrators.any? %>
-    <p><small><%= link_to "Clear project leave administrators", project_leave_administrators_clear_path(@project.id), :remote => true, :class => "icon icon-del", :onclick => "hideModal(this);" %></small></p>
+    <p><small><%= link_to l(:leave_administrators_clear), project_leave_administrators_clear_path(@project.id), :remote => true, :class => "icon icon-del", :onclick => "hideModal(this);" %></small></p>
   <% end %>
 
   <p class="buttons">
