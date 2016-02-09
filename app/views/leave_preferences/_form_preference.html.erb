@@ -2,7 +2,7 @@
     <%= stylesheet_link_tag 'leaves_holidays', :plugin => 'redmine_leaves_holidays' %>
 <% end %>
 
-<h3>"Leave/Holidays/Work" Preferences for <%= user_pref.name %>:</h3>
+<h3><%= l(:leave_preferences_form_title, :user => user_pref.name ) %>:</h3>
 
 <%= form_for [user_pref, preference], :url => user_leave_preference_path, :remote => false do |f| %>
 <div class="splitcontentleft">
@@ -19,42 +19,42 @@
 
 		<% if user_pref.can_create_leave_requests %>
 			<p>
-				<label>Reference Weekly Working Hours:</label>
+				<label><%= l(:leave_preferences_ref_weekly_working_hours) %>:</label>
 				<%= f.number_field :weekly_working_hours, in: 0.0..100.0, step: 0.1 %>
 			</p>
 
 			<p>
-				<label>Overall allocation:</label>
+				<label><%= l(:leave_preferences_overall_alloc) %>:</label>
 				<%= f.number_field :overall_percent_alloc, in: 0..100, step: 5 %> % (Full time: 100%, part time: 50%...)
 			</p>
 
 			<p>
-				<label>Holidays Region:</label>
+				<label><%= l(:leave_preferences_holidays_region) %>:</label>
 				<%- options = @regions -%>
 				<%= f.select :region, options %>
 			</p>
 
 			<% unless user_pref.is_contractor %>
 				<p>
-					<label>Holiday Entitlement Max (Allowance):</label>
+					<label><%= l(:leave_preferences_holidays_entitlement_max) %>:</label>
 					<%= f.number_field :annual_leave_days_max, in: 0.0..100.0, step: 0.5 %>
 				</p>
 
 				<% if preference.pending_day_count && preference.pending_day_count != 0 %>
 				<p><strong>
-					User has <%= preference.pending_day_count %> days to carry over from previous period: 
-					<%= link_to "Accept", manage_pending_days_user_leave_preference_path(accept: true), :class => 'icon icon-checked' %>
-					<%= link_to "Discard", manage_pending_days_user_leave_preference_path(accept: false), :class => 'icon icon-unchecked' %>
+					<%= l(:leave_preferences_user_has_days_to_carry_over, :days => preference.pending_day_count) %>: 
+					<%= link_to l(:leave_accept), manage_pending_days_user_leave_preference_path(accept: true), :class => 'icon icon-checked' %>
+					<%= link_to l(:leave_discard), manage_pending_days_user_leave_preference_path(accept: false), :class => 'icon icon-unchecked' %>
 				</strong></p>
 				<% end %>
 
 				<p>
-					<label>Extra Days:</label>
+					<label><%= l(:leave_preferences_extra_days) %>:</label>
 					<%= f.number_field :extra_leave_days, in: -100.0..100.0, step: 0.5 %>
 				</p>
 
 				<p>
-					<label>Extra Days Comments:</label>
+					<label><%= l(:leave_preferences_extra_days_comments) %>:</label>
 				</p>
 				<p>
 					<%= f.text_area  :annual_max_comments, cols: "30", rows: "10" %>
@@ -62,42 +62,42 @@
 			<% end %>
 
 			<p>
-				<label>Contract Start Date:</label>
+				<label><%= l(:leave_preferences_contract_start) %>:</label>
 				<%= f.text_field :contract_start_date, readonly: true %><%= calendar_for('leave_preference_contract_start_date') %>
 			</p>
 			
 			<p>
-				<label>Contract End Date (optional, fill only if known):</label>
+				<label><%= l(:leave_preferences_contract_end) %>:</label>
 				<%= f.text_field :contract_end_date %><%= calendar_for('leave_preference_contract_end_date') %>
 			</p>
 
 			<p>
-				<label>Leave Renewal Date (Year is ignored):</label>
+				<label><%= l(:leave_preferences_leave_renewal_date) %>:</label>
 				<%= f.text_field :leave_renewal_date, readonly: true %><%= calendar_for('leave_preference_leave_renewal_date') %>
 			</p>
 
 			<p>
-				<label>User is a Contractor <strong>(Disables the approval system)</strong>:</label>
+				<label><%= t(:leave_preferences_user_is_contractor_html) %>:</label>
 				<%= f.check_box :is_contractor %>
 			</p>
 
 		<% end %>
 
 		<p>
-			<label>User can Create Leave Requests:</label>
+			<label><%= l(:leave_preferences_user_can_create_leave_requests) %>:</label>
 			<%= f.check_box :can_create_leave_requests %>
 		</p>
 
-		<%= f.submit 'Save' %>
+		<%= f.submit l(:button_save) %>
 
 
 	
 <% end %>
 
-| <%= link_to 'Back to leave preferences', leave_preferences_path %> |
+| <%= link_to l(:leave_preferences_back_link), leave_preferences_path %> |
 
 <% if @exists %>
-	<%= link_to 'Revert to Defaults', user_leave_preference_path(user_pref), method: :delete, data: { confirm: 'Are you sure?' }, :class => "icon icon-del" %>
+	<%= link_to l(:leave_revert_to_defaults), user_leave_preference_path(user_pref), method: :delete, data: { confirm: l(:leave_confirm_dialog) }, :class => "icon icon-del" %>
 <% end %>
 </div>
 </div>
@@ -112,26 +112,26 @@
 	<% unless events.empty? %>
 	
 <hr/>
-	<h3>History:</h3>
+	<h3><%= l(:label_history) %>:</h3>
 	<div class="autoscroll">
 			<table class="list">
 				<thead>
 				<tr>
-				<th>Date</th>
-				<th>Event Type</th>
-				<th>Event Comments</th>
-				<th><%= "weekly_working_hours".humanize %></th>
-				<th><%= "annual_leave_days_max".humanize %></th>
-				<th><%= "region".humanize %></th>
-				<th><%= "extra_leave_days".humanize %></th>
-				<th><%= "pending_days".humanize %></th>
-				<th>Extra leave days comments</th>
-				<th><%= "contract_start_date".humanize %></th>
-				<th><%= "contract_end_date".humanize %></th>
-				<th><%= "leave_renewal_date".humanize %></th>
-				<th><%= "is_contractor".humanize %></th>
-				<th><%= "Overall % alloc".humanize %></th>
-				<th><%= "can_create_leave_requests".humanize %></th>
+				<th><%= l(:leave_date) %></th>
+				<th><%= l(:leave_preferences_event_type) %></th>
+				<th><%= l(:leave_preferences_event_comments) %></th>
+				<th><%= l(:leave_preferences_ref_weekly_working_hours) %></th>
+				<th><%= l(:leave_preferences_holidays_entitlement_max) %></th>
+				<th><%= l(:leave_preferences_holidays_region) %></th>
+				<th><%= l(:leave_preferences_extra_days) %></th>
+				<th><%= l(:leave_preferences_pending_days) %></th>
+				<th><%= l(:leave_preferences_extra_days_comments) %></th>
+				<th><%= l(:leave_preferences_contract_start) %></th>
+				<th><%= l(:leave_preferences_contract_end_short) %></th>
+				<th><%= l(:leave_preferences_leave_renewal_date_short) %></th>
+				<th><%= l(:leave_preferences_user_is_contractor_short) %></th>
+				<th><%= l(:leave_preferences_overall_alloc) %></th>
+				<th><%= l(:leave_preferences_user_can_create_leave_requests) %></th>
 				</tr>
 				</thead>
 				<tbody>

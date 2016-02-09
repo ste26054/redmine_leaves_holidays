@@ -107,8 +107,8 @@ module LeaveManagementRulesHelper
 
   def leave_reasons_rules_specifics(selected)
     issues_ids = []
-    issues_ids <<RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)
-    issues_ids <<RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)
+    issues_ids << RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)
+    issues_ids << RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)
     issues = Issue.where(id: issues_ids.flatten.uniq)
     options = issues.map {|a| [a.subject, a.id]}
     return options_for_select(options, selected)

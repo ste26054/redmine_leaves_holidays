@@ -361,11 +361,11 @@ class LeaveRequest < ActiveRecord::Base
 	def validate_date_period
     if to_date != nil && from_date != nil
   		if to_date < from_date
-  			errors.add(:base,"The end of the leave cannot take place before its beginning")
+  			errors.add(:base, l(:leave_cannot_take_place_before_beginning))
   		end
 
       if half_day? && (to_date - from_date).to_i > 0
-        errors.add(:base,"Half day leave requests must be submitted separately (1.5 day = 1 full day and 0.5 day requests)")
+        errors.add(:base, l(:leave_half_day_must_be_submitted_separately))
       end
 
       # Forbid the leave creation if it's in the past
@@ -384,7 +384,7 @@ class LeaveRequest < ActiveRecord::Base
       end
 
       if count == real_leave_days.ceil
-        errors.add(:base,"A leave cannot occur only on bank holiday(s) or non working day(s)")
+        errors.add(:base, l(:leave_cannot_occur_only_on_non_working_days))
       end
     end
 
@@ -392,7 +392,7 @@ class LeaveRequest < ActiveRecord::Base
 
 	def validate_issue
 		if issue_id != nil && !((LeavesHolidaysLogic.issues_list(self.user).pluck(:id)).include?(issue_id))
-			errors.add(:issue, "is invalid")
+			errors.add(:issue, l(:leave_is_invalid_text))
 		end
 	end
 
@@ -408,8 +408,8 @@ class LeaveRequest < ActiveRecord::Base
     elsif am == 1 && pm == 1
       self.request_type = 2
     else
-      errors.add(:leave_time_am, "is invalid")
-      errors.add(:leave_time_pm, "is invalid")
+      errors.add(:leave_time_am, l(:leave_is_invalid_text))
+      errors.add(:leave_time_pm, l(:leave_is_invalid_text))
     end
   end
 
@@ -418,7 +418,9 @@ class LeaveRequest < ActiveRecord::Base
       if self.get_days_remaining_with < 0
         drw = self.get_days_remaining_without
         ald = self.actual_leave_days
-        errors.add(:base, "You have #{drw} #{'day'.pluralize(drw)} remaining for the current leave period. The current leave request is #{ald} #{'day'.pluralize(ald)} long, hence it cannot be created.")
+        current_period = self.user.leave_period
+        errors.add(:base, l(:leave_not_enough_days_remaining, days_remaining: drw, period_start: format_date(current_period[:start]), period_end: format_date(current_period[:end]), days_count: ald, period_end_year: current_period[:end].year, new_period_day: format_date(current_period[:end] + 1.day)).html_safe)
+
       end
     end
   end
@@ -449,12 +451,12 @@ class LeaveRequest < ActiveRecord::Base
     if half_day?
       if overlaps.count > 1
         overlaps.find_each do |p|
-          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+          errors.add(:base, l(:leave_overlapping, id: p.id, from: format_date(p.from_date), to: format_date(p.to_date)))
         end
       elsif overlaps.count == 1
         o = overlaps.first
         if !o.half_day? || (o.has_am? && self.has_am?) || (o.has_pm? && self.has_pm?)
-          errors.add(:base, "You have a leave overlapping the current one. Id: #{o.id} From: #{o.from_date}, To: #{o.to_date}")
+          errors.add(:base, l(:leave_overlapping, id: p.id, from: format_date(p.from_date), to: format_date(p.to_date)))
         end
       else
 
@@ -462,16 +464,16 @@ class LeaveRequest < ActiveRecord::Base
     else
     
       overlaps.created.find_each do |p|
-        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+        errors.add(:base, l(:leave_overlapping, id: p.id, from: format_date(p.from_date), to: format_date(p.to_date)))
       end
 
       overlaps.submitted.find_each do |p|
-        errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}")
+        errors.add(:base, l(:leave_overlapping, id: p.id, from: format_date(p.from_date), to: format_date(p.to_date)))
       end
 
       overlaps.processed.find_each do |p|
         LeaveStatus.for_request(p.id).accepted.find_each do |a|
-          errors.add(:base, "You have a leave overlapping the current one. Id: #{p.id} From: #{p.from_date}, To: #{p.to_date}") 
+          errors.add(:base, l(:leave_overlapping, id: p.id, from: format_date(p.from_date), to: format_date(p.to_date)))
         end
       end
 
@@ -484,13 +486,13 @@ class LeaveRequest < ActiveRecord::Base
 
   def validate_update
     if LeaveRequest.where(id: self.id).processed.exists?
-      errors.add(:base, "You cannot update this leave request as it has already been processed") 
+      errors.add(:base, l(:leave_cannot_update_already_processed)) 
     end
   end
 
   def validate_quiet
     if self.is_non_approval_leave && self.comments.gsub(/\s+/, "").size < 5
-      errors.add(:comments, "Are mandatory for this leave reason. Please enter at least 5 characters.")
+      errors.add(:comments, l(:leave_comments_mandatory))
     end
   end
 

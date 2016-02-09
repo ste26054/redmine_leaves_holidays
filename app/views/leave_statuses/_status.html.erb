@@ -1,11 +1,11 @@
 <p>
-	<strong>Status:
+	<strong><%= l(:leave_status) %>:
 	<%= status.acceptance_status.capitalize %> on <%= format_date(status.updated_at)%> by <%= status.user %>
 	</strong>
 </p>
 <% unless status.comments.empty? %>
 <p>
-	<strong>Processed comments:</strong>
+	<strong><%= l(:leave_processed_comments) %>:</strong>
 	<%= status.comments %>
 </p>
 <% end %>

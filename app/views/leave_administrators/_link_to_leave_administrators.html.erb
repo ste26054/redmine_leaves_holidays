@@ -1,7 +1,7 @@
 <% administrators_set = @project.leave_administrators.any? %>
 
 <% if administrators_set %>
-  <%= link_to "Edit project leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-edit" %>
+  <%= link_to l(:leave_administrators_edit_project_title), project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-edit" %>
 <% else %>
-  <strong><%= link_to "Set project leave administrators", project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-add", :style => "color: red;" %></strong>
+  <strong><%= link_to l(:leave_administrators_set_project_title), project_leave_administrators_edit_path(@project.id), :remote => true, :class => "icon icon-add", :style => "color: red;" %></strong>
 <% end %>

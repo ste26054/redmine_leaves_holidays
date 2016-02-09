@@ -23,11 +23,10 @@ module RedmineLeavesHolidays
         if (@deadline < Date.today)
           @deadline = nil
         end
-
     		cc = []
-    		subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Submitted by #{@user.name}"
+        
+    		subject = l(:mailer_leave_add_subject, :subject => leave.issue.subject, :id => leave.id, :user => @user.name)
 
-        # mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
        	mail :to => recipients, :cc => cc, :subject => subject
     	end
 
@@ -41,11 +40,10 @@ module RedmineLeavesHolidays
         @user = arg[:user]
         @action = arg[:action]
         @recp = recipients.collect { |r| r.login }
-
         cc = []
-        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] #{@action.capitalize} by #{@user.name}"
 
-        # mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
+        subject = l(:mailer_leave_update_subject, :subject => leave.issue.subject, :id => leave.id, :action => @action.capitalize, :user => @user.name)
+
         mail :to => recipients, :cc => cc, :subject => subject
       end
 
@@ -62,9 +60,8 @@ module RedmineLeavesHolidays
         @recp = recipients.collect { |r| r.login }
 
         cc = []
-        subject = "[Leave Request - #{leave.issue.subject} \##{leave.id}] Consulted by #{@user.name}"
+        subject = l(:mailer_leave_consulted_subject, :subject => leave.issue.subject, :id => leave.id, :user => @user.name)
 
-        # mail :to => [User.find(87), User.find(91)], :cc => cc, :subject => subject
         mail :to => recipients, :cc => cc, :subject => subject
       end
 
@@ -77,7 +74,8 @@ module RedmineLeavesHolidays
         @recp = recipients.collect { |r| r.login }
         @text = additional_text
         cc = []
-        subject = "[Leave Request - General Notification] Initiated by #{@user_init.name}"
+
+        subject = l(:mailer_leave_general_notif, :user => @user_init.name)
 
         mail :to => recipients, :cc => cc, :subject => subject
       end

@@ -12,31 +12,31 @@
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 
 <% if @leave.request_status == "created" && @user == @leave.user %>
-	| <%= link_to 'Edit', edit_leave_request_path(@leave), :class => 'icon icon-edit' %>
+	| <%= link_to l(:leave_edit), edit_leave_request_path(@leave), :class => 'icon icon-edit' %>
 <% end %>
 
 <% if @auth_manage %>
-	| <%= link_to 'Manage', new_leave_request_leave_status_path(@leave) %>
+	| <%= link_to l(:leave_manage), new_leave_request_leave_status_path(@leave) %>
 <% end %>
 
 <% if @auth_consult %>
-	| <%= link_to 'Consult', new_leave_request_leave_vote_path(@leave) %>
+	| <%= link_to l(:leave_consult), new_leave_request_leave_vote_path(@leave) %>
 <% end %>
 
 <% if (@auth_manage || @auth_consult) && @leave.request_status == "processed" && LeaveVote.for_request(@leave.id).any?  %>
-| <%= link_to 'Consultative Results', leave_request_leave_votes_path(@leave) %>
+| <%= link_to l(:leave_consult_results), leave_request_leave_votes_path(@leave) %>
 <% end %>
 
 <% if @leave.request_status == "created" && @user == @leave.user %>
-	| <strong><%= link_to 'Submit', submit_leave_request_path(@leave), :class => 'icon icon-checked' %></strong>
+	| <strong><%= link_to l(:leave_submit), submit_leave_request_path(@leave), :class => 'icon icon-checked' %></strong>
 <% end %>
 
 <% if @leave.request_status == "submitted" && @user == @leave.user %>
-	| <%= link_to 'Unsubmit', unsubmit_leave_request_path(@leave), :class => 'icon icon-cancel' %>
+	| <%= link_to l(:leave_unsubmit), unsubmit_leave_request_path(@leave), :class => 'icon icon-cancel' %>
 <% end %>
 
 <% if @user == @leave.user && @leave.request_status != "cancelled" && (@leave.request_status != "processed" || (@leave.request_status == "processed" && @status.acceptance_status == "accepted")) %>
-| <%= link_to 'Cancel Leave Request', leave_request_path(@leave), method: :delete, data: { confirm: 'Are you sure to cancel this leave?' }, :class => 'icon icon-del' %>
+| <%= link_to l(:leave_cancel), leave_request_path(@leave), method: :delete, data: { confirm: l(:leave_cancel_confirm) }, :class => 'icon icon-del' %>
 <% end %>
 </div>
 </div>

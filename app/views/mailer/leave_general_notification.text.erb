@@ -1,4 +1,4 @@
-Leave Plugin General Notification: Initiated by <%= @user_init %> 
+<%= l(:leave_feedback_email_title, :user => @user_init) %>
 
 <% if Rails.env.development? %>
   Sent to: <%= @recp %>

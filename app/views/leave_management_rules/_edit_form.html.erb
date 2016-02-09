@@ -1,39 +1,39 @@
 <fieldset class="box">
-  <p>Ctrl+click or Maj+click to select or deselect entries</p>
+  <p><%= l(:leave_hint_ctrl_clic) %></p>
 
   <table align="center">
     <tr>
       <td>
-       <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;">Sender Type:</span> 
+       <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;"><%= l(:leave_management_sender_type) %>:</span> 
         <p><%= select_tag 'sender_type', actor_type_options_for_select(@sender_type) %></p>
       </td>
       <td>
-      <span title="<%= l(:label_sender_explain) %>" style="cursor: help;">Sender List:</span> 
+      <span title="<%= l(:label_sender_explain) %>" style="cursor: help;"><%= l(:leave_management_sender_list) %>:</span> 
         <p><%= select_tag 'sender_list_id', actor_collection_for_select_options(@project, 'sender'), :multiple => true, :size => 10 %>
         </p>
       </td>
       <td>
-      <span title="<%= l(:label_action_to_perform_explain) %>" style="cursor: help;">Action to perform:</span> 
+      <span title="<%= l(:label_action_to_perform_explain) %>" style="cursor: help;"><%= l(:leave_management_action) %>:</span> 
         <p><%= select_tag 'action_rule', action_sender_options_for_select(@action) %></p>
       </td>
       <td>
-        <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;">Receiver Type:</span>
+        <span title="<%= l(:label_snd_rcv_type_explain) %>" style="cursor: help;"><%= l(:leave_management_receiver_type) %>:</span>
         <p><%= select_tag 'receiver_type', actor_type_options_for_select(@receiver_type) %></p>
       </td>
       <td>
-        <span title="<%= l(:label_receiver_explain) %>" style="cursor: help;">Receiver List:</span> 
+        <span title="<%= l(:label_receiver_explain) %>" style="cursor: help;"><%= l(:leave_management_receiver_list) %>:</span> 
         <p><%= select_tag 'receiver_list_id', actor_collection_for_select_options(@project, 'receiver'), :multiple => true, :size => 10 %></p>
       </td>
       <% if @action.to_i == LeaveManagementRule.actions['is_managed_by'] %>
         <td>
-          <span title="<%= l(:label_backup_explain) %>" style="cursor: help;">Backup List:</span>
+          <span title="<%= l(:label_backup_explain) %>" style="cursor: help;"><%= l(:leave_management_backup) %></span>
           <p><%= select_tag 'backup_receiver_id', backup_receiver_collection_for_select_options(@project), :multiple => true, :size => 10 %></p>
         </td>
       <% end %>
       
       <td>
       <div style="display: none"><!-- Logic behind this control is not ready yet so do not display it -->
-          <span>Leave Reasons concerned:</span>
+          <span><%= l(:leave_management_reasons) %>:</span>
           <p><%= select_tag 'reasons_selected', leave_reasons_select(@reason_selected), disabled: true %></p>
           <% if @reason_selected == 1 %>
             <div id="reasons_div">
@@ -53,7 +53,7 @@
           <% @sender_options = sender_exception_collection_for_select_options(@project) %>
           <% unless @sender_options.empty? %>
             <div id="sender_exception_div">
-            <legend><%= label_tag "sender_exception_id", "Sender List Exception:" %></legend>
+            <legend><%= label_tag "sender_exception_id", l(:leave_management_sender_exception) %>:</legend>
             <p><%= select_tag 'sender_exception_id', @sender_options, :multiple => true, :selected => 0, :size => 5 %>
             </p>
             </div>
@@ -67,7 +67,7 @@
           <% @receiver_options = receiver_exception_collection_for_select_options(@project) %>
           <% unless @receiver_options.empty? %>
             <div id="receiver_exception_div">
-            <legend><%= label_tag "receiver_exception_id", "Receiver List Exception:" %></legend>
+            <legend><%= label_tag "receiver_exception_id", l(:leave_management_receiver_exception) %>:</legend>
             <p><%= select_tag 'receiver_exception_id', @receiver_options, :multiple => true, :selected => 0, :size => 5 %>
             </p>
             </div>

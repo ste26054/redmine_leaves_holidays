@@ -1,21 +1,21 @@
 
-<h2>Leave Request:</h2>
+<h2><%= l(:leave_form_title) %>:</h2>
 <fieldset>
-	<p><strong>Notice:</strong> Bank Holidays for your region (<%= LeavesHolidaysLogic.user_params(@user, :region) %>) and week ends are automatically ignored.</p>
-	<p><strong>Important:</strong> Creating a leave request <strong>does not</strong> submit it. Once it is created, please review the leave details. If you are happy with the details, hit the submit button. A confirmation email will be sent to you once the submission is successful.</p>
+	<p><%= t(:leave_form_notice_html, :region => LeavesHolidaysLogic.user_params(@user, :region)) %></p>
+	<p><%= t(:leave_form_important_html) %></p>
 </fieldset>
 <br />
 <fieldset>
 	<% if @is_ok_to_submit_leave %>
-	<p><strong>The following people will be notified for your request: </strong></p>
+	<p><strong><%= l(:leave_form_notified_field) %>:</strong></p>
 	<% if @managed_list.any? %>
-		<p><strong>For Management:</strong> <%= @managed_list.map(&:name).join(', ') %></p>
+		<p><strong><%= l(:leave_form_managed) %>:</strong> <%= @managed_list.map(&:name).join(', ') %></p>
 	<% end %>
 	<% if @consult_list.any? %>
-		<p><strong>For Consultation:</strong> <%= @consult_list.map(&:name).join(', ') %></p>
+		<p><strong><%= l(:leave_form_consulted) %>:</strong> <%= @consult_list.map(&:name).join(', ') %></p>
 	<% end %>
 	<% if @notify_approved_full.any? %>
-		<p><strong>For Notification once approved:</strong> <%= @notify_approved_full.map(&:name).join(', ') %></p>
+		<p><strong><%= l(:leave_form_notified_approval) %>:</strong> <%= @notify_approved_full.map(&:name).join(', ') %></p>
 	<% end %>
 	
 	
@@ -55,13 +55,13 @@
 		</p>
 
 		<p>
-			<label><%= l(:label_leave_reason) %>:</label>
+			<label><%= l(:leave_reason) %>:</label>
  			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
-			<%= f.select :issue_id, options, {:include_blank => "Please select"}, :required => true %>
+			<%= f.select :issue_id, options, {:include_blank => l(:leave_please_select)}, :required => true %>
 		</p>
 
 		<p>
-			<label>Comments:</label>
+			<label><%= l(:leave_comments) %>:</label>
 			<%= f.text_field :comments, {:size => 75 } %>
 		</p>
 
@@ -70,7 +70,7 @@
 </div>
 
 
-	<%= f.submit 'Create', data: { confirm: 'This will create a new leave request, but will not submit it for approval. You will be able to make changes to this request until you submit it.' } %>
+	<%= f.submit l(:button_create), data: { confirm: l(:leave_form_submit_confirm) } %>
 
 
 <% end %>

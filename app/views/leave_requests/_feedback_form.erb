@@ -1,7 +1,7 @@
-<h3 class="title">Send feedback</h3>
+<h3 class="title"><%= l(:leave_feedback_title) %></h3>
 
 <%= form_tag leave_feedbacks_send_path, :remote => true, :method => :post do %>
-<p><small>Please enter your feedback / issue here. An email will be sent to the administrators once you click "submit"</small></p>
+<p><small><%= l(:leave_feedback_help) %></small></p>
 <%= wikitoolbar_for "leave_feedback" %>
 <table align="center">
   <tr>
@@ -12,7 +12,7 @@
 </table>
 
   <p class="buttons">
-    <%= submit_tag l(:button_submit), :name => nil, :onclick => "hideModal(this);" %>
+    <%= submit_tag l(:leave_feedback_send), :name => nil, :onclick => "hideModal(this);" %>
     <%= submit_tag l(:button_cancel), :name => nil, :onclick => "hideModal(this);", :type => 'button' %>
   </p>
 <% end %>

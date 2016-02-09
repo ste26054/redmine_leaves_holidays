@@ -1,13 +1,13 @@
 
-<h2>Approve or Reject the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
+<h2><%= l(:leave_status_approve_title) %> <%= link_to "\##{leave.id}", leave_request_path(leave) %> <%= l(:leave_from_text) %> <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
 
 <div class="splitcontentleft">
 <div class="box">
 
-<p><%= leave.issue.subject %> from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
+<p><%= leave.issue.subject %> <%= l(:leave_from_text) %> <%= format_date(leave.from_date) %> <%= l(:leave_to_text) %> <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> <%= l(:leave_days_text) %>)</p>
 <% unless leave.comments.empty? %>
 	<p>
-		User comments: <%= leave.comments %>
+		<%= l(:leave_status_user_comments) %>: <%= leave.comments %>
 	</p>
 <% end %>
 
@@ -30,17 +30,17 @@
 	<div>
 		<p>
 			<%= f.radio_button :acceptance_status, 'accepted' %>
-			<%= f.label :acceptance_status, 'Approve Leave Request', :value => 'accepted' %>
+			<%= f.label :acceptance_status, l(:leave_status_approve), :value => 'accepted' %>
 			<%= f.radio_button :acceptance_status, 'rejected' %>
-			<%= f.label :acceptance_status, 'Reject Leave Request', :value => 'rejected' %>
+			<%= f.label :acceptance_status, l(:leave_status_reject), :value => 'rejected' %>
 		</p>
 
 		<p>
-			<label>Comments:</label>
+			<label><%= l(:leave_comments) %>:</label>
 			<%= f.text_field :comments, {:size => 75 } %>
 		</p>
 	</div>
-	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %> |
+	<%= f.submit l(:leave_submit), data: { confirm: l(:leave_confirm_dialog) } %> |
 <% end %>
 
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
@@ -62,7 +62,7 @@
 	
 	<br />
 	<fieldset>
-		<h3>Users able to manage this Leave Request:</h3>
+		<h3><%= l(:leave_status_users_can_manage) %>:</h3>
 		<% if m_list.any? %>
 			<% m_list.each do |project, nested_rules| %>
 				<% users_role = project.users_by_role %>
@@ -71,15 +71,15 @@
 
 					<% if nesting == 1 %>
 
-						<li>Directly (level <%= nesting %>):
+						<li><%= l(:leave_status_manage_directly, :nesting => nesting) %>:
 
 					<% elsif nesting == :leave_administrators %>
 
-						<li>Project Leave Administrators:
+						<li><%= l(:leave_status_project_leave_admins) %>:
 
 					<% else %>
 
-						<li>Indirectly (level <%= nesting %>):
+						<li><%= l(:leave_status_manage_indirectly, :nesting => nesting) %>:
 
 					<% end %>
 
@@ -88,7 +88,7 @@
 						<%= rules[:users].map{|u| 
 							roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
 							str = "".html_safe;
-							str += "<strong>You: ".html_safe if User.current == u;
+							str += "<strong>#{l(:leave_you_text)}: ".html_safe if User.current == u;
 							str += u.name.to_s.html_safe;
 							str += " (#{roles.join(', ')})".html_safe if roles.any?;
 							str += "</strong>".html_safe if User.current == u;
@@ -98,7 +98,7 @@
 						<% if rules[:backups].any? %>
 							(Backup: <%= rules[:backups].map{|u| 
 								str = "".html_safe;
-								str += "<strong>You: ".html_safe if User.current == u;
+								str += "<strong>#{l(:leave_you_text)}: ".html_safe if User.current == u;
 								str += u.name.to_s.html_safe;
 								str += "</strong>".html_safe if User.current == u;
 								str
@@ -112,7 +112,7 @@
 			
 			<% end %>
 		<% else %>
-		<p><strong>Nobody is explicitly set to manage the leave requests of this user. Please set leave management rules associated.</strong></p>
+		<p><strong><%= l(:leave_status_manage_error) %></strong></p>
 	
 	<% end %>
 	</fieldset>
@@ -120,14 +120,14 @@
 	<% if v_list.any? %>
 	<br />
 	<fieldset>
-		<h3>Users who can be consulted:</h3>
+		<h3><%= l(:leave_status_users_can_consult) %>:</h3>
 		<% v_list.each do |project, users| %>
 		<% users_role = project.users_by_role %>
 			<p><strong><%= project.name %>: </strong>
 			<%= users.map{|u| 
 						roles = users_role.select{|k,v| u.id.in?(v.map(&:id))}.keys.map(&:name);
 						str = "".html_safe;
-						str += "<strong>You: ".html_safe if User.current == u;
+						str += "<strong>#{l(:leave_you_text)}: ".html_safe if User.current == u;
 						str += u.name.to_s.html_safe;
 						str += " (#{roles.join(', ')})".html_safe if roles.any?;
 						str += "</strong>".html_safe if User.current == u;
@@ -140,7 +140,7 @@
 	<% end %>
 	<br />
 
-	<h3>Users Consulted:</h3>
+	<h3><%= l(:leave_status_users_consulted) %>:</h3>
 	
 	<%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
 	</fieldset>

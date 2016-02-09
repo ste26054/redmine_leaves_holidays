@@ -4,19 +4,19 @@
 			<thead>
 			<tr>
 				<%= sort_header_tag('id', caption: "Id") %>
-				<th>Creator</th>
-				<th>Region</th>
-				<%= sort_header_tag('created_at', caption: "Creation Date") %>
-				<th>Length (days)</th>
-				<%= sort_header_tag('from_date', caption: "Leave From") %>
-				<%= sort_header_tag('to_date', caption: "Leave To") %>
-				<th>Leave Period</th>
-				<th>Reason</th>
-				<th>Comments</th>
-				<th>Type</th>
-				<th>Status</th>
-				<th>Remaining</th>
-				<th>Accumulated</th>
+				<th><%= l(:leave_creator) %></th>
+				<th><%= l(:leave_region) %></th>
+				<%= sort_header_tag('created_at', caption: l(:leave_creation_date)) %>
+				<th><%= l(:leave_length) %></th>
+				<%= sort_header_tag('from_date', caption: l(:leave_from_date)) %>
+				<%= sort_header_tag('to_date', caption: l(:leave_to_date)) %>
+				<th><%= l(:leave_period_full) %></th>
+				<th><%= l(:leave_reason) %></th>
+				<th><%= l(:leave_comments) %></th>
+				<th><%= l(:leave_type) %></th>
+				<th><%= l(:leave_status) %></th>
+				<th><%= l(:leave_remaining) %></th>
+				<th><%= l(:leave_accumulated) %></th>
 				<th></th>
 			</tr></thead>
 			<tbody>
@@ -50,21 +50,21 @@
 							<td><%= req.get_days_remaining_with.round(1) %>d</td>
 						<% end %>
 						<% lptd = req_user.leave_period_to_date %>
-						<td   title="from <%= format_date(lptd[:start]) %> to <%= format_date(lptd[:end]) %>"><%= req_user.days_accumulated.round(1) %>d</td>
+						<td   title="<%= l(:leave_from_to_date_full, :from => format_date(lptd[:start]), :to => format_date(lptd[:end])) %>"><%= req_user.days_accumulated.round(1) %>d</td>
 					<% else %>
-						<% tdata = "Data is not available because the leave associated is not within the user current leave period" %>
+						<% tdata = l(:leave_not_enough_data) %>
 						<td title="<%= tdata %>" style="cursor: help;">-</td>
 						<td title="<%= tdata %>" style="cursor: help;">-</td>
 					<% end %>
 					
 					<td class="buttons">
-						<%= link_to 'Details', req, :class => 'icon icon-details' %>
+						<%= link_to l(:leave_details), req, :class => 'icon icon-details' %>
 						<% if req_user.in?(users_managed) %>
-							<%= link_to 'Manage', new_leave_request_leave_status_path(req), :class => 'icon icon-edit' %>
+							<%= link_to l(:leave_manage), new_leave_request_leave_status_path(req), :class => 'icon icon-edit' %>
 						<% end %>
 						<% if req_user.in?(users_consulted)	%>
 							<% if (req.request_status == "submitted" || req.request_status == "processing") %>
-							<%= link_to 'Consult', new_leave_request_leave_vote_path(req), :class => 'icon icon-edit' %>
+							<%= link_to l(:leave_consult), new_leave_request_leave_vote_path(req), :class => 'icon icon-edit' %>
 							<% end %>
 						<% end %>
 					</td>

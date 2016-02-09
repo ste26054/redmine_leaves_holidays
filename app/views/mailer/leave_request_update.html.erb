@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<h1><%= link_to "Leave Request \##{@leave.id}", @leave %> was <%= @action %> by <%= link_to @user.name, @user %></h1>
+<h1><%= link_to "#{l(:leave_form_title)} \##{@leave.id}", @leave %> <%= l(:leave_was) %> <%= @action %> <%= l(:leave_by) %> <%= link_to @user.name, @user %></h1>
 
 <% if Rails.env.development? %>
 	<p>Sent to: <%= @recp %></p>
@@ -7,8 +7,7 @@
 
 <hr />
 
-
-<h2>For more information, go to your <%= link_to "Dashboard", leave_requests_url %>, or visit the <%= link_to "Details", @leave %></h2>
+<h2><%= l(:leave_review_go_to_dashboard) %></h2>
 
 <%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>
 

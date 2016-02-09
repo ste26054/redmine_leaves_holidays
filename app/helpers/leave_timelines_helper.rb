@@ -34,9 +34,9 @@ module LeaveTimelinesHelper
 
     s << '<strong><p>'.html_safe
     if leave.user_id.in?(@viewable_users.map(&:id))
-      s << link_to("Leave \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style => css_style}).html_safe
+      s << link_to("#{l(:leave_short)} \##{leave.id} - #{leave.issue.subject}", leave_request_path(leave), {:style => css_style}).html_safe
     else
-      s << "Leave \##{leave.id} - #{leave.issue.subject}".html_safe
+      s << "#{l(:leave_short)} \##{leave.id} - #{leave.issue.subject}".html_safe
     end
 
     s << '</strong></p>'.html_safe
@@ -56,7 +56,7 @@ module LeaveTimelinesHelper
     end
 
     if leave.half_day?
-      s << "<p><strong>#{leave.request_type.upcase} Leave</strong></p>".html_safe
+      s << "<p><strong>#{leave.request_type.upcase} #{l(:leave_short)}</strong></p>".html_safe
     end
 
     s << '</th></table></div>'.html_safe

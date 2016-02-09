@@ -1,53 +1,53 @@
 <p>
-	<strong><%= l(:label_leave_id) %></strong>
+	<strong><%= l(:label_leave_id) %>:</strong>
 	<%= leave.id %>
 </p>
 <p>
-	<strong><%= l(:label_leave_creator) %></strong>
+	<strong><%= l(:label_leave_creator) %>:</strong>
 	<%= link_to leave.user.name, leave.user %>
 </p>
 <p>
-	<strong>Leave From:</strong>
+	<strong><%= l(:leave_from_date) %>:</strong>
 	<%= format_date(leave.from_date) %>
 </p>
 <p>
-	<strong>Leave Until:</strong>
+	<strong><%= l(:leave_until_date) %>:</strong>
 	<%= format_date(leave.to_date) %>
 </p>
 <% actual_days = leave.actual_leave_days %>
 <p>
-	<strong>Actual Leave Days for the period:</strong>
+	<strong><%= l(:leave_actual_days_period) %>:</strong>
 	<%= actual_days %>
 </p>
 <p>
-	<strong>Non Working Days or Bank Holidays:</strong>
+	<strong><%= l(:leave_non_working_days) %>:</strong>
 	<%= leave.real_leave_days - actual_days %>
 </p>
 <% if leave.comments != "" %>
 	<p>
-		<strong><%= l(:label_leave_comments) %>:</strong>
+		<strong><%= l(:leave_comments) %>:</strong>
 		<%= leave.comments %>
 	</p>
 <% end %>
 <p>
-	<strong>Leave AM/PM:</strong>
+	<strong><%= l(:leave_am_pm) %>:</strong>
 	<%= leave.request_type %>
 </p>
 <p>
-	<strong>Leave Reason:</strong>
+	<strong><%= l(:leave_reason_full) %>:</strong>
 	<%= leave.issue.subject %>
 </p>
 <p>
-	<strong>Created on:</strong>
+	<strong><%= l(:leave_created_on) %>:</strong>
 	<%= format_time(leave.created_at) %>
 </p>
 <p>
-	<strong>Last updated:</strong>
+	<strong><%= l(:leave_updated_on) %>:</strong>
 	<%= format_time(leave.updated_at) %>
 </p>
 
 <p>
-	<strong>Leave Status:</strong>
+	<strong><%= l(:leave_status_full) %>:</strong>
 	<% s = leave.get_status %>
 	<% if s == "created" %>
 	<span style="color: red;"><strong><%= leave.get_status %></strong></span>

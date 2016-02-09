@@ -7,9 +7,9 @@
     <% leave_admins = @project.get_leave_administrators %>
 
     <% unless leave_admins[:project_defined] %>
-       <h3 style="color: red">Project members managed by the system leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
+       <h3 style="color: red"><%= l(:leave_management_members_managed_by_sys_leave_admins) %> (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% else %>
-       <h3>Project members managed directly by the project leave administrators (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
+       <h3><%= l(:leave_management_members_managed_by_proj_leave_admins) %> (<%= leave_admins[:users].map(&:name).join(", ") %>):</h3>
     <% end %>
 
     <% managed_by_leave_admin_people.keys.sort.each do |role| %>
@@ -21,7 +21,7 @@
 
   <% no_create_people = @project.users_by_role_who_cant_create_leave_requests %>
   <% unless no_create_people.empty? %>
-    <h3>Project members not allowed to create leave requests (Set in User Preferences):</h3>
+    <h3><%= l(:leave_management_members_not_allowed_create_leave) %>:</h3>
     <% no_create_people.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_notification(no_create_people[role].sort) %></p>
     <% end %>
@@ -35,20 +35,20 @@
 <div class="splitcontentleft">
   <% if users_by_role.any? %>
   <div class="members box">
-    <h3>Project members details</h3>
+    <h3><%= l(:leave_management_members_details) %></h3>
     <% users_by_role.keys.sort.each do |role| %>
       <p><span class="label"><%= role %>:</span> <%= users_link_to_checked_if_managed_in_project(users_by_role[role].sort, @project) %>
       </p>
     <% end %>
-    <h4>Legend:</h4>
-    <p><span class="label"><%= checked_image %></span> Member has his leave managed by people in this project</p>
-    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %></span> Member has his leave managed by people in other projects</p>
-    <p><span class="label"><%= image_tag('reload.png')  %></span> Member is managed by a leave administrator (see upper right column for details)</p>
-    <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> Member is a contractor, he is self managed (see lower right column for details)</p>
-    <p><span class="label"><%= image_tag('user.png') %></span> Member is a project leave administrator</p>
-    <p><span class="label"><%= image_tag('group.png') %></span> Member is a system leave administrator</p>
-    <p><span class="label"><%= image_tag('false.png', :size => '12x12') %></span> Member does not have leave management rules associated, hence the system is unable to determine who should be notified for the leave request. <strong>The member will not be able to submit leave requests.</strong></p>
-    <p><small>Click on any user to check who the user manages / is managed by (cross project)</small></p>
+    <h4><%= l(:leave_legend) %>:</h4>
+    <p><span class="label"><%= checked_image %></span> <%= l(:leave_management_member_managed_in_project) %></p>
+    <p><span class="label"><%= image_tag('toggle_check_amber.png', :plugin => 'redmine_leaves_holidays') %></span> <%= l(:leave_management_member_managed_other_project) %></p>
+    <p><span class="label"><%= image_tag('reload.png')  %></span> <%= l(:leave_management_member_managed_by_leave_admin) %></p>
+    <p><span class="label"><%= image_tag('hourglass.png', :size => '12x12') %></span> <%= l(:leave_management_member_contractor) %></p>
+    <p><span class="label"><%= image_tag('user.png') %></span> <%= l(:leave_management_member_project_leave_admin) %></p>
+    <p><span class="label"><%= image_tag('group.png') %></span> <%= l(:leave_management_member_system_leave_admin) %></p>
+    <p><span class="label"><%= image_tag('false.png', :size => '12x12') %></span> <%= t(:leave_management_member_not_managed_projects_html) %></p>
+    <p><small><%= l(:leave_management_hint) %></small></p>
   </div>
 <% end %>
 </div>

@@ -2,41 +2,41 @@
 	<%= render partial: '/leave_requests/details_metrics', locals: {user: @user_pref} %>
 <% end %>
 
-<h3>"Leave/Holidays/Work" Preferences for <%= @user_pref.name %>:</h3>
+<h3><%= l(:leave_preferences_form_title, :user => @user_pref.name ) %>:</h3>
 <div class="list">
 <p>
-	<strong>Weekly Working Hours:</strong>
+	<strong><%= l(:leave_preferences_ref_weekly_working_hours) %>:</strong>
 	<%= @preference.weekly_working_hours %>
 </p>
 <p>
-	<strong>Annual Leave Days Max:</strong>
+	<strong><%= l(:leave_preferences_holidays_entitlement_max) %>:</strong>
 	<%= @preference.annual_leave_days_max %>
 </p>
 <p>
-	<strong>Holidays Region:</strong>
+	<strong><%= l(:leave_preferences_holidays_region) %>:</strong>
 	<%= @preference.region %>
 </p>
 
 <p>
-	<strong>Extra Leave Days:</strong>
+	<strong><%= l(:leave_preferences_extra_days) %>:</strong>
 	<%= @preference.extra_leave_days %>
 	<% if @preference.annual_max_comments != "" %>
-		<strong>Comments:</strong>
+		<strong><%= l(:leave_preferences_extra_days_comments) %><%= l(:leave_preferences_extra_days_comments) %>:</strong>
 		<%= @preference.annual_max_comments %>
 	<% end %>
 </p>
 <p>
-	<strong>Contract Start Date:</strong>
+	<strong><%= l(:leave_preferences_contract_start) %>:</strong>
 	<%= format_date(@preference.contract_start_date) %>
 </p>
 <p>
-	<strong>User is a Contractor:</strong>
+	<strong><%= l(:leave_preferences_notif_user_contractor) %>:</strong>
 	<%= @preference.is_contractor %>
 </p>
 
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 
 <% if @auth_change %>
-	| <%= link_to 'Manage', new_user_leave_preference_path(@user_pref) %> | <%= link_to 'Check Manage/Consult list', notification_user_leave_preference_path(@user_pref) %>
+	| <%= link_to l(:leave_manage), new_user_leave_preference_path(@user_pref) %> | <%= link_to l(:leave_preferences_notif_link_to), notification_user_leave_preference_path(@user_pref) %>
 <% end %>
 </div>

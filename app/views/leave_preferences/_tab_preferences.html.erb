@@ -5,24 +5,24 @@
 		<thead>
 			<tr>
 				<th>
-					<%= button_tag(type: 'submit', class: "btn btn-primary", title: "Edit / Bulk Edit Selected") do %>
+					<%= button_tag(type: 'submit', class: "btn btn-primary", title: l(:leave_tab_prefs_edit_bulk_edit)) do %>
  						<i class="icon icon-edit"></i>
 					<% end %>
 				</th>
-				<th>User</th>
-				<th>Main projects</th>
-				<th>Region</th>
-				<th>Contract Start</th>
-				<th>Period Start</th>
-				<th>Period End</th>
-				<th>Days max</th>
-				<th title="Mouse over to see comments associated" style="cursor: help;">Extra days</th>
-				<th>Remaining</th>
-				<th>Accumulated</th>
-				<th>Taken</th>
-				<th>H/week</th>
-				<th>% Alloc</th>
-				<th>Contractor</th>
+				<th><%= l(:leave_user) %></th>
+				<th><%= l(:leave_tab_prefs_main_projects) %></th>
+				<th><%= l(:leave_tab_prefs_region) %></th>
+				<th><%= l(:leave_tab_prefs_contract_start) %></th>
+				<th><%= l(:leave_tab_prefs_period_start) %></th>
+				<th><%= l(:leave_tab_prefs_period_end) %></th>
+				<th><%= l(:leave_tab_prefs_days_max) %></th>
+				<th title="<%= l(:leave_tab_prefs_days_max_comments_hint) %>" style="cursor: help;"><%= l(:leave_tab_prefs_days_extra) %></th>
+				<th><%= l(:leave_tab_prefs_remaining) %></th>
+				<th><%= l(:leave_tab_prefs_accumulated) %></th>
+				<th><%= l(:leave_tab_prefs_taken) %></th>
+				<th><%= l(:leave_tab_prefs_hours_per_week) %></th>
+				<th><%= l(:leave_tab_prefs_percent_alloc) %></th>
+				<th><%= l(:leave_tab_prefs_is_contractor) %></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -32,7 +32,7 @@
 				<tr class="hascontextmenu <%= cycle("odd", "even") %> <%= lp.css_classes %>">
 				<td class="checkbox hide-when-print"><%= check_box_tag("user_ids[]", u.id, false, :id => nil) %>
 				</td>
-				<td><%= link_to u.login, edit_user_leave_preference_path(u), :class => 'icon icon-edit', :title => "Edit leave preferences for #{u.name}  / Get Detailed metrics" %>  <%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => 'Check who can manage / consult this user\'s leave request' %></td>
+				<td><%= link_to u.name, edit_user_leave_preference_path(u), :class => 'icon icon-edit', :title => l(:leave_tab_prefs_link_edit_help, :user => u.name) %>  <%= link_to '', notification_user_leave_preference_path(u), :class => 'icon icon-help',:title => l(:leave_tab_prefs_link_check_help) %></td>
 				<td><div style="min-width: 400px" ><%= user_projects(u) %></div></td>
 				<td><%= lp.region %></td>
 				<td><%= format_date(lp.contract_start_date) %></td>
@@ -40,13 +40,13 @@
 				<td><%= format_date(v[:leave_period][:end]) %></td>
 				
 				<% unless lp.is_contractor %>
-					<td title="Actual leave entitlement" style="cursor: help;"><%= v[:actual_days_max] %></td>
-					<td title="Comments: <%= lp.annual_max_comments %>" style="cursor: help;"><%= lp.extra_leave_days %></td>
+					<td title="<%= l(:leave_tab_prefs_actual_entitlement) %>" style="cursor: help;"><%= v[:actual_days_max] %></td>
+					<td title="<%= l(:leave_comments) %>: <%= lp.annual_max_comments %>" style="cursor: help;"><%= lp.extra_leave_days %></td>
 					<td><%= v[:days_remaining] %></td>
 				<% else %>
-					<td title="User is a contractor" style="cursor: help;">-</td>
-					<td title="User is a contractor" style="cursor: help;">-</td>
-					<td title="User is a contractor" style="cursor: help;">-</td>
+					<td title="<%= l(:leave_tab_prefs_user_contractor) %>" style="cursor: help;">-</td>
+					<td title="<%= l(:leave_tab_prefs_user_contractor) %>" style="cursor: help;">-</td>
+					<td title="<%= l(:leave_tab_prefs_user_contractor) %>" style="cursor: help;">-</td>
 				<% end %>
 				<td><%= v[:days_accumulated] %></td>
 				<td><%= v[:days_taken] %></td>
@@ -61,6 +61,7 @@
 		</tbody>
 	</table>
 </div>
+<p class="pagination"><%= pagination_links_full @users_pages, @users_count %></p>
 <% end -%>
 
 <%= javascript_tag do %>

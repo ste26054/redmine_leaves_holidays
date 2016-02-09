@@ -1,10 +1,9 @@
 <% if User.current.can_create_leave_requests %>
-	<h3><%= link_to 'Leave / Holidays', leave_requests_path %>
+	<h3><%= link_to l(:leave_holidays), leave_requests_path %>
 	</h3>
 	<p>
-			Days remaining from <%= format_date(user.leave_period[:start]) %> to <%= format_date(user.leave_period[:end]) %>:
-			<strong><%= user.days_remaining %></strong>
+			<%= t(:leave_block_my_metrics_html, :start => format_date(user.leave_period[:start]), :end => format_date(user.leave_period[:end]), :days => user.days_remaining) %>
 	</p>
 
-	<%= link_to "Create a New Leave Request", new_leave_request_path,:class => 'icon icon-add' %>
+	<%= link_to l(:label_leave_create_request), new_leave_request_path,:class => 'icon icon-add' %>
 <% end %>

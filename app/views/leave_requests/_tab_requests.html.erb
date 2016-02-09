@@ -7,16 +7,16 @@
 			<tr>
 			<%= sort_header_tag('id', caption: "Id") %>
 			<th>Days</th>
-			<%= sort_header_tag('from_date', caption: "Leave From") %>
-			<%= sort_header_tag('to_date', caption: "Leave To") %>
-			<th>In current Leave Period</th>
-			<th>Reason</th>
+			<%= sort_header_tag('from_date', caption: l(:leave_from_date)) %>
+			<%= sort_header_tag('to_date', caption: l(:leave_to_date)) %>
+			<th><%= l(:leave_current_period) %></th>
+			<th><%= l(:leave_reason) %></th>
 			<% unless contractor %>
-				<th>Deduced from remaining days</th>
+				<th><%= l(:leave_deduced) %></th>
 			<% end %>
-			<th>Comments</th>
-			<th>Type</th>
-			<th>Status</th>
+			<th><%= l(:leave_comments) %></th>
+			<th><%= l(:leave_type) %></th>
+			<th><%= l(:leave_status) %></th>
 			<th></th>
  			</tr></thead>
 			<tbody>
@@ -41,7 +41,7 @@
 					<% end %>
 					</td>
 					<td>
-					<%= link_to 'Details', req, :class => 'icon icon-details' %>
+					<%= link_to l(:leave_details), req, :class => 'icon icon-details' %>
 					</td>
 					</tr>
 				<% end -%>
@@ -50,10 +50,10 @@
 	</div>
 	<p class="pagination"><%= pagination_links_full leave_pages, leave_count %></p>
 <% else %>
-	<h4>There are no leave requests to show</h4>
+	<h4><%= l(:leave_none) %></h4>
 	<br/>
 <% end %>
 
-<%= link_to "Create a New Leave Request", new_leave_request_path,:class => 'icon icon-add' %>
+<%= link_to l(:label_leave_create_request), new_leave_request_path,:class => 'icon icon-add' %>
 
 

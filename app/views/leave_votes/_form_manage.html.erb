@@ -1,17 +1,17 @@
 
-<h2>Consultation for the Leave Request <%= link_to "\##{leave.id}", leave_request_path(leave) %> from <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
-<p>Leave (<%= leave.issue.subject %>) from <%= format_date(leave.from_date) %> to <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
+<h2><%= l(:leave_vote_consult_title) %> <%= link_to "\##{leave.id}", leave_request_path(leave) %> <%= l(:leave_from_text) %> <%= link_to leave.user.name, user_path(leave.user) %>:</h2>
+<p>Leave (<%= leave.issue.subject %>) <%= l(:leave_from_text) %> <%= format_date(leave.from_date) %> <%= l(:leave_to_text) %> <%= format_date(leave.to_date) %> (<%= leave.actual_leave_days %> days)</p>
 <% unless leave.comments.empty? %>
 	<p>
-		User comments: <%= leave.comments %>
+		<%= l(:leave_status_user_comments) %>: <%= leave.comments %>
 	</p>
 <% end %>
 
 <% projects = leave.vote_list.delete_if{|k,v| !User.current.in?(v)}.keys %>
 
 <fieldset>
-<p>You are being consulted as:<strong> <%= projects.map{|p| p.roles_for_user(User.current)}.flatten.map(&:name).uniq.join(', ') %></strong></p>
-<p>For the Projects:<strong> <%= projects.uniq.join(', ') %></strong></p>
+<p><%= l(:leave_vote_consulted_as) %>:<strong> <%= projects.map{|p| p.roles_for_user(User.current)}.flatten.map(&:name).uniq.join(', ') %></strong></p>
+<p><%= l(:leave_vote_for_projects) %>:<strong> <%= projects.uniq.join(', ') %></strong></p>
 
 <%= form_for [leave, vote] do |f| %>
 	
@@ -29,26 +29,26 @@
 	<div>
 
 			<p>
-				Consultation:
+				<%= l(:leave_consultation) %>:
 				<%= f.radio_button :vote, 'yes' %>
-				<%= f.label :vote, 'Yes', :value => 'yes' %>
+				<%= f.label :vote, l(:general_text_Yes), :value => 'yes' %>
 				<%= f.radio_button :vote, 'no' %>
-				<%= f.label :vote, 'No', :value => 'no' %>
+				<%= f.label :vote, l(:general_text_No), :value => 'no' %>
 			</p>
 
 			<p>
-				<label>Comments:</label>
+				<label><%= l(:leave_comments) %>:</label>
 				<%= f.text_field :comments, {:size => 75 } %>
 			</p>
 
 	</div>
-	<%= f.submit 'Submit', data: { confirm: 'Are you sure?' } %> |
+	<%= f.submit l(:leave_submit), data: { confirm: l(:leave_confirm_dialog) } %> |
 <% end %>
 <a href="javascript:history.back()"><%= l(:button_back) %></a>
 </fieldset>
 <br />
 <fieldset>
-<h3>Consulted:</h3>
+<h3><%= l(:leave_consulted) %>:</h3>
 	
 <%= render partial: 'leave_votes/tab_votes', locals: {votes: votes, leave: leave} %>
 

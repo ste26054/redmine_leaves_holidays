@@ -75,7 +75,7 @@ class LeaveRequestsController < ApplicationController
         @leave.manage({acceptance_status: "accepted", comments: "AUTO_APPROVED"})
       else
         @leave.update_attribute(:request_status, "submitted")
-        flash[:notice] = "Your leave request has been submitted for approval"
+        flash[:notice] = l(:leave_notice_submitted)
       end
       redirect_to @leave
     end
@@ -87,7 +87,7 @@ class LeaveRequestsController < ApplicationController
       return
     else
       @leave.update_attribute(:request_status, "created")
-      flash[:notice] = "Your leave request has been unsubmitted."
+      flash[:notice] = l(:leave_notice_unsubmitted)
       redirect_to @leave
     end
   end
@@ -123,7 +123,7 @@ class LeaveRequestsController < ApplicationController
 
     if leave_relations.processed.exists?
       if leave_relations.accepted.ongoing_or_finished.exists?
-        flash[:error] = "You cannot cancel this leave as it has already been approved and is in the past. Please ask your line manager to reject it if necessary."
+        flash[:error] = l(:leave_error_cannot_cancel_approved_in_past)
         redirect_to leave_requests_path
         return
       end
@@ -151,13 +151,13 @@ class LeaveRequestsController < ApplicationController
 
   def info_flash
     if @leave.user.can_self_approve_requests?
-      flash[:notice] = "As you are an administrator, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+      flash[:notice] = l(:leave_notice_auto_approve_leave_admin)
     elsif LeavesHolidaysLogic.user_params(@leave.user, :is_contractor)
-      flash[:notice] = "As you are a Contractor, the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+      flash[:notice] = l(:leave_notice_auto_approve_contractor)
     elsif @leave.is_non_approval_leave
-      flash[:notice] = "As leave reason selected is special (#{@leave.issue.subject}), the Leave Request will automatically be approved once you click the \"Submit\" Button. Please make sure that all the details are correct."
+      flash[:notice] = l(:leave_notice_non_approval_leave, subject: @leave.issue.subject)
     else
-      flash[:notice] = "Your leave request was successfully created. Do not forget to submit it for approval by hitting the \"Submit\" Button. You will then be able to edit it until it is processed."
+      flash[:notice] = l(:leave_notice_created)
     end  
   end
 
@@ -183,7 +183,7 @@ class LeaveRequestsController < ApplicationController
   def check_actions_are_notified
     unless @is_ok_to_submit_leave
       
-      msg = "The system does not have enough information to determine who is able to process your leave requests. Please, ask your manager to update your leave management rules and retry. An email was sent to the administrator."
+      msg = l(:leave_error_not_enough_data)
       flash[:error] = msg
       send_general_notification_email(msg)
       redirect_to leave_requests_path
