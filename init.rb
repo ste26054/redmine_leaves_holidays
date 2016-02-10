@@ -17,6 +17,7 @@ project_module :leave_management do
   permission :view_all_leave_requests, { :leaves_requests => :view_all }
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
   permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics, :enable, :disable], :leave_administrators => [:edit, :update, :clear]}
+  permission :view_leave_timeline, { :leave_timelines => :show_project }
 end
   menu :account_menu, :redmine_leaves_holidays, { :controller => 'leave_requests', :action => 'index' }, :caption => :leave_holidays, :if => Proc.new { User.current.logged? && User.current.has_leave_plugin_access? }
 
@@ -24,6 +25,7 @@ end
                               :caption => :tab_leaves_timeline,
                               :after => :gantt,
                               :param => :project_id
+
 
 end
 
@@ -39,6 +41,8 @@ Rails.configuration.to_prepare do
   end
   
   Holidays.load_all
+  # Add your custom holiday files here:
+  #Holidays.load_custom('/var/lib/redmine/files/holidays/mitac.yaml')
   require 'rufus/scheduler'
 
 
