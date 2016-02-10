@@ -11,7 +11,9 @@
     <h3><%= l(:leave_management_rules) %> <small><%= link_to l(:leave_disable), project_leave_management_rules_disable_path(@project.id), :class => "icon icon-del" %></small></h3>
     </li>
     <li>
-      <%= link_to l(:leave_feedback_title), leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>
+        <% if LeavesHolidaysLogic.plugin_feedback_configured? %>
+          <%= link_to l(:leave_feedback_title), leave_feedbacks_new_path, :remote => true, :class => "icon icon-email-add" %>
+        <% end %>
     </li>
     </ul>
   	

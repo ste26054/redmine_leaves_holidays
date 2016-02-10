@@ -100,18 +100,42 @@ module LeavesHolidaysLogic
 	def self.projects_with_leave_management_active
 		return Project.all.active.where(id: EnabledModule.where(name: "leave_management").pluck(:project_id))
 	end
+
+	def self.plugin_configured?
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:region)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date)
+		return false unless self.issues_list
+		return false if self.issues_list.empty?
+		return true
+	end
+
+	def self.plugin_feedback_configured?
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients)
+		return false unless RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients).delete_if{|s| s == ""}.any?
+		return true
+	end
 	
 	def self.issues_list(user = nil)
 		issues_tracker = RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)
 		issues_project = RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)
 		issues = Issue.where(project_id: issues_project, tracker_id: issues_tracker)
-		return issues unless user
-		
-		if user.is_contractor
-			return issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors).map(&:to_i))
-		else
-			return issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors).map(&:to_i))
+
+		if user
+			if user.is_contractor
+				issues = issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors).try{|u| u.map(&:to_i)})
+			else
+				issues = issues.where(id: RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors).try{|u| u.map(&:to_i)})
+			end
 		end
+		return issues
 	end
 
 	def self.plugin_admins
