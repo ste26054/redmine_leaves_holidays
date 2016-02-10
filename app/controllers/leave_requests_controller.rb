@@ -5,6 +5,7 @@ class LeaveRequestsController < ApplicationController
   include LeavesHolidaysTriggers
   include LeavesHolidaysPermissions
 
+  before_action :check_plugin_install
   before_action :set_user
   before_action :set_leave_preferences
   before_action :set_leave_request, only: [:show, :edit, :update, :destroy, :submit, :unsubmit]
@@ -247,6 +248,14 @@ class LeaveRequestsController < ApplicationController
 
   def set_leave_preferences
     @leave_preferences ||= @user.leave_preferences
+  end
+
+  def check_plugin_install
+    unless LeavesHolidaysLogic.plugin_configured?
+      flash[:error] = l(:leave_error_plugin_not_configured)
+      redirect_to home_path
+      return
+    end
   end
 
 end

@@ -2,6 +2,16 @@
 
 The Leave Management plugin is a cross project plugin, which makes use of leave management rules created in each selected project to handle all of the leave request approval process.
 
+=======
+### Install
+
+ - Go to `redmine/plugins` directory
+ - `git clone` this repository
+ - In `redmine` directory, run `bundle install` to install the required gems
+ - Run db migrations `rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_leaves_holidays`
+ - Restart Redmine
+ - Go to Administration / Plugins and configure it
+
 
 ### Features
 

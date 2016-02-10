@@ -1,66 +1,100 @@
 <fieldset>
+
+	<h2><%= l(:leave_plugin_config_part1) %>:</h2>
+
 	<legend><%= l(:leave_plugin_parameters) %></legend>
 	<%- trackers = Tracker.all.sort_by(&:name).collect{|t| [t.name, t.id]} -%>
-	<p>
-		<label><%= l(:leave_plugin_tracker_select) %>:</label>
-		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)) -%>
-		<%= select_tag "settings[default_tracker_id]", options, :multiple => false %>
-	</p>
 
 	<%- projects = Project.active.sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:leave_plugin_project_select) %>:</label>
 		<%- options = options_for_select(projects, RedmineLeavesHolidays::Setting.defaults_settings(:default_project_id)) -%>
-		<%= select_tag "settings[default_project_id]", options, :multiple => false %>
+		<%= select_tag "settings[default_project_id]", options, :multiple => false, :required => true %>
 	</p>
 
-		<%- activities = TimeEntryActivity.where(:active => true).sort_by(&:name).collect{|t| [t.name, t.id]} -%>
+	<p>
+		<label><%= l(:leave_plugin_tracker_select) %>:</label>
+		<%- options = options_for_select(trackers, RedmineLeavesHolidays::Setting.defaults_settings(:default_tracker_id)) -%>
+		<%= select_tag "settings[default_tracker_id]", options, :multiple => false, :required => true %>
+	</p>
+
+
+	<%- activities = TimeEntryActivity.where(:active => true).sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:leave_plugin_activity_select) %>:</label>
 		<%- options = options_for_select(activities, RedmineLeavesHolidays::Setting.defaults_settings(:default_activity_id)) -%>
-		<%= select_tag "settings[default_activity_id]", options, :multiple => false %>
-	</p>
-
-	<p>
-		<label><%= l(:label_leaves_default_working_hours) %>:</label>
-		<%= number_field_tag 'settings[weekly_working_hours]', RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours), in: 0.0..100.0, step: 0.1 %>
-	</p>
-
-	<p>
-		<label><%= l(:label_leaves_default_days_year) %>:</label>
-		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), in: 0.0..100.0, step: 0.5 %>
+		<%= select_tag "settings[default_activity_id]", options, :multiple => false, :required => true %>
 	</p>
 
 	<%- users = User.where(status: 1).sort_by(&:name).collect{|t| [t.name, t.id]} -%>
 	<p>
 		<label><%= l(:label_plugin_admins) %></label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:default_plugin_admins)) -%>
-		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10 %>
+		<%= select_tag "settings[default_plugin_admins]", options, :multiple => true, :width => 80, :size => 10, :required => true %>
 	</p>
 
-		<%- regions = Holidays.regions.sort -%>
+	<%- regions = Holidays.regions.sort -%>
 	<p>
 		<label><%= l(:leave_plugin_region_default) %>:</label>
 		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.defaults_settings(:region)) -%>
-		<%= select_tag "settings[region]", options, :multiple => false %>
+		<%= select_tag "settings[region]", options, :multiple => false, :required => true %>
 	</p>
 
 	<p>
 		<label><%= l(:leave_plugin_regions_available) %>:</label>
 		<%- options = options_for_select(regions, RedmineLeavesHolidays::Setting.defaults_settings(:available_regions)) -%>
-		<%= select_tag "settings[available_regions]", options, :multiple => true, :size => 10 %>
+		<%= select_tag "settings[available_regions]", options, :multiple => true, :size => 10, :required => true %>
 	</p>
 
 	<p>
-		<label><%= l(:leave_plugin_default_contract_start) %>:</label>
-		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date) %>
+		<label><%= l(:label_leaves_default_working_hours) %>:</label>
+		<%= number_field_tag 'settings[weekly_working_hours]', RedmineLeavesHolidays::Setting.defaults_settings(:weekly_working_hours), in: 0.0..100.0, step: 0.1, :required => true %>
 	</p>
+
+	<p>
+		<label><%= l(:label_leaves_default_days_year) %>:</label>
+		<%= number_field_tag 'settings[annual_leave_days_max]', RedmineLeavesHolidays::Setting.defaults_settings(:annual_leave_days_max), in: 0.0..100.0, step: 0.5, :required => true %>
+	</p>
+
+
+	<p>
+		<label><%= l(:leave_plugin_default_renewal_date) %>:</label>
+
+		<%= date_field_tag "settings[leave_renewal_date]", RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date), :required => true %>
+	</p>
+
+
+	<p>
+		<label><%= l(:leave_plugin_default_contract_start) %>:</label>
+		<%= date_field_tag "settings[contract_start_date]", RedmineLeavesHolidays::Setting.defaults_settings(:contract_start_date), :required => true %>
+	</p>
+
+	<h2><%= l(:leave_plugin_config_part2) %>:</h2>
+
+		<%- issues = LeavesHolidaysLogic.issues_list.sort_by(&:subject).collect{|t| [t.subject, t.id]} -%>
+
+	<p>
+		<label><%= l(:leave_plugin_leave_reasons_available_users) %>:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)) -%>
+		<%= select_tag "settings[available_reasons_non_contractors]", options, :multiple => true, :size => 10 %>
+	</p>
+
+
+	<p>
+		<label><%= l(:leave_plugin_leave_reasons_available_contractors) %>:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)) -%>
+		<%= select_tag "settings[available_reasons_contractors]", options, :multiple => true, :size => 10 %>
+	</p>
+
+	<h2><%= l(:leave_plugin_config_part3) %>:</h2>
+
+
 	<p>
 	<label><%= l(:leave_plugin_activate_emails) %>:</label>
 		<%= check_box_tag "settings[email_notification]",1, RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1 %>
 	</p>
 
-	<%- issues = LeavesHolidaysLogic.issues_list.sort_by(&:subject).collect{|t| [t.subject, t.id]} -%>
+
 	<p>
 		<label><%= l(:leave_plugin_disable_approval_for) %>:</label>
 		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:default_non_approval_issues)) -%>
@@ -79,29 +113,11 @@
 		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
-	<p>
-		<label><%= l(:leave_plugin_leave_reasons_available_users) %>:</label>
-		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_non_contractors)) -%>
-		<%= select_tag "settings[available_reasons_non_contractors]", options, :multiple => true, :size => 10 %>
-	</p>
-
-
-	<p>
-		<label><%= l(:leave_plugin_leave_reasons_available_contractors) %>:</label>
-		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:available_reasons_contractors)) -%>
-		<%= select_tag "settings[available_reasons_contractors]", options, :multiple => true, :size => 10 %>
-	</p>
-
-	<p>
-		<label><%= l(:leave_plugin_default_renewal_date) %>:</label>
-
-		<%= date_field_tag "settings[leave_renewal_date]", RedmineLeavesHolidays::Setting.defaults_settings(:leave_renewal_date) %>
-	</p>
 
 	<p>
 		<label><%= l(:leave_plugin_feedback_sending_list) %>:</label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients)) -%>
-		<%= select_tag "settings[leave_error_recipients]", options, :multiple => true, :width => 80, :size => 10 %>
+		<%= select_tag "settings[leave_error_recipients]", options, :multiple => true, :include_blank => true, :width => 80, :size => 10 %>
 	</p>
 
 
