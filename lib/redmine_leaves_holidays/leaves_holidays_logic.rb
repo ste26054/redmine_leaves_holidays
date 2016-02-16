@@ -195,4 +195,9 @@ module LeavesHolidaysLogic
 		return Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where(project_id: self.projects_with_leave_management_active.pluck(:id)).map(&:user).uniq
 	end
 
+	def self.people_notify_training
+		user_ids = RedmineLeavesHolidays::Setting.defaults_settings(:default_people_notify_training) || []
+		return User.active.where(id: user_ids)
+	end
+
 end

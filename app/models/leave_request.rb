@@ -41,7 +41,7 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_issue
    validate :validate_overlaps
    validate :validate_update
-   validate :validate_quiet
+   validate :validate_comments_mandatory
    validate :validate_days_remaining
    
 
@@ -226,6 +226,17 @@ class LeaveRequest < ActiveRecord::Base
     return !self.is_non_deduce_leave && self.get_status.in?(["submitted", "processing", "accepted"])
   end
 
+  # Returns if the leave is associated as a training in the plugin admin parameters
+  def is_training_leave?
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:training_leave_reasons) || []
+    return self.issue_id.to_s.in?(p)
+  end
+
+  def is_comment_mandatory?
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:mandatory_comments_leave_reasons) || []
+    return self.issue_id.to_s.in?(p)
+  end
+
   def vote_list_left
     vote_list_left = []
     voted_list = LeaveVote.for_request(self.id).map(&:user_id)
@@ -254,7 +265,14 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def notifies_approved_list
-    notifies_approved_list = self.user.project_notify_full_list.values.flatten.uniq
+    people = []
+    people += self.user.project_notify_full_list.values.flatten.uniq
+
+    if self.is_training_leave?
+      people += LeavesHolidaysLogic.people_notify_training
+    end
+
+    return people.flatten.uniq
   end
 
   def email_people_notification_for(action, was_approved=false)
@@ -490,12 +508,12 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
-  def validate_quiet
-    if self.is_non_approval_leave && self.comments.gsub(/\s+/, "").size < 5
+  def validate_comments_mandatory
+    if self.is_comment_mandatory? && self.comments.gsub(/\s+/, "").size < 5
       errors.add(:comments, l(:leave_comments_mandatory))
     end
   end
-
+  
   def same_or_previous_working_day(date, region)
       d = date
       while (d).holiday?(region.to_sym, :observed) || non_working_week_days.include?((d).cwday)

@@ -88,6 +88,7 @@ en:
   leave_index_include_past: "Include absence requests in the past"
 
   leave_form_title: "Absence Request"
+  leave_form_training_title: "Training"
   leave_form_notice_html: "<strong>Notice:</strong> Bank Holidays for your region (%{region}) and week ends are automatically ignored."
   leave_form_important_html: "<strong>Important:</strong> Creating a absence request <strong>does not</strong> submit it. Once it is created, please review the absence details. If you are happy with the details, hit the submit button. A confirmation email will be sent to you once the submission is successful."
   leave_form_notified_field: "The following people will be notified for your request"
@@ -268,7 +269,11 @@ en:
   mailer_leave_update_subject: "[Absence Request - %{subject} #%{id}] %{action} by %{user}"
   mailer_leave_consulted_subject: "[Absence Request - %{subject} #%{id}] Consulted by %{user}"
   mailer_leave_general_notif: "[Absence Request - General Notification] Initiated by %{user}"
-
+  mailer_training_feedback_subject: "[Absence Request - %{subject} #%{id}] Feedback required"
+  mailer_feedback_for: "Feedback for"
+  mailer_is_required: "is required"
+  mailer_please_provide_feedback_training_url: "Please provide your feedback for the training at this address"
+  mailer_below_details_training: "Below are the details of your training request"
 
   leave_plugin_parameters: "Plugin parameters"
   leave_plugin_tracker_select: "Tracker under which each day of absence should be logged"
@@ -288,6 +293,10 @@ en:
   leave_plugin_config_part1: "Part 1 - Required"
   leave_plugin_config_part2: "Part 2 - Absence Reasons available - Hit Apply if changes were made above before continuing"
   leave_plugin_config_part3: "Part 3 - Options"
+  leave_plugin_comments_mandatory: "Absence reasons for which comments are mandatory"
+  leave_plugin_reasons_training: "Absence reasons considered as training"
+  leave_plugin_people_notify_training: "Additional People to notify a training has been approved"
+  leave_plugin_url_feedback_training: "Url for the training feedback form sent via email after training is complete"
 
   leave_exception_actor_concerned_invalid: "Is invalid regarding the absence management rule action selected"
   leave_cannot_take_place_before_beginning: "The end of the absence cannot take place before its beginning"

@@ -190,7 +190,7 @@ module LeavesHolidaysManagements
 
     rules.find_each do |rule|
 
-      rule_object = {id: rule.id, project_id: rule.project_id, sender_id: rule.sender_id, sender_type: rule.sender_type, action: rule.action, receiver_id: rule.receiver_id, receiver_type: rule.receiver_type, exceptions_sender: [], exceptions_receiver: [], backup_receiver: []}
+      rule_object = {id: rule.id, project_id: rule.project_id, sender_id: rule.sender_id, sender_type: rule.sender_type, action: rule.action, receiver_id: rule.receiver_id, receiver_type: rule.receiver_type, exceptions_sender: [], exceptions_receiver: [], backup_receiver: [], reasons: []}
 
       rule.leave_exception_rules.includes(:user).find_each do |exception|
         excp = {user_id: exception.user_id}
@@ -205,10 +205,13 @@ module LeavesHolidaysManagements
         end
       end
 
+      reasons = rule.leave_reason_rules.includes(:issue).map{|r| r.issue.id }
+      rule_object[:reasons] = reasons
+      
       rules_array << rule_object
     end
     #return rules_array
-    return rules_array.group_by{|r| [r[:project_id], r[:sender_type], r[:action], r[:receiver_type], r[:exceptions_sender], r[:exceptions_receiver], r[:backup_receiver]]}.values.map{|a| a.map{|b| b[:id]}}
+    return rules_array.group_by{|r| [r[:project_id], r[:sender_type], r[:action], r[:receiver_type], r[:exceptions_sender], r[:exceptions_receiver], r[:backup_receiver], r[:reasons]]}.values.map{|a| a.map{|b| b[:id]}}
   end
 
   def self.deep_group_management_rules(rules)

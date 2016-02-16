@@ -1,0 +1,13 @@
+<%= l(:mailer_feedback_for) %> <%= link_to "#{l(:leave_form_training_title)} \##{@leave.id}", @leave %> <%= l(:mailer_is_required) %>:
+
+----------------------------------------
+
+<%= l(:mailer_please_provide_feedback_training_url) %>:
+
+<%= @training_url %>
+
+----------------------------------------
+
+<%= l(:mailer_below_details_training) %>:
+
+<%= render partial: '/leave_requests/details_leave', :formats => [:html], locals: {leave: @leave} %>
