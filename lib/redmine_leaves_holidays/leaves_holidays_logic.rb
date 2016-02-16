@@ -200,4 +200,9 @@ module LeavesHolidaysLogic
 		return User.active.where(id: user_ids)
 	end
 
+	def self.training_issue_list_id
+		p = RedmineLeavesHolidays::Setting.defaults_settings(:training_leave_reasons) || []
+		return p.map(&:to_i)
+	end
+
 end

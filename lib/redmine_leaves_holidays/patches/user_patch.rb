@@ -222,12 +222,16 @@ module RedmineLeavesHolidays
 			end
 
 			def can_be_notified_leave_requests
-				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').any? || LeavesHolidaysLogic.has_view_all_rights(self)
+				LeavesHolidaysManagements.management_rules_list(self, 'receiver', 'notifies_approved').any? || LeavesHolidaysLogic.has_view_all_rights(self) || is_notified_training?
 			end
 
 			def can_create_leave_requests
 				lp = self.leave_preferences
 				return lp.can_create_leave_requests
+			end
+
+			def is_notified_training?
+				return self.in?(LeavesHolidaysLogic.people_notify_training)
 			end
 
 			# Used in init.rb to check whether user has a link to the plugin displayed

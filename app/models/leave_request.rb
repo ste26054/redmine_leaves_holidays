@@ -122,6 +122,11 @@ class LeaveRequest < ActiveRecord::Base
     where(user_id: uid_contractors)
   }
 
+  scope :trainings, ->{
+    where(issue_id: LeavesHolidaysLogic.training_issue_list_id)
+  }
+
+
 
   def get_status
     if self.request_status == "processed" && self.leave_status
