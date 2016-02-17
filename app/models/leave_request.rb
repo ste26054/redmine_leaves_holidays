@@ -69,6 +69,8 @@ class LeaveRequest < ActiveRecord::Base
   scope :coming, -> { where("from_date > ?", Date.today) }
 
   scope :finished, -> { where("to_date < ?", Date.today) }
+  
+  scope :finished_at, ->(d) { where("to_date < ?", d) }
 
   scope :ongoing_or_finished, -> { where("from_date <= ? OR to_date <= ?", Date.today, Date.today) }  
 
@@ -278,6 +280,12 @@ class LeaveRequest < ActiveRecord::Base
     end
 
     return people.flatten.uniq
+  end
+
+  def send_training_feedback_email
+    if is_training_leave? && RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+      Mailer.leave_training_feedback(self).deliver
+    end
   end
 
   def email_people_notification_for(action, was_approved=false)

@@ -61,4 +61,16 @@ module LeavesHolidaysTriggers
     event.event_data = user.leave_preferences.attributes
     event.save
 	end
+
+  def self.send_training_feedback_reminders(date = Date.today)
+    
+    number_of_days_after_training_done = 2
+    date_check = date - number_of_days_after_training_done
+    leave_to_send_feedback_to = LeaveRequest.trainings.accepted.finished_at(date).overlaps(date_check, date_check)
+
+    leave_to_send_feedback_to.each do |leave|
+      leave.send_training_feedback_email
+    end
+
+  end
 end
