@@ -32,12 +32,17 @@ class LeavePreference < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
-  before_save :check_event_backup, :on => [:create, :update]
+  before_save :perform_event_backup, :on => [:create, :update]
+  before_save :handle_incorrect_region, :on => [:update]
 
   def css_classes
     s = "leave-preference user-#{self.user_id}"
     s << ' needs-attention' if self.id && self.pending_day_count && self.pending_day_count != 0
     return s
+  end
+
+  def is_region_valid?
+    return region.to_sym.in?(Holidays.regions)
   end
 
   private
@@ -65,13 +70,22 @@ class LeavePreference < ActiveRecord::Base
     end
   end
 
-  def check_event_backup
+  def perform_event_backup
     leave_pref = self.user.leave_preferences
     event_count = LeaveEvent.where(user_id: self.user_id).count
     if event_count == 0
       event = LeaveEvent.new(user_id: self.user_id, event_type: "initial_backup", comments: "Initial backup before first changes")
       event.event_data = leave_pref.attributes
       event.save
+    end
+  end
+
+  def handle_incorrect_region
+    if is_region_valid?
+      former_lp = self.user.leave_preferences
+      unless former_lp.is_region_valid?
+        LeaveRequest.for_user(self.user_id).where(region: former_lp.region).update_all(region: self.region)
+      end
     end
   end
 

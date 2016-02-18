@@ -161,6 +161,10 @@ module LeavesHolidaysLogic
 		return RedmineLeavesHolidays::Setting.defaults_settings(:available_regions) || []
 	end
 
+	def self.get_training_feedback_days
+		return RedmineLeavesHolidays::Setting.defaults_settings(:number_days_feedback_after_training).try(&:to_i) || 2
+	end
+
 	def self.user_params(user, arg)
 		prefs = LeavePreference.where(user_id: user.id).first
 		return prefs.send(arg) if prefs != nil
@@ -193,6 +197,16 @@ module LeavesHolidaysLogic
 
 		# Get the uniq user ids of corresponding members
 		return Member.includes(:member_roles, :project, :user).where(member_roles: {id: member_role_ids}, users: {status: 1}).where(project_id: self.projects_with_leave_management_active.pluck(:id)).map(&:user).uniq
+	end
+
+	def self.people_notify_training
+		user_ids = RedmineLeavesHolidays::Setting.defaults_settings(:default_people_notify_training) || []
+		return User.active.where(id: user_ids)
+	end
+
+	def self.training_issue_list_id
+		p = RedmineLeavesHolidays::Setting.defaults_settings(:training_leave_reasons) || []
+		return p.map(&:to_i)
 	end
 
 end

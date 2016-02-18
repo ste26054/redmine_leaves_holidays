@@ -18,11 +18,7 @@ module RedmineLeavesHolidays
     		@leave = leave
         @user = arg[:user]
         @recp = recipients.collect { |r| r.login }
-
-        @deadline = @leave.deadline
-        if (@deadline < Date.today)
-          @deadline = nil
-        end
+        
     		cc = []
         
     		subject = l(:mailer_leave_add_subject, :subject => leave.issue.subject, :id => leave.id, :user => @user.name)
@@ -78,6 +74,20 @@ module RedmineLeavesHolidays
         subject = l(:mailer_leave_general_notif, :user => @user_init.name)
 
         mail :to => recipients, :cc => cc, :subject => subject
+      end
+
+      def leave_training_feedback(leave)
+        redmine_headers 'LeaveRequest-Id' => leave.id,
+                    'LeaveRequest-Author' => leave.user.login
+
+         message_id leave
+         references leave
+        @leave = leave
+        @training_url = RedmineLeavesHolidays::Setting.defaults_settings(:training_form_url)
+        cc = []
+        subject = l(:mailer_training_feedback_subject, :subject => leave.issue.subject, :id => leave.id)
+
+        mail :to => [leave.user], :cc => cc, :subject => subject
       end
 
     end

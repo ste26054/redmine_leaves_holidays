@@ -13,7 +13,8 @@ module LeavesHolidaysPermissions
       @is_notified = @user.is_notified_from_user?(@leave.user)
       @is_managing = @user.is_managing_user?(@leave.user)
       @has_view_all_rights = LeavesHolidaysLogic.has_view_all_rights(@user)
-      auth = @user == @leave.user || (@leave.get_status != 'created' && (@has_view_all_rights || @is_consulted || @is_notified || @is_managing))
+      @has_training_rights = @user.is_notified_training? && @leave.is_training_leave?
+      auth = @user == @leave.user || (@leave.get_status != 'created' && (@has_view_all_rights || @is_consulted || @is_notified || @is_managing || @has_training_rights))
     end
 
     return auth

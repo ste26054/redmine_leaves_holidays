@@ -50,7 +50,14 @@ class LeaveApprovalsController < ApplicationController
 
     @users_initial_viewable = (@users_initial_managed + @users_initial_consulted + @users_initial_notified).flatten.uniq
 
-    @scope_initial = LeaveRequest.where.not(request_status: 0).where(user_id: @users_initial_viewable.map(&:id))
+
+    leave_training_viewable_ids = []
+    leave_training_viewable_ids = LeaveRequest.pending_or_accepted.trainings.pluck(:id) if @user.is_notified_training?
+
+    leave_users_viewable_ids = LeaveRequest.pending_or_accepted.where(user_id: @users_initial_viewable.map(&:id)).pluck(:id)
+
+    @scope_initial = LeaveRequest.where(id: (leave_training_viewable_ids + leave_users_viewable_ids).flatten.uniq)
+
 
     scope = @scope_initial
 

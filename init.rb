@@ -50,10 +50,19 @@ Rails.configuration.to_prepare do
   leave_job = Rufus::Scheduler.new(:lockfile => ".leave-scheduler.lock")
   
   unless leave_job.down?
-	leave_job.cron '30 0 * * *' do
-		LeavesHolidaysTriggers::check_perform_users_renewal
-        Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
-	end
+  	leave_job.cron '30 0 * * *' do
+  		LeavesHolidaysTriggers::check_perform_users_renewal
+          Rails.logger.info "Sheduler finished running RENEWAL_TRIGGER: #{Time.now}"
+  	end
+  end
+
+  training_job = Rufus::Scheduler.new(:lockfile => ".leave-training.lock")
+  
+  unless training_job.down?
+    training_job.cron '30 9 * * *' do
+      LeavesHolidaysTriggers::send_training_feedback_reminders
+          Rails.logger.info "Sheduler finished running TRAINING_TRIGGER: #{Time.now}"
+    end
   end
 
 end

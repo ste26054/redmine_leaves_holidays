@@ -41,7 +41,7 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_issue
    validate :validate_overlaps
    validate :validate_update
-   validate :validate_quiet
+   validate :validate_comments_mandatory
    validate :validate_days_remaining
    
 
@@ -69,6 +69,10 @@ class LeaveRequest < ActiveRecord::Base
   scope :coming, -> { where("from_date > ?", Date.today) }
 
   scope :finished, -> { where("to_date < ?", Date.today) }
+  
+  scope :ending_on, ->(d) { where("to_date = ?", d) }
+
+  scope :ended_between, -> (fr, to) { where("to_date >= ? AND to_date <= ?", fr, to) }
 
   scope :ongoing_or_finished, -> { where("from_date <= ? OR to_date <= ?", Date.today, Date.today) }  
 
@@ -78,6 +82,11 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
+
+  scope :region_invalid, -> {
+    regions = Holidays.regions.map(&:to_s)
+    where.not(region: regions)
+  }
 
   scope :processable_by, ->(user) {
     ids = []
@@ -121,6 +130,11 @@ class LeaveRequest < ActiveRecord::Base
     uid_contractors = LeavePreference.where(user_id: user_list_lp, is_contractor: true).pluck(:user_id)
     where(user_id: uid_contractors)
   }
+
+  scope :trainings, ->{
+    where(issue_id: LeavesHolidaysLogic.training_issue_list_id)
+  }
+
 
 
   def get_status
@@ -183,7 +197,8 @@ class LeaveRequest < ActiveRecord::Base
 
   def actual_leave_days
     return 0.5 if half_day?
-    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region)
+    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region) if is_region_valid?
+    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region, false, false, true) # Region is invalid, hence ignore bank holidays
   end
 
   def leave_days_within(from, to)
@@ -226,6 +241,17 @@ class LeaveRequest < ActiveRecord::Base
     return !self.is_non_deduce_leave && self.get_status.in?(["submitted", "processing", "accepted"])
   end
 
+  # Returns if the leave is associated as a training in the plugin admin parameters
+  def is_training_leave?
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:training_leave_reasons) || []
+    return self.issue_id.to_s.in?(p)
+  end
+
+  def is_comment_mandatory?
+    p = RedmineLeavesHolidays::Setting.defaults_settings(:mandatory_comments_leave_reasons) || []
+    return self.issue_id.to_s.in?(p)
+  end
+
   def vote_list_left
     vote_list_left = []
     voted_list = LeaveVote.for_request(self.id).map(&:user_id)
@@ -254,7 +280,20 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def notifies_approved_list
-    notifies_approved_list = self.user.project_notify_full_list.values.flatten.uniq
+    people = []
+    people += self.user.project_notify_full_list.values.flatten.uniq
+
+    if self.is_training_leave?
+      people += LeavesHolidaysLogic.people_notify_training
+    end
+
+    return people.flatten.uniq
+  end
+
+  def send_training_feedback_email
+    if is_training_leave? && RedmineLeavesHolidays::Setting.defaults_settings(:email_notification).to_i == 1
+      Mailer.leave_training_feedback(self).deliver
+    end
   end
 
   def email_people_notification_for(action, was_approved=false)
@@ -313,14 +352,6 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
-  def deadline(reg = self.region)
-    length = self.actual_leave_days.ceil
-    from = self.from_date
-
-    deadline = same_or_previous_working_day(from - length.day, reg)
-    return deadline
-  end
-
   def css_classes(manageable=false)
     s = "leave-request reason-#{self.issue_id} type-#{self.request_type}"
     s << ' in-past' if self.to_date < Date.today
@@ -355,6 +386,10 @@ class LeaveRequest < ActiveRecord::Base
     end
     LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: user_ids, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).pluck(:user_id)
   end
+
+  def is_region_valid?
+    return self.region.to_sym.in?(Holidays.regions)
+  end
     
 	private
 
@@ -368,17 +403,12 @@ class LeaveRequest < ActiveRecord::Base
         errors.add(:base, l(:leave_half_day_must_be_submitted_separately))
       end
 
-      # Forbid the leave creation if it's in the past
-      # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
-      #   errors.add(:base,"Your leave is in the past")
-      # end
-
       #check leave is not in a week-end or bank holiday
 
       count = 0
 
       real_leave_days.ceil.times do |i|
-        if (from_date + i).holiday?(region.to_sym, :observed) || non_working_week_days.include?((from_date + i).cwday)
+        if  (is_region_valid? && (from_date + i).holiday?(region.to_sym, :observed)) || non_working_week_days.include?((from_date + i).cwday)
           count += 1
         end          
       end
@@ -433,6 +463,9 @@ class LeaveRequest < ActiveRecord::Base
     preferences = self.user.leave_preferences
     
     self.region = preferences.region.to_sym
+    unless is_region_valid?
+      errors.add(:base, l(:user_region_not_valid))
+    end
     self.weekly_working_hours = preferences.weekly_working_hours
     self.annual_leave_days_max = preferences.annual_leave_days_max
   end
@@ -490,11 +523,12 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
-  def validate_quiet
-    if self.is_non_approval_leave && self.comments.gsub(/\s+/, "").size < 5
+  def validate_comments_mandatory
+    if self.is_comment_mandatory? && self.comments.gsub(/\s+/, "").size < 5
       errors.add(:comments, l(:leave_comments_mandatory))
     end
   end
+  
 
   def same_or_previous_working_day(date, region)
       d = date
