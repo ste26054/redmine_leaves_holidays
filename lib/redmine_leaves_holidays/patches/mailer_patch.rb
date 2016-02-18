@@ -18,11 +18,7 @@ module RedmineLeavesHolidays
     		@leave = leave
         @user = arg[:user]
         @recp = recipients.collect { |r| r.login }
-
-        @deadline = @leave.deadline
-        if (@deadline < Date.today)
-          @deadline = nil
-        end
+        
     		cc = []
         
     		subject = l(:mailer_leave_add_subject, :subject => leave.issue.subject, :id => leave.id, :user => @user.name)

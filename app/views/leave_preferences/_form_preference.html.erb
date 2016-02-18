@@ -32,6 +32,9 @@
 				<label><%= l(:leave_preferences_holidays_region) %>:</label>
 				<%- options = @regions -%>
 				<%= f.select :region, options %>
+				<% unless preference.is_region_valid? %>
+					<strong style="color: red;"><%= l(:leave_preferences_holidays_region_invalid, :region => preference.region) %></strong>
+				<% end %>
 			</p>
 
 			<% unless user_pref.is_contractor %>

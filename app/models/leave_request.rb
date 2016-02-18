@@ -70,7 +70,7 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :finished, -> { where("to_date < ?", Date.today) }
   
-  scope :finished_at, ->(d) { where("to_date < ?", d) }
+  scope :ending_on, ->(d) { where("to_date = ?", d) }
 
   scope :ongoing_or_finished, -> { where("from_date <= ? OR to_date <= ?", Date.today, Date.today) }  
 
@@ -80,6 +80,11 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :not_rejected, -> { rejected_ids = processed.includes(:leave_status).where(leave_statuses: { acceptance_status: "0" }).pluck("leave_requests.id")
                             where.not(id: rejected_ids) }
+
+  scope :region_invalid, -> {
+    regions = Holidays.regions.map(&:to_s)
+    where.not(region: regions)
+  }
 
   scope :processable_by, ->(user) {
     ids = []
@@ -190,7 +195,8 @@ class LeaveRequest < ActiveRecord::Base
 
   def actual_leave_days
     return 0.5 if half_day?
-    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region)
+    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region) if is_region_valid?
+    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region, false, false, true) # Region is invalid, hence ignore bank holidays
   end
 
   def leave_days_within(from, to)
@@ -344,14 +350,6 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
 
-  def deadline(reg = self.region)
-    length = self.actual_leave_days.ceil
-    from = self.from_date
-
-    deadline = same_or_previous_working_day(from - length.day, reg)
-    return deadline
-  end
-
   def css_classes(manageable=false)
     s = "leave-request reason-#{self.issue_id} type-#{self.request_type}"
     s << ' in-past' if self.to_date < Date.today
@@ -386,6 +384,10 @@ class LeaveRequest < ActiveRecord::Base
     end
     LeaveRequest.overlaps(date, date).includes(:leave_status).where(user_id: user_ids, :leave_statuses => {:acceptance_status => LeaveStatus.acceptance_statuses["accepted"]}).pluck(:user_id)
   end
+
+  def is_region_valid?
+    return self.region.to_sym.in?(Holidays.regions)
+  end
     
 	private
 
@@ -399,17 +401,12 @@ class LeaveRequest < ActiveRecord::Base
         errors.add(:base, l(:leave_half_day_must_be_submitted_separately))
       end
 
-      # Forbid the leave creation if it's in the past
-      # if to_date != nil && from_date != nil && (from_date < Date.today || to_date < Date.today)
-      #   errors.add(:base,"Your leave is in the past")
-      # end
-
       #check leave is not in a week-end or bank holiday
 
       count = 0
 
       real_leave_days.ceil.times do |i|
-        if (from_date + i).holiday?(region.to_sym, :observed) || non_working_week_days.include?((from_date + i).cwday)
+        if  (is_region_valid? && (from_date + i).holiday?(region.to_sym, :observed)) || non_working_week_days.include?((from_date + i).cwday)
           count += 1
         end          
       end
@@ -464,6 +461,9 @@ class LeaveRequest < ActiveRecord::Base
     preferences = self.user.leave_preferences
     
     self.region = preferences.region.to_sym
+    unless is_region_valid?
+      errors.add(:base, l(:user_region_not_valid))
+    end
     self.weekly_working_hours = preferences.weekly_working_hours
     self.annual_leave_days_max = preferences.annual_leave_days_max
   end
@@ -527,6 +527,7 @@ class LeaveRequest < ActiveRecord::Base
     end
   end
   
+
   def same_or_previous_working_day(date, region)
       d = date
       while (d).holiday?(region.to_sym, :observed) || non_working_week_days.include?((d).cwday)

@@ -129,6 +129,15 @@ module RedmineLeavesHolidays
 				end
 			end
 
+			def has_valid_leave_region?
+				return self.leave_preferences.region.to_sym.in?(Holidays.regions)
+			end
+
+			# Returns the leave requests for which the leave region is invalid
+			def get_leave_requests_invalid
+				return LeaveRequest.for_user(self.id).region_invalid
+			end
+
 			def actual_days_max(current_date = Date.today)
 				period = self.leave_period(current_date)
 				lp = self.leave_preferences
@@ -204,6 +213,28 @@ module RedmineLeavesHolidays
 
 			def contract_end_date
 				self.leave_preferences.contract_end_date
+			end
+
+			def is_on_leave?(date = Date.today)
+				return LeaveRequest.are_on_leave([self.id], date).any?
+			end
+
+			def is_working?(date = Date.today)
+				return false if date.wday == 6 || date.wday == 0
+				return false if is_on_leave?(date)
+				return true
+			end
+
+			def get_next_n_working_days(date = Date.today, n = 1)
+				date_inc = date
+				inc = 0
+				while inc < n
+					if self.is_working?(date_inc)
+						inc += 1
+					end
+					date_inc += 1
+				end
+				return date_inc - 1
 			end
 
 			# returns the list of projects where the user has a direct leave management rule set 
