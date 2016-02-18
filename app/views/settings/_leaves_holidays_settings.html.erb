@@ -139,6 +139,12 @@
 	</p>
 
 	<p>
+		<label><%= l(:leave_plugin_days_feedback_training) %>:</label>
+		<% days = RedmineLeavesHolidays::Setting.defaults_settings(:number_days_feedback_after_training) || 2 %>
+		<%= number_field_tag 'settings[number_days_feedback_after_training]', days, in: 0..30, step: 1, :required => true %>
+	</p>
+
+	<p>
 		<label><%= l(:leave_plugin_url_feedback_training) %>:</label>
 		<%- text = RedmineLeavesHolidays::Setting.defaults_settings(:training_form_url) -%>
 		<%= text_field_tag "settings[training_form_url]", text, :size => 40 %>

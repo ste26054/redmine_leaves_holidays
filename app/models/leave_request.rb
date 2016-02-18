@@ -72,6 +72,8 @@ class LeaveRequest < ActiveRecord::Base
   
   scope :ending_on, ->(d) { where("to_date = ?", d) }
 
+  scope :ended_between, -> (fr, to) { where("to_date >= ? AND to_date <= ?", fr, to) }
+
   scope :ongoing_or_finished, -> { where("from_date <= ? OR to_date <= ?", Date.today, Date.today) }  
 
   scope :ongoing, -> { where("from_date <= ? AND to_date >= ?", Date.today, Date.today) }

@@ -161,6 +161,10 @@ module LeavesHolidaysLogic
 		return RedmineLeavesHolidays::Setting.defaults_settings(:available_regions) || []
 	end
 
+	def self.get_training_feedback_days
+		return RedmineLeavesHolidays::Setting.defaults_settings(:number_days_feedback_after_training).try(&:to_i) || 2
+	end
+
 	def self.user_params(user, arg)
 		prefs = LeavePreference.where(user_id: user.id).first
 		return prefs.send(arg) if prefs != nil

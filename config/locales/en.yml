@@ -299,6 +299,7 @@ en:
   leave_plugin_reasons_training: "Absence reasons considered as training"
   leave_plugin_people_notify_training: "Additional People to notify a training has been approved"
   leave_plugin_url_feedback_training: "Url for the training feedback form sent via email after training is complete"
+  leave_plugin_days_feedback_training: "Number of working days after a training a user should be asked for feedback (emails will be sent at 09:30)"
 
   leave_exception_actor_concerned_invalid: "Is invalid regarding the absence management rule action selected"
   leave_cannot_take_place_before_beginning: "The end of the absence cannot take place before its beginning"

@@ -74,15 +74,18 @@ module LeavesHolidaysTriggers
 	end
 
   def self.send_training_feedback_reminders(date = Date.today)
-    
-    number_of_days_after_training_done = 2
-    date_check = date - number_of_days_after_training_done
-    # filter to accepted training leave ending before date but overlapping 2 days before date
-    leave_to_send_feedback_to = LeaveRequest.trainings.accepted.ending_on(date_check)
 
-    leave_to_send_feedback_to.each do |leave|
-      leave.send_training_feedback_email
+    start_search = date - 30
+    end_search = date
+    number_working_after_training_done = LeavesHolidaysLogic.get_training_feedback_days
+
+    trainings_to_check = LeaveRequest.trainings.accepted.ended_between(start_search, end_search)
+    leave_list = []
+    trainings_to_check.each do |request|
+      user = request.user
+      leave_list << request if user.get_next_n_working_days(request.to_date, number_working_after_training_done) == date
     end
 
+    leave_list.map(&:send_training_feedback_email)
   end
 end
