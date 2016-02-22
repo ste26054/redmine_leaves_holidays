@@ -43,6 +43,7 @@ module LeavesHolidaysManagements
       actor_type_db = 'Principal'
       # If no project list provided
       if projects.empty?
+        return [] if actor.locked?
         # Get active actor projects where management rules are set
         # project_list = actor.projects.where(id: LeaveManagementRule.projects.pluck(:id)).system_leave_projects.to_a
         # fetch projects between the actor projects and projects where lmr are set

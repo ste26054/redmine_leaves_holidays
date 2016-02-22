@@ -1,6 +1,8 @@
 class LeaveManagementRule < ActiveRecord::Base
   unloadable
 
+  default_scope { sanitized_users }
+
   belongs_to :sender, polymorphic: true # Sender can be a Role or a User
   belongs_to :receiver , polymorphic: true # receiver can be a Role or a User
 
@@ -28,9 +30,19 @@ class LeaveManagementRule < ActiveRecord::Base
   scope :sender_user, lambda { where(sender_type: "Principal") }
   scope :receiver_user, lambda { where(receiver_type: "Principal") }
 
+  scope :sanitized_users, lambda {  snd = sender_user;
+                                    rcv = receiver_user;
+                                    snd_uid = snd.pluck(:sender_id);
+                                    rcv_uid = rcv.pluck(:receiver_id);
+                                    uids_disallowed = User.where(status: 3, id: (snd_uid + rcv_uid).flatten.uniq).pluck(:id);
+                                    snd_disallowed_ids = snd.where(sender_id: uids_disallowed);
+                                    rcv_disallowed_ids = rcv.where(receiver_id: uids_disallowed); 
+                                    where.not(id: (snd_disallowed_ids + rcv_disallowed_ids).flatten.uniq)}
+
   def self.projects
     Project.system_leave_projects.where(id: LeaveManagementRule.select('distinct project_id').map(&:project_id))
   end
+
 
   def sender_list
     actor_list('sender')
@@ -99,7 +111,9 @@ class LeaveManagementRule < ActiveRecord::Base
       return user_list if self.leave_exception_rules.empty?
       return (user_list - self.leave_exception_rules.includes(:user).where(actor_concerned: LeaveExceptionRule.actors_concerned[actor]).map(&:user)).flatten
     else
-      return [self.send(actor)].flatten
+      user = self.send(actor)
+      return [] if user.locked?
+      return [user]
     end
   end
 
