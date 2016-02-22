@@ -1,8 +1,6 @@
 class LeaveManagementRule < ActiveRecord::Base
   unloadable
 
-  default_scope { sanitized_users }
-
   belongs_to :sender, polymorphic: true # Sender can be a Role or a User
   belongs_to :receiver , polymorphic: true # receiver can be a Role or a User
 
