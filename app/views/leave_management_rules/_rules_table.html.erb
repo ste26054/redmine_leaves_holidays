@@ -6,6 +6,7 @@
         <th><%= l(:leave_management_action) %></th>
         <th><%= l(:leave_management_receiver) %></th>
         <th><%= l(:leave_management_backup) %></th>
+        <!-- <th style="display: none"><%= l(:leave_management_reasons) %></th> -->
         <th></th>
       <tr>
   </thead>
@@ -17,8 +18,9 @@
   <% unless rules_grouped.empty? %>
 
     <% rules_grouped.each do |rule_ids| %>
-      <% rule_group = LeaveManagementRule.where(id: rule_ids).includes(:sender,:receiver,:leave_exception_rules).to_a %>
+      <% rule_group = LeaveManagementRule.where(id: rule_ids).includes(:sender, :receiver, :leave_exception_rules, :leave_reason_rules).to_a %>
       <% exceptions = rule_group.first.leave_exception_rules.includes(:user) %>
+      <% reasons = rule_group.first.leave_reason_rules.includes(:issue) %>
       <tr>
         <td>
           <%= rule_group.map{ |r| r.sender.name }.uniq.join(", ") %>
@@ -46,7 +48,17 @@
             <%= backup_receiver_users.join(", ") %>
           <% end %>
         </td>
+        <td style="display: none">
+          <% if reasons.any? %>
+            <%= reasons.map(&:issue).map(&:subject).join(", ") %>
+          <% else %>
+            All
+          <% end %>
+          
+        </td>
         <td>
+          <%= #rule_ids 
+          %>
             <%= link_to l(:button_edit), project_leave_management_rules_edit_path(project, :management_rule_ids => rule_ids, :edit => true), :remote => true, :class => "icon icon-edit" 
             %>
             <%= link_to l(:button_delete), project_leave_management_rules_update_path(project, :management_rule_ids => rule_ids, :delete => true), :remote => true, :class => "icon icon-del" 

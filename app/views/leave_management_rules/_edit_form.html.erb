@@ -32,9 +32,9 @@
       <% end %>
       
       <td>
-      <div style="display: none"><!-- Logic behind this control is not ready yet so do not display it -->
+      <div style="display: none">
           <span><%= l(:leave_management_reasons) %>:</span>
-          <p><%= select_tag 'reasons_selected', leave_reasons_select(@reason_selected), disabled: true %></p>
+          <p><%= select_tag 'reasons_selected', leave_reasons_select(@reason_selected) %></p>
           <% if @reason_selected == 1 %>
             <div id="reasons_div">
           <% else %>

@@ -113,11 +113,41 @@
 		<%= select_tag "settings[default_quiet_issues]", options, :multiple => true, :include_blank => true, :size => 10 %>
 	</p>
 
+	<p>
+		<label><%= l(:leave_plugin_comments_mandatory) %>:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:mandatory_comments_leave_reasons)) -%>
+		<%= select_tag "settings[mandatory_comments_leave_reasons]", options, :multiple => true, :include_blank => true, :size => 10 %>
+	</p>
 
 	<p>
 		<label><%= l(:leave_plugin_feedback_sending_list) %>:</label>
 		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:leave_error_recipients)) -%>
 		<%= select_tag "settings[leave_error_recipients]", options, :multiple => true, :include_blank => true, :width => 80, :size => 10 %>
+	</p>
+
+
+	<p>
+		<label><%= l(:leave_plugin_reasons_training) %>:</label>
+		<%- options = options_for_select(issues, RedmineLeavesHolidays::Setting.defaults_settings(:training_leave_reasons)) -%>
+		<%= select_tag "settings[training_leave_reasons]", options, :multiple => true, :include_blank => true, :size => 10 %>
+	</p>
+
+	<p>
+		<label><%= l(:leave_plugin_people_notify_training) %>:</label>
+		<%- options = options_for_select(users, RedmineLeavesHolidays::Setting.defaults_settings(:default_people_notify_training)) -%>
+		<%= select_tag "settings[default_people_notify_training]", options, :multiple => true, :include_blank => true, :width => 80, :size => 10 %>
+	</p>
+
+	<p>
+		<label><%= l(:leave_plugin_days_feedback_training) %>:</label>
+		<% days = RedmineLeavesHolidays::Setting.defaults_settings(:number_days_feedback_after_training) || 2 %>
+		<%= number_field_tag 'settings[number_days_feedback_after_training]', days, in: 0..30, step: 1, :required => true %>
+	</p>
+
+	<p>
+		<label><%= l(:leave_plugin_url_feedback_training) %>:</label>
+		<%- text = RedmineLeavesHolidays::Setting.defaults_settings(:training_form_url) -%>
+		<%= text_field_tag "settings[training_form_url]", text, :size => 40 %>
 	</p>
 
 
