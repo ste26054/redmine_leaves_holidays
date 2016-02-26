@@ -82,6 +82,18 @@ module RedmineLeavesHolidays
                              :zoom => zoom, :months => months})
       end
 
+      def params_previous_month
+        common_params.merge({:year => (date_from << 1).year,
+                             :month => (date_from << 1).month,
+                             :zoom => zoom, :months => months})
+      end
+
+      def params_next_month
+        common_params.merge({:year => (date_from >> 1).year,
+                             :month => (date_from >> 1).month,
+                             :zoom => zoom, :months => months})
+      end
+
       def params_next
         common_params.merge({:year => (date_from >> months).year,
                              :month => (date_from >> months).month,
