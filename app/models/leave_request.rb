@@ -46,7 +46,7 @@ class LeaveRequest < ActiveRecord::Base
    
 
   attr_accessor :leave_time_am, :leave_time_pm
-  attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type
+  attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type, :region
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
@@ -196,9 +196,14 @@ class LeaveRequest < ActiveRecord::Base
   end
 
   def actual_leave_days
-    return 0.5 if half_day?
-    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region) if is_region_valid?
-    return LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region, false, false, true) # Region is invalid, hence ignore bank holidays
+    days = 0
+    if is_region_valid?
+      days = LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region)
+    else
+      days = LeavesHolidaysLogic.get_working_days_count(from_date, to_date, region, false, false, true)
+    end
+    return 0.5 if half_day? && days == 1
+    return days
   end
 
   def leave_days_within(from, to)

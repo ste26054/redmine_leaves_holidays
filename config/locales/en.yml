@@ -56,6 +56,7 @@ en:
   leave_consultation: "Consultation"
   leave_consulted: "Consulted"
   leave_answer: "Answer"
+  leave_length: "(%{days} days)"
   leave_is_invalid_text: "is invalid"
   user_region_not_valid: "Your Absence region is invalid. Please contact the administrator."
   leave_was_submitted_by: "was submitted by"

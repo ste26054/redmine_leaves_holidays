@@ -53,8 +53,8 @@ class LeaveRequestsController < ApplicationController
 
   def new
   	@leave = LeaveRequest.new
-    @leave.leave_time_am = true
-    @leave.leave_time_pm = true
+    @leave.leave_time_am = "1"
+    @leave.leave_time_pm = "1"
   end
 
   def create
@@ -148,6 +148,25 @@ class LeaveRequestsController < ApplicationController
     end
   end
 
+  def leave_length
+    if params["from_date"] != "" && params["to_date"] != ""
+      from = params["from_date"].to_date
+      to = params["to_date"].to_date
+      if from <= to
+        region = @user.leave_preferences.region
+        am_checked = params["leave_time_am"] == "true" 
+        pm_checked = params["leave_time_pm"] == "true"
+        if am_checked || pm_checked
+          type = 0
+          type = 2 if am_checked && pm_checked
+          @length = LeaveRequest.new(from_date: from, to_date: to, region: region, request_type: type).actual_leave_days
+          @valid = true
+        end
+      end
+    end
+    render :layout => false
+  end
+
   protected
 
   def info_flash
@@ -213,8 +232,8 @@ class LeaveRequestsController < ApplicationController
   end
 
   def set_checkboxes
-  	@leave.leave_time_am = @leave.has_am?
-  	@leave.leave_time_pm = @leave.has_pm?
+  	@leave.leave_time_am = @leave.has_am? ? "1" : "0"
+  	@leave.leave_time_pm = @leave.has_pm? ? "1" : "0"
   end
 
   def set_issue_trackers

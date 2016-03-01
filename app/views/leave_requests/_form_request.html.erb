@@ -1,7 +1,8 @@
 
 <h2><%= l(:leave_form_title) %>:</h2>
 <fieldset>
-	<p><%= t(:leave_form_notice_html, :region => LeavesHolidaysLogic.user_params(@user, :region)) %></p>
+	<% region = LeavesHolidaysLogic.user_params(@user, :region) %>
+	<p><%= t(:leave_form_notice_html, :region => region) %></p>
 	<p><%= t(:leave_form_important_html) %></p>
 </fieldset>
 <br />
@@ -42,22 +43,34 @@
 		<p><%= l(:label_leave_period_absence) %></p>
 		
 		<p>
-			<%= l(:label_leave_from) %><%= f.date_field :from_date, readonly: true %><%= calendar_for('leave_request_from_date') %>
-			<%= l(:label_leave_to) %><%= f.date_field :to_date, readonly: true %><%= calendar_for('leave_request_to_date') %> included
+			<div id="leave_period">
+				<%= l(:label_leave_from) %><%= f.date_field :from_date, readonly: true %><%= calendar_for('leave_request_from_date') %>
+				<%= l(:label_leave_to) %><%= f.date_field :to_date, readonly: true %><%= calendar_for('leave_request_to_date') %> included <span id="leave_length">
+				<% if @leave.valid? %>
+					<strong><%= l(:leave_length, days: @leave.actual_leave_days) %></strong>
+				<% end %>
+				</span>
+			</div>
+
 		</p>
 
 		<p>
-			<%= l(:label_leave_half_full_day) %>
-			<%= f.check_box :leave_time_am %>
-			<%= label_tag(:leave_time_am, l(:label_leave_am)) %>
-			<%= f.check_box :leave_time_pm %>
-			<%= label_tag(:leave_time_pm, l(:label_leave_pm)) %>
+			<div id="leave_am_pm">
+				<%= l(:label_leave_half_full_day) %>
+				<%= f.check_box :leave_time_am %>
+				<%= label_tag(:leave_time_am, l(:label_leave_am)) %>
+				<%= f.check_box :leave_time_pm %>
+				<%= label_tag(:leave_time_pm, l(:label_leave_pm)) %>
+			</div>
 		</p>
 
 		<p>
+		<div id="leave_reason">
 			<label><%= l(:leave_reason) %>:</label>
  			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
-			<%= f.select :issue_id, options, {:include_blank => l(:leave_please_select)}, :required => true %>
+ 			
+				<%= f.select :issue_id, options, {:include_blank => l(:leave_please_select)}, :required => true %>
+			</div>
 		</p>
 
 		<p>
@@ -72,7 +85,27 @@
 
 	<%= f.submit l(:button_create), data: { confirm: l(:leave_form_submit_confirm) } %>
 
+<%= javascript_tag do %>
+  $(document).ready(function(){
+    $('#leave_period, #leave_am_pm').change(function(){
+    	$.ajax({
+    	    url: '<%= leave_length_leave_requests_path %>',
+    	    data: {from_date: $('#leave_request_from_date').val(),
+    	    			 to_date: $('#leave_request_to_date').val(),
+    	    			 region: '<%= region.to_s %>',
+    	    			 leave_time_am: $('#leave_request_leave_time_am').is(":checked"),
+    	    			 leave_time_pm: $('#leave_request_leave_time_pm').is(":checked")
+    	    			 },
+    	    cache: false,
+    	    success: function(data){
+    	      $("#leave_length").html(data);
+    	    }
+    	});
+    });
+  });
+<% end %>
 
 <% end %>
 <%= link_to l(:button_back), leave_requests_path %>
 </fieldset>
+
