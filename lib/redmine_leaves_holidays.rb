@@ -11,6 +11,7 @@ Rails.configuration.to_prepare do
   require 'redmine_leaves_holidays/leaves_holidays_triggers'
   require 'redmine_leaves_holidays/leaves_holidays_managements'
   require 'redmine_leaves_holidays/leaves_holidays_managements_modules'
+  require 'redmine_leaves_holidays/leaves_holidays_common'
 
   require 'redmine_leaves_holidays/helpers/timeline'
 

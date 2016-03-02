@@ -139,6 +139,11 @@ class LeaveRequest < ActiveRecord::Base
     where(issue_id: LeavesHolidaysLogic.training_issue_list_id)
   }
 
+  def leave_rule
+    issue_id = self.issue_id
+    LeaveRule.find_by(issue_id: issue_id)
+  end
+
 
 
   def get_status

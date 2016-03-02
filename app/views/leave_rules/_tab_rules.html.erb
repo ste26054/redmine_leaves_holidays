@@ -1,0 +1,20 @@
+<table class="list">
+  <thead><tr>
+  <th>Absence Reason</th>
+  <th></th>
+  </tr></thead>
+  <tbody>
+    <% for leave_reason in @leave_reasons %>
+      <tr class="<%= cycle("odd", "even") %>">
+        <td><%= leave_reason.subject %></td>
+        <td>
+          <% if @leave_reasons_undefined.exists?(id: leave_reason.id) %>
+            <%= link_to "Assign rules", new_leave_rule_path(issue_id: leave_reason.id), :class => 'icon icon-add' %></td>
+          <% else %>
+            <%= link_to "Edit rules", edit_leave_rule_path(@leave_rules.find_by(issue_id: leave_reason.id)), :class => 'icon icon-edit' %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

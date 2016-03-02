@@ -1,0 +1,19 @@
+<div class="box tabular">
+
+
+
+<% if LeaveRequestCustomField.all.any? %>
+  <p>
+    <legend>Custom fields activated for the leave reason:</legend>
+    <% LeaveRequestCustomField.all.each do |field| %>
+      <label class="block">
+        <%= check_box_tag 'leave_rule[custom_field_ids][]',field.id, @leave_rule.custom_fields.to_a.include?(field), :id => nil %>
+        <%= field.name %>
+      </label>
+    <% end %>
+  </p>
+  <%= hidden_field_tag 'leave_rule[custom_field_ids][]', '' %>
+  <%= f.hidden_field :issue_id %>
+<% end %>
+<%= submit_tag l(@leave_rule.new_record? ? :button_create : :button_save) %>
+</div>

@@ -16,6 +16,7 @@ Redmine::Plugin.register :redmine_leaves_holidays do
 project_module :leave_management do
   permission :view_all_leave_requests, { :leaves_requests => :view_all }
   permission :manage_user_leave_preferences, { :leaves_requests => :manage_user_prefs }
+  permission :manage_leave_rules, { :leaves_rules => :manage_leave_rules }
   permission :manage_leave_management_rules, { :leave_management_rules => [:edit, :update, :index, :show_metrics, :enable, :disable], :leave_administrators => [:edit, :update, :clear]}
   permission :view_leave_timeline, { :leave_timelines => :show_project }
 end

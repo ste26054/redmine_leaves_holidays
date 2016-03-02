@@ -34,6 +34,10 @@ module LeaveRequestsHelper
 
 		if authenticate_leave_preferences({action: :index})
 			tabs << { :label => :tab_user_leaves_preferences, :controller => 'leave_preferences', :action => 'index'}
+		end		
+
+		if authenticate_leave_rules({action: :index})
+			tabs << { :label => :tab_leave_rules, :controller => 'leave_rules', :action => 'index'}
 		end
 
 		return tabs

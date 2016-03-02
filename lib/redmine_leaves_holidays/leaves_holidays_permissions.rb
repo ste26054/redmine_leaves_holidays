@@ -64,4 +64,15 @@ module LeavesHolidaysPermissions
     return auth
   end
 
+  def authenticate_leave_rules(params={})
+    auth = false
+
+    case params[:action].to_sym
+      when :index
+        auth = @user.allowed_to?(:manage_leave_rules, nil, :global => true)
+    end
+
+    return auth
+  end
+
 end

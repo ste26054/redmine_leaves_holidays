@@ -79,7 +79,7 @@
  			<%- options = (@issues_trackers.collect {|a| [a.subject, a.id]}) -%>
  			
 				<%= f.select :issue_id, options, {:include_blank => l(:leave_please_select)}, :required => true %>
-			</div>
+		</div>
 		</p>
 
 		<p>
