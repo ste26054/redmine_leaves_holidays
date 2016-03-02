@@ -3,10 +3,13 @@ class LeaveRequest < ActiveRecord::Base
   include LeavesHolidaysLogic
   include LeavesHolidaysDates
   include Redmine::Utils::DateCalculation
+  include Redmine::SafeAttributes
 
 
   default_scope { joins(:user).where(users: {status: 1}).where.not(request_status: "3") }
   
+  acts_as_customizable
+
   belongs_to :user
   belongs_to :issue
   has_one :leave_status, dependent: :destroy
@@ -44,9 +47,10 @@ class LeaveRequest < ActiveRecord::Base
    validate :validate_comments_mandatory
    validate :validate_days_remaining
    
+  safe_attributes 'custom_fields', 'custom_field_values'
 
   attr_accessor :leave_time_am, :leave_time_pm
-  attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type, :region
+  attr_accessible :from_date, :to_date, :leave_time_am, :leave_time_pm, :issue_id, :comments, :user_id, :request_type, :region, :custom_field_values, :custom_fields
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 

@@ -46,6 +46,14 @@
 	<%= format_time(leave.updated_at) %>
 </p>
 
+<% if leave.custom_field_values.any? %>
+<ul>
+  <% render_custom_field_values(leave) do |custom_field, formatted| %>
+    <li><span class="label"><%= custom_field.name %>:</span> <%= formatted %></li>
+  <% end %>
+</ul>
+<% end %>
+
 <p>
 	<strong><%= l(:leave_status_full) %>:</strong>
 	<% s = leave.get_status %>

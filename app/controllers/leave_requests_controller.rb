@@ -22,7 +22,9 @@ class LeaveRequestsController < ApplicationController
   before_action :check_actions_are_notified, only: [:new, :create, :submit, :unsubmit, :edit, :update, :destroy]
 
   helper :sort
+  helper :custom_fields
   include SortHelper
+
 
   def index
     sort_init 'id', 'asc'
@@ -59,6 +61,7 @@ class LeaveRequestsController < ApplicationController
 
   def create
   	@leave = LeaveRequest.new(leave_request_params)
+    @leave.safe_attributes = params[:leave_request]
   	if @leave.save
       self.info_flash
       redirect_to @leave
@@ -111,6 +114,7 @@ class LeaveRequestsController < ApplicationController
       render_403
       return
     end
+    @leave.safe_attributes = params[:leave_request]
     if @leave.update(leave_request_params)
       self.info_flash
   		redirect_to @leave
@@ -241,7 +245,7 @@ class LeaveRequestsController < ApplicationController
   end
 
   def leave_request_params
-  	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments)
+  	params.require(:leave_request).permit(:from_date, :to_date, :user_id, :issue_id, :leave_time_am, :leave_time_pm, :comments, :custom_field_values)
   end
 
   def authenticate
