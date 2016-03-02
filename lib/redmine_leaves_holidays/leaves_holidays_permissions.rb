@@ -4,7 +4,7 @@ module LeavesHolidaysPermissions
     case params[:action].to_sym
     when :index
       auth = @user.can_create_leave_requests
-    when :new, :create, :leave_length
+    when :new, :create, :leave_length, :leave_issue_description
       auth = @user.can_create_leave_requests
     when :submit, :unsubmit, :edit, :update, :destroy
       auth = @user == @leave.user

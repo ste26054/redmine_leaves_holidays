@@ -8,6 +8,7 @@ RedmineApp::Application.routes.draw do
 		end
 		collection do
 			get 'leave_length'
+			get 'leave_issue_description'
 		end
 		resource :leave_status, :except => [:show]
 		resources :leave_votes, :except => [:show]

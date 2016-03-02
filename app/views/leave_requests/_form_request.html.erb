@@ -5,7 +5,7 @@
 <h2><%= l(:leave_form_title) %>:</h2>
 
 <div class="splitcontentleft">
-<fieldset>
+<fieldset><legend>Information:</legend>
 	<% region = LeavesHolidaysLogic.user_params(@user, :region) %>
 	<p><%= t(:leave_form_notice_html, :region => region) %></p>
 	<p><%= t(:leave_form_important_html) %></p>
@@ -13,9 +13,9 @@
 </div>
 
 <div class="splitcontentright">
-<fieldset>
+<fieldset><legend><%= l(:leave_form_notified_field) %>:</legend>
 	<% if @is_ok_to_submit_leave %>
-		<p><strong><%= l(:leave_form_notified_field) %>:</strong></p>
+
 		<% if @managed_list.any? %>
 			<p><strong><%= l(:leave_form_managed) %>:</strong> <%= @managed_list.map(&:name).join(', ') %></p>
 		<% end %>
@@ -123,6 +123,19 @@
     	    }
     	});
     });
+
+    $('#leave_reason').change(function(){
+
+    	$.ajax({
+    	    url: '<%= leave_issue_description_leave_requests_path %>',
+    	    data: {issue_id: $('#leave_reason :selected').val()},
+    	    cache: false,
+    	    success: function(data){
+    	      $("#leave_description").html(data);
+    	    }
+    	});
+
+    });
   });
 <% end %>
 
@@ -131,12 +144,8 @@
 </fieldset>
 </div>
 
-<div class="splitcontentright">
-	<fieldset><legend>Additional Information:</legend>
-		<div id="leave_description">
-			<% if @leave.valid? %>
-					<%= textilizable @leave.issue, :description %>
-				<% end %>
-		</div>
-	</fieldset>
+<div id="leave_description" class="splitcontentright wiki">
+	<% if @leave && @leave.issue %>
+		<%= render_issue_description_attachments(@leave.issue) %>
+	<% end %>
 </div>

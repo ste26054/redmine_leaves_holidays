@@ -173,4 +173,14 @@ module LeaveRequestsHelper
     project_tree_options_for_select(@projects_initial, :selected => selected)
   end
 
+  def render_issue_description_attachments(issue)
+		str = "".html_safe
+		str += "<fieldset><legend>Additional Information:</legend>".html_safe
+		str += "<div class=\"wiki\">".html_safe
+		str += textilizable issue, :description
+		str += link_to_attachments issue, {:thumbnails => true, :author => false}
+		str += "</div>".html_safe
+		str += "</fieldset>".html_safe
+  end
+
 end

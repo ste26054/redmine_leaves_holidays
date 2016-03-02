@@ -23,6 +23,7 @@ class LeaveRequestsController < ApplicationController
 
   helper :sort
   helper :custom_fields
+  helper :attachments
   include SortHelper
 
 
@@ -167,6 +168,14 @@ class LeaveRequestsController < ApplicationController
           @valid = true
         end
       end
+    end
+    render :layout => false
+  end
+
+  def leave_issue_description
+    if params["issue_id"] != ""
+      issue_id = params["issue_id"].to_i
+      @issue = @issues_trackers.select{|i| i.id == issue_id}.first
     end
     render :layout => false
   end
