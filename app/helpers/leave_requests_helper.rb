@@ -179,12 +179,30 @@ module LeaveRequestsHelper
 
   def render_issue_description_attachments(issue)
 		str = "".html_safe
-		str += "<fieldset><legend>Additional Information:</legend>".html_safe
+		return str unless issue
+		return str unless issue.description
+		return str if issue.description.empty?
+		str += "<fieldset><legend>Absence information:</legend>".html_safe
 		str += "<div class=\"wiki\">".html_safe
 		str += textilizable issue, :description
 		str += link_to_attachments issue, {:thumbnails => true, :author => false}
 		str += "</div>".html_safe
 		str += "</fieldset>".html_safe
+  end
+
+  def render_leave_custom_values(leave)
+  	str = "".html_safe
+  	return str unless leave
+  	return str unless leave.visible_custom_field_values.any?
+  	str += "<fieldset><legend>Additional information:</legend>".html_safe
+
+  	leave.visible_custom_field_values.each do |value|
+  		str += "<p>".html_safe
+  		str += custom_field_tag_with_label :leave_request, value
+  		str += "</p>".html_safe
+  	end
+
+  	str += "</fieldset>".html_safe
   end
 
 end
