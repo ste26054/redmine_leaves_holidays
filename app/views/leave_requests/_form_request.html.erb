@@ -89,15 +89,15 @@
 
 
 
-
-		<% if @leave.custom_field_values.any? %>
+    <div id="leave_custom_fields">
+		<% if @leave.visible_custom_field_values.any? %>
 			<fieldset><legend>Custom fields:</legend>
-				<% @leave.custom_field_values.each do |value| %>
+				<% @leave.visible_custom_field_values.each do |value| %>
 				  <p><%= custom_field_tag_with_label :leave_request, value %></p>
 				<% end %>
 			</fieldset>
 		<% end %>
-
+    </div>
 
 	
 </div>
@@ -107,7 +107,7 @@
 	<%= f.submit l(:button_create), data: { confirm: l(:leave_form_submit_confirm) } %>
 
 <%= javascript_tag do %>
-  $(document).ready(function(){
+
     $('#leave_period, #leave_am_pm').change(function(){
     	$.ajax({
     	    url: '<%= leave_length_leave_requests_path %>',
@@ -131,12 +131,16 @@
     	    data: {issue_id: $('#leave_reason :selected').val()},
     	    cache: false,
     	    success: function(data){
-    	      $("#leave_description").html(data);
+            var elements = $(data);
+            var custom_fields = elements.filter("#leave_custom_fields_ajax").html();
+            var description = elements.filter("#leave_description_ajax").html();
+            $("#leave_description").html(description);
+    	      $("#leave_custom_fields").html(custom_fields);
     	    }
     	});
 
     });
-  });
+
 <% end %>
 
 <% end %>

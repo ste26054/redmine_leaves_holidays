@@ -1,3 +1,17 @@
 <% if @issue %>
-  <%= render_issue_description_attachments(@issue) %>
+
+  <div id="leave_description_ajax">
+    <%= render_issue_description_attachments(@issue) %>
+  </div>
+
+  <div id="leave_custom_fields_ajax">
+    <% if @leave.visible_custom_field_values.any? %>
+      <fieldset><legend>Custom fields:</legend>
+        <% @leave.visible_custom_field_values.each do |value| %>
+          <p><%= custom_field_tag_with_label :leave_request, value %></p>
+        <% end %>
+      </fieldset>
+    <% end %>
+  </div>
+
 <% end %>

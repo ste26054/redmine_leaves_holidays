@@ -176,6 +176,10 @@ class LeaveRequestsController < ApplicationController
     if params["issue_id"] != ""
       issue_id = params["issue_id"].to_i
       @issue = @issues_trackers.select{|i| i.id == issue_id}.first
+      if @leave && @leave.issue_id
+      else
+        @leave = LeaveRequest.new(issue_id: issue_id)
+      end
     end
     render :layout => false
   end

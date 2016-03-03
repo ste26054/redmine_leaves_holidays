@@ -144,6 +144,22 @@ class LeaveRequest < ActiveRecord::Base
     LeaveRule.find_by(issue_id: issue_id)
   end
 
+  def editable_custom_field_values
+
+  end
+
+  def visible_custom_field_values
+    leave_rule = self.leave_rule
+    return [] unless leave_rule
+    self.custom_field_values.select{|r| r.custom_field.in?(leave_rule.custom_fields)}
+  end
+
+  def validate_custom_field_values
+    if new_record? || custom_field_values_changed?
+      visible_custom_field_values.each(&:validate_value)
+    end
+  end
+
 
 
   def get_status
