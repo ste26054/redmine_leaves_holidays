@@ -50,7 +50,9 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
-  scope :overlaps, ->(fr, to) { where("(DATEDIFF(from_date, ?) * DATEDIFF(?, to_date)) >= 0", to, fr) }
+  scope :overlaps, ->(fr, to) { where("
+    (from_date::date, to_date::date) OVERLAPS
+    (?::date, ?::date)", fr, to )} 
 
   scope :created, -> { where(request_status: "0") }
 
