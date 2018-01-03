@@ -50,16 +50,9 @@ class LeaveRequest < ActiveRecord::Base
 
   scope :for_user, ->(uid) { where(user_id: uid) }
 
-    scope :overlaps, ->(fr, to) { where("
-    (
-      (DATE_PART('year', from_date::date) - DATE_PART('year', ?::date)) * 366 + 
-      (DATE_PART('month', from_date::date) - DATE_PART('month', ?::date)) * 31 + 
-      (DATE_PART('day', from_date::date) - DATE_PART('day', ?::date))
-    ) * 
-    (
-      (DATE_PART('year', ?::date) - DATE_PART('year', to_date::date)) * 366 + 
-      (DATE_PART('month', ?::date) - DATE_PART('month', to_date::date)) * 31 + 
-      (DATE_PART('day', ?::date) - DATE_PART('day', to_date::date))) >= 0", to, to, to, fr, fr, fr) }
+  scope :overlaps, ->(fr, to) { where("
+    (from_date::date, to_date::date) OVERLAPS
+    (?::date, ?::date)", fr, to )} 
 
   scope :created, -> { where(request_status: "0") }
 
